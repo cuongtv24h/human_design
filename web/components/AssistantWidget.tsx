@@ -50,11 +50,6 @@ function AssistantBubble({ message, canInsert, onRate, onInsert, inserted }: {
   return (
     <div className="max-w-[92%] rounded-xl rounded-tl-sm border border-line bg-white px-3 py-2 shadow-sm">
       <Markdown>{message.content}</Markdown>
-      {message.sources.length > 0 && (
-        <div className="mt-2 border-t border-line pt-1.5 text-[11px] text-muted">
-          <span className="font-medium">Nguồn:</span> {message.sources.join(" · ")}
-        </div>
-      )}
       <div className="mt-1 text-[11px] text-muted/80">
         {message.tools_used.length > 0 && <>Đã tra: {message.tools_used.map((t) => TOOL_LABEL[t] ?? t).join(", ")} · </>}
         {formatTokens(message.prompt_tokens + message.completion_tokens)} token
