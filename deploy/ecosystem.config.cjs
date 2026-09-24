@@ -4,8 +4,7 @@
 // so this file does not depend on pm2's env_file support.
 const ROOT = process.env.HD_ROOT || "/srv/human_design";
 
-module.exports = {
-  apps: [
+const apps = [
     {
       name: "hd-api",
       cwd: ROOT,
@@ -27,14 +26,18 @@ module.exports = {
       max_memory_restart: "500M",
       env: { NODE_ENV: "production", API_INTERNAL_URL: "http://127.0.0.1:8001" },
     },
-    {
-      // Optional: existing REST bridge for ChatGPT Custom GPT Actions.
-      name: "hd-gpt-bridge",
-      cwd: `${ROOT}/mcp`,
-      script: "../.venv/bin/uvicorn",
-      args: "openapi_server:app --host 127.0.0.1 --port 8000",
-      interpreter: "none",
-      autorestart: true,
-    },
-  ],
-};
+];
+
+// Optional: REST bridge for ChatGPT Custom GPT Actions — only with HD_GPT_BRIDGE=1.
+if (process.env.HD_GPT_BRIDGE === "1") {
+  apps.push({
+    name: "hd-gpt-bridge",
+    cwd: `${ROOT}/mcp`,
+    script: "../.venv/bin/uvicorn",
+    args: "openapi_server:app --host 127.0.0.1 --port 8000",
+    interpreter: "none",
+    autorestart: true,
+  });
+}
+
+module.exports = { apps };

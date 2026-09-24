@@ -146,7 +146,7 @@ cd web && npm install && npm run dev        # http://localhost:3000
 
 - Tài liệu API: `http://localhost:8001/api/v1/docs`.
 - Production dùng PostgreSQL: `DATABASE_URL=postgresql+psycopg://…` trong `.env` (xem `.env.example`), rồi `.venv/bin/alembic upgrade head`.
-- Triển khai pm2 trên VPS: `deploy/ecosystem.config.cjs`, `deploy/deploy.sh`; trước khi deploy chạy `deploy/check.sh` (pytest + migration + typecheck + build).
+- **Triển khai lên VPS (pm2 + Nginx + PostgreSQL): xem hướng dẫn từng bước [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md).** Tệp đi kèm: `deploy/ecosystem.config.cjs` (pm2), `deploy/deploy.sh` (cập nhật), `deploy/nginx.conf.example`, `deploy/backup.sh` (sao lưu hằng ngày); trước khi deploy chạy `deploy/check.sh` (pytest + migration + typecheck + build).
 - Xuất **PDF/Word** từ cùng một `ReportDocument` (`backend/reporting/render_pdf.py`, `render_docx.py`). Cần font DejaVu (`sudo apt install fonts-dejavu-core`, hoặc đặt `HD_FONT_DIR`); hình BodyGraph PNG dùng `resvg-py`, không cần libcairo. File được render sẵn sau khi tạo báo cáo và lưu theo phiên bản ở `ARTIFACT_DIR` (mặc định `var/artifacts`).
 - Giờ sinh nhập và hiển thị theo **giờ Việt Nam khai báo**, tính theo UTC+07:00 cố định (`tools/hd_time.py`).
 - **Biên tập báo cáo** (`/reports/{id}/edit`): sửa từng phần bằng Markdown, “Lưu phiên bản” (Ctrl/⌘+S) tạo phiên bản mới, xem/khôi phục lịch sử, cảnh báo vàng khi nội dung mất thông tin kỹ thuật gốc (Type, Strategy, Authority…), bản nháp tự lưu trong trình duyệt mỗi 10 giây. Nút “AI biên tập phần này” trả về đề xuất kèm so sánh để chấp nhận hoặc bỏ.

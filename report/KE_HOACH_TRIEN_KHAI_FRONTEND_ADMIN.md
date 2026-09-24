@@ -381,9 +381,9 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | --- | --- | --- | --- |
 | P4-1 | Bảo mật: header (CSP, HSTS), kiểm tra IDOR theo org/owner, khóa đăng nhập sai nhiều lần, quét dependency | BE | 1,5d |
 | P4-2 | Giám sát: log JSON có request_id, `pm2-logrotate`, Sentry (tùy chọn), `pm2 monit` | BE | 0,5d |
-| P4-3 | Sao lưu Postgres hằng ngày (`pg_dump` + cron, giữ 14 bản) + thử khôi phục; dọn artifact cũ | BE | 0,5d |
+| P4-3 | Sao lưu Postgres hằng ngày (`pg_dump` + cron, giữ 14 bản) + thử khôi phục; dọn artifact cũ — 🟡 `deploy/backup.sh` + cron + hướng dẫn `pg_restore` đã có; còn thử khôi phục thật trên VPS | BE | 0,5d |
 | P4-4 | E2E Playwright luồng chính chạy trên máy dev trước mỗi lần deploy + kiểm thử tải nhẹ | FE | 1,5d |
-| P4-5 | Triển khai production: Nginx + certbot, `pm2 startup` + `pm2 save`, `deploy/deploy.sh`, runbook | BE | 1d |
+| P4-5 | Triển khai production: Nginx + certbot, `pm2 startup` + `pm2 save`, `deploy/deploy.sh`, runbook — ✅ runbook `docs/DEPLOY_VPS.md`, `deploy/nginx.conf.example`, `deploy.sh` có kiểm tra `.env` + health-check (chưa chạy thử trên PostgreSQL thật) | BE | 1d |
 | P4-6 | Chính sách dữ liệu: đồng ý xử lý dữ liệu, xuất/xóa dữ liệu theo yêu cầu | BE+FE | 1d |
 
 **Mốc M3 (cuối tuần 9):** go-live.

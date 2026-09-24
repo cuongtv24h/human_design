@@ -13,6 +13,7 @@ import os
 import sys
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from .db import Database
 from .models import Organization, User
@@ -61,7 +62,8 @@ def main(argv: list[str] | None = None) -> int:
 
     settings = Settings.from_env()
     db = Database(settings.database_url)
-    db.create_all()
+    if args.command == "init-db" or settings.auto_create_tables:
+        db.create_all()  # dev convenience; production schema comes only from `alembic upgrade head`
     if args.command == "init-db":
         print(f"OK: tables ready at {settings.database_url.split('@')[-1]}")
         return 0
@@ -69,7 +71,11 @@ def main(argv: list[str] | None = None) -> int:
     if len(password) < 8:
         print("Mật khẩu phải có ít nhất 8 ký tự.", file=sys.stderr)
         return 2
-    user = ensure_admin(db, args.email, password, args.name, args.org)
+    try:
+        user = ensure_admin(db, args.email, password, args.name, args.org)
+    except (OperationalError, ProgrammingError):
+        print("Chưa có bảng dữ liệu. Chạy trước: .venv/bin/alembic upgrade head", file=sys.stderr)
+        return 3
     print(f"OK: admin {user.email} (id={user.id})")
     return 0
 
