@@ -129,6 +129,27 @@ cd mcp
 
 Không hard-code `localhost` trong client chạy ở browser; khi deploy public, client phải gọi public base URL của API.
 
+## Admin web (quản lý khách hàng & báo cáo)
+
+Gồm **API `/api/v1`** (`backend/api/`, FastAPI + SQLAlchemy + Alembic) và **giao diện** (`web/`, Next.js 15 + Tailwind + TanStack Query). Trình duyệt chỉ gọi Next.js; Next.js proxy `/api/*` sang API nên cookie phiên (httpOnly) hoạt động trên cùng một origin.
+
+Chạy trên máy dev (SQLite tự tạo ở `var/hd_dev.sqlite3`):
+
+```bash
+# 1) API
+.venv/bin/python -m backend.api.cli create-admin --email admin@vidu.vn --name "Quản trị"   # hỏi mật khẩu
+.venv/bin/uvicorn backend.api.main:app --host 127.0.0.1 --port 8001
+
+# 2) Web (terminal khác)
+cd web && npm install && npm run dev        # http://localhost:3000
+```
+
+- Tài liệu API: `http://localhost:8001/api/v1/docs`.
+- Production dùng PostgreSQL: `DATABASE_URL=postgresql+psycopg://…` trong `.env` (xem `.env.example`), rồi `.venv/bin/alembic upgrade head`.
+- Triển khai pm2 trên VPS: `deploy/ecosystem.config.cjs`, `deploy/deploy.sh`; trước khi deploy chạy `deploy/check.sh` (pytest + migration + typecheck + build).
+- Giờ sinh nhập và hiển thị theo **giờ Việt Nam khai báo**, tính theo UTC+07:00 cố định (`tools/hd_time.py`).
+- Chế độ nội dung LLM cần `HD_LLM_API_KEY`; hiện chạy nền bằng FastAPI background task (worker arq/Redis thuộc P2).
+
 ## Kiểm tra
 
 ```bash

@@ -1,6 +1,8 @@
 # Kế hoạch triển khai Frontend / Admin — Human Design Analyzer
 
-> Phiên bản 1.2 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+> Phiên bản 1.3 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+>
+> Thay đổi v1.3: **đã có lát cắt chạy được P0 + P1** — API `/api/v1` (`backend/api/`) và Admin MVP (`web/`); xem mục 8.0 *Tiến độ*.
 >
 > Thay đổi v1.2: **không tự áp offset lịch sử** — tính đúng theo giờ khai báo với chuẩn Việt Nam = UTC+07:00; P0-4 đã hoàn thành (`tools/hd_time.py`).
 >
@@ -282,6 +284,27 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 
 Ước lượng theo ngày công (d). BE = Backend, FE = Frontend.
 
+### 8.0 Tiến độ (cập nhật v1.3)
+
+| Hạng mục | Trạng thái | Ghi chú |
+| --- | --- | --- |
+| P0-1 khung API, pm2, check.sh | ✅ | `backend/api/main.py`, `deploy/ecosystem.config.cjs`, `deploy/check.sh`, `deploy/deploy.sh` |
+| P0-2 models + Alembic | ✅ | 7 bảng; migration `0001`, `alembic check` sạch; JSONB trên PostgreSQL |
+| P0-3 auth + RBAC | ✅ | Argon2, cookie httpOnly `hd_session` (chỉ lưu SHA-256), header chống CSRF `X-HD-Request`, admin/coach |
+| P0-4 quy ước giờ sinh | ✅ | `tools/hd_time.py` |
+| P0-5 PDF / P0-6 DOCX theo `ReportDocument` | ⏳ | UI hiển thị “Đang phát triển” |
+| P0-7 worker arq | ⏳ tạm thay | LLM chạy bằng FastAPI `BackgroundTasks`; fallback template khi lỗi/thiếu key |
+| P0-8 CORS whitelist, rate limit | ◐ | CORS theo `CORS_ORIGINS`; giới hạn đăng nhập sai 5 lần/15 phút (trong tiến trình, chưa Redis) |
+| P0-9 `/catalog` | ✅ | Kiểu TS viết tay trong `web/lib/types.ts` (chưa sinh tự động) |
+| P0-10 artifact có token ký | ⏳ | Hiện tải trực tiếp qua phiên đăng nhập |
+| P1-1 khung web | ✅ | Next.js 15, Tailwind 4, TanStack Query; component tự viết (chưa dùng shadcn CLI) |
+| P1-2 đăng nhập + guard | ✅ | |
+| P1-3 API clients/reports/preview | ✅ | `tests/test_api_v1.py` (7 test) |
+| P1-4 khách hàng | ✅ | Ô ngày dd/mm/yyyy, giờ 24h “Giờ sinh (giờ Việt Nam)”, xác nhận đồng ý xử lý dữ liệu |
+| P1-5 wizard 4 bước + preview | ✅ | Preview BodyGraph + chỉ số + nội dung nháp |
+| P1-6 xem báo cáo | ✅ | Tab Nội dung / Infographic (iframe sandbox) / BodyGraph / Xuất file (MD, HTML, SVG) |
+| P1-7 tổng quan + nhật ký | ✅ | Bảng `audit_logs`: đăng nhập, tạo/sửa/xóa, xuất file |
+
 ### P0 — Nền móng backend (tuần 1–2)
 
 | Mã | Việc | Ai | Ước lượng | Hoàn thành khi |
@@ -421,7 +444,7 @@ set -euo pipefail
 cd /srv/human_design
 git pull --ff-only origin main
 .venv/bin/pip install -q -r requirements.txt
-.venv/bin/alembic -c backend/api/alembic.ini upgrade head
+.venv/bin/alembic upgrade head
 (cd web && npm ci && npm run build)
 pm2 reload deploy/ecosystem.config.cjs --update-env
 pm2 save
@@ -490,7 +513,7 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 
 1. ✅ Đã chốt: giờ Việt Nam (D6b), pm2/VPS (D8), template tự sinh (D10). Các quyết định còn lại theo đề xuất mặc định.
 2. ✅ **P0-4 quy ước giờ sinh** — đã xong, áp dụng cho mọi entry point hiện có.
-3. Khung `backend/api/` + `deploy/ecosystem.config.cjs` + `deploy/check.sh` (P0-1).
+3. ✅ Khung `backend/api/` + `deploy/ecosystem.config.cjs` + `deploy/check.sh` (P0-1).
 4. Chuẩn bị VPS: Nginx, certbot, PostgreSQL 16, Redis 7, Node LTS + pm2, Python 3.11 + venv.
 5. Wireframe 3 màn **Wizard**, **Xem báo cáo**, **Trình biên tập** (mục 7.1–7.3).
 
