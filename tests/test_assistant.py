@@ -48,7 +48,8 @@ def _answer(text, prompt=100, completion=20):
 
 def test_system_prompt_is_strict():
     for phrase in ("CHỈ trả lời", "Human Design", "TỪ CHỐI", "KHÔNG đoán", "không bịa",
-                   "không thay thế tư vấn y tế", "search_knowledge", "calculate_chart"):
+                   "không thay thế tư vấn y tế", "search_knowledge", "calculate_chart",
+                   "TRẢ LỜI LUÔN", "càng ít càng tốt"):
         assert phrase in ASSISTANT_SYSTEM
     assert len(TOOL_NAMES) == 7
 
