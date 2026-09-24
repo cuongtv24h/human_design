@@ -246,7 +246,7 @@ function Wizard() {
                   return (
                     <OptionCard key={o.value} option={o} selected={mode === o.value} disabled={unavailable} onSelect={() => setMode(o.value)}
                       extra={unavailable ? (
-                        <p className="mt-2 text-xs text-amber-700">Chưa cấu hình khóa AI (HD_LLM_API_KEY) trên máy chủ — tạm thời chưa dùng được.</p>
+                        <p className="mt-2 text-xs text-amber-700">Chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY) — tạm thời chưa dùng được.</p>
                       ) : o.value === "llm" ? (
                         <div className="mt-2 flex items-center gap-1 text-xs text-[#7a5516]"><Sparkles className="size-3.5" /> AI không tính lại chart — chỉ viết lại lời văn từ dữ liệu đã tính.</div>
                       ) : undefined} />
