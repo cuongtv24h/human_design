@@ -18,6 +18,7 @@ Hệ thống tính toán và phân tích Human Design bằng tiếng Việt, dù
 human_design/
 ├── requirements.txt             # dependency Python đã ghim phiên bản
 ├── tools/                       # calculator, analyzer, CLI, SVG, PDF và domain analyzers
+├── backend/reporting/           # Report Contract, catalog và Admin/Coach orchestrator
 ├── mcp/
 │   ├── server.py                # MCP entrypoint hiện tại: 36 tools, 22 resources
 │   ├── openapi_server.py        # FastAPI bridge: 38 route decorator
@@ -30,6 +31,10 @@ human_design/
 ```
 
 `README.md`, `docs/README.md` và `mcp/README.md` là tài liệu vận hành hiện tại. Các file có hậu tố hoặc tiêu đề v2.x trong `report/`, `README_v2.1.md` và `mcp/README_v2.1.md` là tài liệu lịch sử, không dùng làm số liệu runtime.
+
+### Report layer cho Admin/Coach
+
+`docs/REPORTING_ARCHITECTURE.md` mô tả `ReportRequest` → `ChartSnapshot` → `ReportPlan` → `ReportSection[]` → `ReportDocument`. Application layer hiện hỗ trợ `free_basic`/`deep_core` và 8 domain add-on; frontend, billing và payment chưa thuộc scope. Orchestrator gọi analyzer hiện có trong `tools/`, giữ raw structured output và provenance để renderer/LLM diễn giải sau này.
 
 ## Cài đặt
 

@@ -80,7 +80,8 @@ def _hanging(chart):
 
 
 def analyze_relationship(birth_datetime, name="", partner_datetime=None, partner_name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # The primary chart may be supplied by the report orchestrator.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t, p = chart["type"], chart["profile"]
     allg = _gate_sets(chart)
     hanging = _hanging(chart)

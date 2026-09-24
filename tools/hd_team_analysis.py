@@ -72,7 +72,8 @@ MANAGE_BY_TYPE = {
 
 
 def analyze_team(birth_datetime, name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # Accept a precomputed chart when called from the report pipeline.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t, p = chart["type"], chart["profile"]
     role = TYPE_TEAM_ROLE[t]
     defined = set(chart["defined_centers"])

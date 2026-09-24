@@ -87,7 +87,8 @@ VOCATION_CHANNELS = {
 
 
 def analyze_purpose(birth_datetime, name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # Accept a precomputed chart when called from the report pipeline.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t, p = chart["type"], chart["profile"]
     qs = chart.get("quarters", {})
     pq = qs.get("personality_sun_quarter", "") if isinstance(qs, dict) else ""

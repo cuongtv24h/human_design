@@ -78,7 +78,8 @@ DEFINED_WARNINGS = {
 
 
 def analyze_deconditioning(birth_datetime, name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # Accept a precomputed chart when called from the report pipeline.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t = chart["type"]
     defined = set(chart["defined_centers"])
     order = ["Head", "Ajna", "Throat", "G", "Heart", "Spleen", "Sacral", "Solar Plexus", "Root"]

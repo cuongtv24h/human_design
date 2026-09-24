@@ -127,7 +127,8 @@ def _match_authority(auth_str):
 
 
 def analyze_decision(birth_datetime, name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # Accept a precomputed chart when called from the report pipeline.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t = chart["type"]
     key = _match_authority(chart["authority"])
     g = AUTHORITY_GUIDE[key]

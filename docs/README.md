@@ -60,7 +60,17 @@ Các Wiki này có tổng 989 dòng và được giữ lại để truy nguyên 
 
 Sáu skill foundation mới (`21`–`26`) bổ sung Centers, Channels, Type/Strategy/Authority, Profile/Definition, phương pháp tính và ứng dụng thực tiễn. Nhóm skill còn lại bao phủ phân tích toàn diện, nghề nghiệp, quan hệ, Gate, fear, love, Manifestor, Cross, consultation general, money, career/business, health, parenting, potential, relationship deep, decision, deconditioning, purpose và team.
 
-## 5. Quy tắc cập nhật
+## 5. Report layer Admin/Coach
+
+`REPORTING_ARCHITECTURE.md` mô tả application layer mới trong `backend/reporting/`:
+
+- `contract.py`: `ReportRequest`, `ReportPlan`, `ReportSection`, `ReportDocument` và provenance.
+- `catalog.py`: tier `free_basic`/`deep_core` và 8 domain module.
+- `orchestrator.py`: tính chart một lần, gọi analyzer hiện có trong `tools/`, chuẩn hóa output và tạo Markdown preview deterministic.
+
+Layer này chưa bao gồm frontend, billing hoặc payment. Raw chart/analyzer output luôn là source of truth; LLM nếu được thêm sau này chỉ diễn giải structured output.
+
+## 6. Quy tắc cập nhật
 
 - Khi thêm knowledge mới, cập nhật bảng ở đây và trường `knowledge_base.files` trong manifest.
 - Khi thêm tool/resource, kiểm tra decorator thực tế trong `mcp/server.py` rồi cập nhật `mcp/tools_manifest_latest.json`.
