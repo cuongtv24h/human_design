@@ -132,41 +132,19 @@ except:
 app = FastAPI(
     title="Human Design Analyzer API",
     description="""
-    ## Human Design Analysis System - API cho ChatGPT Web v3.0
+    ## Human Design Analyzer API v3.0.0
 
-    Hệ thống tính toán và phân tích Human Design chuyên sâu với Swiss Ephemeris chính xác.
-    Tích hợp tài liệu cá nhân 7 files 989 dòng + Tool tổng quát 60 biến thể + Full Money Map + Potential & Blind Spots + 6 domains v3.0 (Health, Relationship, Decision, Deconditioning, Purpose, Team) - Hoàn chỉnh 7 nhu cầu thực tế.
+    FastAPI bridge cho Human Design Analyzer, dùng Swiss Ephemeris và cùng calculator với MCP stdio server.
 
-    ### Tính năng:
-    - Tính toán BodyGraph chính xác (Personality + Design 88°)
-    - Phân tích chuyên sâu Type, Strategy, Authority, Profile
-    - Tra cứu 64 Gates, 9 Centers, 36 Channels
-    - So sánh mối quan hệ (Composite)
-    - Phân tích Fear Gates (19 cổng), Love Gates (11 cổng)
-    - 192 Incarnation Crosses
-    - Chuyên luận Manifestor 9%
-    - Tool tổng quát 5 Types x 12 Profiles = 60 biến thể - 100% dân số
-    - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels/Gates - 60 biến thể
-    - **MỚI v2.3: Potential & Blind Spots - Tiềm năng & Điểm mù - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi phù hợp - Đáp ứng ý kiến thực tế về self-improvement**
-    - **MỚI v3.0 (Option C Full): 12 tools 6 domains - Health Thân-Tâm-Trí, Relationship+Composite, Decision Authority, Deconditioning 7d/7m/7y, Purpose Mission, Team System - Hoàn chỉnh 7/7 nhu cầu + FIX shadowing bug**
+    ### Phạm vi:
+    - 30 route nghiệp vụ tương ứng với 30 MCP tools: core, advanced, general, money, potential và 6 domain v3.0.
+    - Tính BodyGraph Personality + Design 88°, tra cứu 64 Gates, 9 Centers, 36 Channels, Profile và Cross.
+    - Phân tích Money, Health, Potential, Relationship, Decision, Deconditioning, Purpose và Team.
+    - OpenAPI spec tại `/openapi.json` để tích hợp REST client hoặc Custom GPT Actions.
 
-    ### 7 Nhu cầu thực tế từ người học (v2.3):
-    - Dòng tiền (Money) - ĐÃ BUILD v2.2
-    - Sức khỏe Thân-Tâm-Trí (Health Body-Mind-Spirit) - ĐÃ BUILD v3.0
-    - Tiềm năng & Điểm mù (Potential & Blind Spots) - MỚI v2.3 - Điểm mạnh/yếu, quan sát đa góc nhìn
-    - Mối quan hệ (Relationships) - ĐÃ BUILD v3.0 (kèm Composite 2 người)
-    - Mục đích Sứ mệnh (Purpose Mission) - ĐÃ BUILD v3.0
-    - Hệ thống đúng người đúng việc (System Building) - ĐÃ BUILD v3.0
-    - Hành vi & Ra quyết định cải thiện bản thân (Decision & Behavior) - ĐÃ BUILD v3.0 (Decision + Deconditioning)
-
-    ### Cách dùng với ChatGPT Web:
-    1. Tạo Custom GPT tại https://chat.openai.com/gpts/editor
-    2. Thêm Action với OpenAPI spec từ /openapi.json
-    3. ChatGPT sẽ tự động gọi API này khi phân tích Human Design
-
-    ### Độ chính xác:
-    - Swiss Ephemeris NASA JPL DE431, <1 arc second
-    - Đã kiểm thử với Jovian Archive
+    ### Dữ liệu và giới hạn:
+    - Swiss Ephemeris được dùng cho phép tính thiên văn; ngày/giờ local được chuyển sang UTC theo timezone.
+    - Human Design là công cụ tự quan sát/thử nghiệm, không thay thế tư vấn y tế, pháp lý hoặc tài chính.
     """,
     version="3.0.0",
     contact={
@@ -187,15 +165,15 @@ app.add_middleware(
 # ==================== MODELS ====================
 
 class ChartRequest(BaseModel):
-    birth_date: str = Field(..., example="1990-05-15", description="Ngày sinh YYYY-MM-DD")
-    birth_time: str = Field(..., example="08:30", description="Giờ sinh HH:MM (24h)")
-    timezone: str = Field(default="+07:00", example="+07:00", description="Múi giờ, mặc định +07:00 VN")
-    name: str = Field(default="", example="Nguyen Van A", description="Tên người")
-    birth_location: str = Field(default="", example="Hanoi, Vietnam", description="Nơi sinh")
+    birth_date: str = Field(..., json_schema_extra={"example": "1990-05-15"}, description="Ngày sinh YYYY-MM-DD")
+    birth_time: str = Field(..., json_schema_extra={"example": "08:30"}, description="Giờ sinh HH:MM (24h)")
+    timezone: str = Field(default="+07:00", json_schema_extra={"example": "+07:00"}, description="Múi giờ, mặc định +07:00 VN")
+    name: str = Field(default="", json_schema_extra={"example": "Nguyen Van A"}, description="Tên người")
+    birth_location: str = Field(default="", json_schema_extra={"example": "Hanoi, Vietnam"}, description="Nơi sinh")
 
 class RelationshipRequest(BaseModel):
-    birth_date: str = Field(..., example="1990-05-15")
-    birth_time: str = Field(..., example="08:30")
+    birth_date: str = Field(..., json_schema_extra={"example": "1990-05-15"})
+    birth_time: str = Field(..., json_schema_extra={"example": "08:30"})
     timezone: str = Field(default="+07:00")
     name: str = Field(default="")
     birth_location: str = Field(default="")
@@ -205,31 +183,31 @@ class RelationshipRequest(BaseModel):
     partner_name: str = Field(default="", description="Tên đối phương")
 
 class AnalysisRequest(BaseModel):
-    birth_date: str = Field(..., example="1990-05-15")
-    birth_time: str = Field(..., example="08:30")
+    birth_date: str = Field(..., json_schema_extra={"example": "1990-05-15"})
+    birth_time: str = Field(..., json_schema_extra={"example": "08:30"})
     timezone: str = Field(default="+07:00")
     name: str = Field(default="")
-    focus_area: str = Field(default="full", example="full", description="full, type, authority, centers, channels, profile, career, relationship, health")
+    focus_area: str = Field(default="full", json_schema_extra={"example": "full"}, description="full, type, authority, centers, channels, profile, career, relationship, health")
 
 class GateRequest(BaseModel):
-    gate_number: int = Field(..., ge=1, le=64, example=10, description="Số cổng 1-64")
+    gate_number: int = Field(..., ge=1, le=64, json_schema_extra={"example": 10}, description="Số cổng 1-64")
 
 class CenterRequest(BaseModel):
-    center_name: str = Field(..., example="G", description="Head, Ajna, Throat, G, Heart, Spleen, Sacral, Solar Plexus, Root")
+    center_name: str = Field(..., json_schema_extra={"example": "G"}, description="Head, Ajna, Throat, G, Heart, Spleen, Sacral, Solar Plexus, Root")
 
 class ChannelRequest(BaseModel):
-    gate1: int = Field(..., ge=1, le=64, example=10)
-    gate2: int = Field(..., ge=1, le=64, example=20)
+    gate1: int = Field(..., ge=1, le=64, json_schema_extra={"example": 10})
+    gate2: int = Field(..., ge=1, le=64, json_schema_extra={"example": 20})
 
 class ProfileRequest(BaseModel):
-    profile: str = Field(..., example="2/4", description="1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6, 4/1, 5/1, 5/2, 6/2, 6/3")
+    profile: str = Field(..., json_schema_extra={"example": "2/4"}, description="1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6, 4/1, 5/1, 5/2, 6/2, 6/3")
 
 class CompareRequest(BaseModel):
-    person1_date: str = Field(..., example="1990-05-15")
-    person1_time: str = Field(..., example="08:30")
+    person1_date: str = Field(..., json_schema_extra={"example": "1990-05-15"})
+    person1_time: str = Field(..., json_schema_extra={"example": "08:30"})
     person1_name: str = Field(default="Person 1")
-    person2_date: str = Field(..., example="1992-08-20")
-    person2_time: str = Field(..., example="14:00")
+    person2_date: str = Field(..., json_schema_extra={"example": "1992-08-20"})
+    person2_time: str = Field(..., json_schema_extra={"example": "14:00"})
     person2_name: str = Field(default="Person 2")
     timezone: str = Field(default="+07:00")
 
@@ -238,12 +216,12 @@ class CompareRequest(BaseModel):
 @app.get("/", tags=["Root"])
 def root():
     return {
-        "message": "Human Design Analyzer API v2.3 - Sẵn sàng cho ChatGPT Web - 18 endpoints - Full Money Map + Potential & Blind Spots",
+        "message": "Human Design Analyzer API v3.0.0 - 30 tools + 2 system routes",
         "version": "3.0.0",
         "docs": "/docs",
         "openapi": "/openapi.json",
         "chatgpt_integration": "Dùng /openapi.json để tạo Custom GPT Action",
-        "total_tools": 18,
+        "total_tools": 30,
         "endpoints": [
             "/calculate-chart",
             "/analyze-deep",
@@ -277,7 +255,7 @@ def root():
             "/generate-team-report"
         ],
         "coverage": "100% dân số - 5 Types x 12 Profiles = 60 biến thể + Full Money Map 6 Channels x 14 Gates + Potential & Blind Spots 11 Perspectives + v3.0 6 domains (Health/Relationship/Decision/Deconditioning/Purpose/Team)",
-        "specialized_skills": "20 skills v3.0 Complete: 01-14 + 15_relationship + 16_decision + 17_deconditioning + 18_purpose + 20_team (12_health upgraded)",
+        "specialized_skills": "19 Markdown skills: 01-18 + 20 (không phải MCP prompts; 19 reserved)",
         "user_interests": "7 nhu cầu cốt lõi: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior"
     }
 
@@ -505,7 +483,7 @@ def manifestor_deep_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/analyze-consultation-general", tags=["General - 100% dân số"], summary="MỚI v2.1 - Tham vấn tổng quát 5 Types x 12 Profiles = 60 biến thể")
+@app.post("/analyze-consultation-general", tags=["General - 100% dân số"], summary="v3.0 - Tham vấn tổng quát 5 Types x 12 Profiles = 60 biến thể")
 def consultation_general_api(req: ChartRequest):
     """
     TOOL TỔNG QUÁT NHẤT - Áp dụng cho 100% dân số
@@ -533,7 +511,7 @@ def consultation_general_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/generate-consultation-report", tags=["General - 100% dân số"], summary="MỚI v2.1 - Báo cáo tham vấn tổng quát đầy đủ markdown")
+@app.post("/generate-consultation-report", tags=["General - 100% dân số"], summary="v3.0 - Báo cáo tham vấn tổng quát đầy đủ markdown")
 def consultation_report_api(req: ChartRequest):
     """Tạo báo cáo tham vấn tổng quát đầy đủ markdown - áp dụng cho TẤT CẢ Types/Profiles, 60 biến thể"""
     if not GENERAL_AVAILABLE:
@@ -546,7 +524,7 @@ def consultation_report_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/analyze-money-map", tags=["Money - Full Money Map v2.2"], summary="MỚI v2.2 - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels/Gates - 60 biến thể")
+@app.post("/analyze-money-map", tags=["Money - Full Money Map v3.0"], summary="v3.0 - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels/Gates - 60 biến thể")
 def money_map_api(req: ChartRequest):
     """
     TOOL CHUYÊN DỤNG TIỀN BẠC - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels
@@ -576,7 +554,7 @@ def money_map_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/generate-money-report", tags=["Money - Full Money Map v2.2"], summary="MỚI v2.2 - Báo cáo Full Money Map đầy đủ markdown - 60 biến thể")
+@app.post("/generate-money-report", tags=["Money - Full Money Map v3.0"], summary="v3.0 - Báo cáo Full Money Map đầy đủ markdown - 60 biến thể")
 def money_report_api(req: ChartRequest):
     """Tạo báo cáo Full Money Map đầy đủ markdown - Dòng tiền theo Type/Profile/Heart/Channels/Gates - Pricing, Business Model, Investment"""
     if not MONEY_AVAILABLE:
@@ -589,7 +567,7 @@ def money_report_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/analyze-potential-blindspots", tags=["Potential - Tiềm năng & Điểm mù v2.3"], summary="MỚI v2.3 - Tiềm năng & Điểm mù - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi")
+@app.post("/analyze-potential-blindspots", tags=["Potential - Tiềm năng & Điểm mù v3.0"], summary="v3.0 - Tiềm năng & Điểm mù - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi")
 def potential_blindspots_api(req: ChartRequest):
     """
     TOOL CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - Dựa trên ý kiến thực tế người học
@@ -619,7 +597,7 @@ def potential_blindspots_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/generate-potential-report", tags=["Potential - Tiềm năng & Điểm mù v2.3"], summary="MỚI v2.3 - Báo cáo Tiềm năng & Điểm mù đầy đủ markdown - 11 góc nhìn - 60 biến thể")
+@app.post("/generate-potential-report", tags=["Potential - Tiềm năng & Điểm mù v3.0"], summary="v3.0 - Báo cáo Tiềm năng & Điểm mù đầy đủ markdown - 11 góc nhìn - 60 biến thể")
 def potential_report_api(req: ChartRequest):
     """Tạo báo cáo Tiềm năng & Điểm mù đầy đủ markdown - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi phù hợp"""
     if not POTENTIAL_AVAILABLE:
@@ -850,7 +828,7 @@ def team_report_api(req: ChartRequest):
 # Health check
 @app.get("/health", tags=["System"])
 def health():
-    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 30, "coverage": "100% - 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "19 skills v3.0 Complete (01-18 + 20; 19 reserved)"}
+    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 30, "api_routes": 32, "coverage": "100% - 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "19 Markdown skills (01-18 + 20; 19 reserved), 0 MCP prompts"}
 
 if __name__ == "__main__":
     import uvicorn

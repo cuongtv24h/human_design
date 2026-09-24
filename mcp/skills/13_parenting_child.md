@@ -1,6 +1,6 @@
 # SKILL: Parenting & Child Development - Nuôi Dạy Con Theo Human Design
 
-> **MỚI v2.2 - Nhóm Sức Khỏe & Mối Quan Hệ - Thị trường lớn**
+> **v3.0 - Nhóm Sức Khỏe & Mối Quan Hệ - Thị trường lớn**
 > Tích hợp từ: 12_tham_van_tong_quat_60_bien_the.md (type_deep_dive child) + 04_5_loai_va_chien_luoc.md
 
 ## Mô tả

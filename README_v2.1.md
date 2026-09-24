@@ -1,3 +1,6 @@
+> **TÀI LIỆU LỊCH SỬ — KHÔNG PHẢI TRẠNG THÁI RUNTIME HIỆN TẠI.**
+> Snapshot v2.1 được giữ để truy nguyên. Xem `README.md` cho v3.0.0 hiện tại.
+
 # HUMAN DESIGN - HỆ THỐNG NGHIÊN CỨU CHUYÊN SÂU v2.1
 
 > **v2.1 - 2026-09-23** | Đã tích hợp tài liệu cá nhân 7 files 989 dòng + Tool tổng quát 60 biến thể - 100% dân số

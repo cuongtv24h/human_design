@@ -1,0 +1,21 @@
+# Human Design Analyzer — runtime dependencies
+# Tested with Python 3.11 on 2026-09-24.
+
+# MCP stdio server
+mcp==1.30.0  # v2.x renames FastMCP and is not compatible with server.py
+
+# Swiss Ephemeris calculation engine
+pyswisseph==2.10.3.2
+
+# FastAPI/OpenAPI bridge (mcp/openapi_server.py)
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.13.5
+
+# PDF reports and BodyGraph PNG export
+# CairoSVG additionally needs the OS library libcairo2 (see README.md).
+reportlab==5.0.1
+cairosvg==2.9.1
+
+# Test runner for the project's Python checks
+pytest==9.1.1

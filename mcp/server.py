@@ -1,10 +1,9 @@
 """
 Human Design MCP Server v3.0 - Chuẩn Model Context Protocol
-30 Tools (8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 v3.0) + 11 Resources
+30 tools (8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain) + 11 resources
 
-Tích hợp tài liệu cá nhân 7 files 989 dòng + Full Money Map 60 biến thể
-v2.2 MỚI: Thêm 2 tools money chuyên dụng - Full Money Map theo Type/Profile/Heart/Channels
-v3.0 MỚI (Option C Full): +12 tools 6 domains (Health, Relationship+Composite, Decision, Deconditioning, Purpose, Team) - Hoàn chỉnh 7 nhu cầu + FIX shadowing bug 6 wrappers (alias imports)
+Tích hợp 21 knowledge files, 7 Wiki nguồn và 19 skill Markdown. Skills không phải MCP prompts; server hiện có 0 @mcp.prompt decorators.
+v3.0: đầy đủ các domain Health, Relationship, Decision, Deconditioning, Purpose và Team; các wrapper dùng alias imports để tránh shadowing.
 """
 
 import sys
@@ -124,7 +123,7 @@ def chart_to_dict(chart: dict) -> dict:
         "d_earth_gate": chart["d_earth_gate"],
     }
 
-# ==================== 18 TOOLS ====================
+# ==================== 30 TOOLS ====================
 
 @mcp.tool()
 def calculate_human_design_chart(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "") -> Dict[str, Any]:
@@ -337,11 +336,11 @@ def generate_consultation_report(birth_date: str, birth_time: str, timezone: str
     except Exception as e:
         return f"Lỗi: {str(e)}"
 
-# MONEY TOOLS - CHUYÊN DỤNG DÒNG TIỀN - MỚI v2.2
+# MONEY TOOLS - CHUYÊN DỤNG DÒNG TIỀN - v3.0 domain
 @mcp.tool()
 def analyze_money_map(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "") -> Dict[str, Any]:
     """
-    MỚI v2.2 - TOOL CHUYÊN DỤNG TIỀN BẠC - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels
+    v3.0 - TOOL CHUYÊN DỤNG TIỀN BẠC - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels
     
     Phân tích chuyên sâu dòng tiền, tài chính, business model, pricing, investment theo Human Design:
     - 5 Types Money Strategy: Manifestor khởi xướng+inform, Generator respond+Sacral uh-huh, MG đa dòng tiền, Projector invitation+premium pricing cao cho ít giờ, Reflector môi trường+lunar 28 ngày
@@ -378,7 +377,7 @@ def analyze_money_map(birth_date: str, birth_time: str, timezone: str = "+07:00"
 
 @mcp.tool()
 def generate_money_report(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "") -> str:
-    """MỚI v2.2 - Tạo báo cáo Full Money Map đầy đủ markdown - Dòng tiền theo Type/Profile/Heart/Channels - 60 biến thể"""
+    """v3.0 - Tạo báo cáo Full Money Map đầy đủ markdown - Dòng tiền theo Type/Profile/Heart/Channels - 60 biến thể"""
     if not MONEY_AVAILABLE:
         return "Money tool chưa cài đặt"
     try:
@@ -388,11 +387,11 @@ def generate_money_report(birth_date: str, birth_time: str, timezone: str = "+07
     except Exception as e:
         return f"Lỗi: {str(e)}"
 
-# POTENTIAL & BLIND SPOTS TOOLS - CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - MỚI v2.3
+# POTENTIAL & BLIND SPOTS TOOLS - CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - v3.0 domain
 @mcp.tool()
 def analyze_potential_blindspots(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "") -> Dict[str, Any]:
     """
-    MỚI v2.3 - TOOL CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn - Lựa chọn hành vi
+    v3.0 - TOOL CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn - Lựa chọn hành vi
     
     Dựa trên ý kiến thực tế người học:
     - Điểm mù bản thân, điểm yếu - điểm mạnh
@@ -430,7 +429,7 @@ def analyze_potential_blindspots(birth_date: str, birth_time: str, timezone: str
 
 @mcp.tool()
 def generate_potential_report(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "") -> str:
-    """MỚI v2.3 - Tạo báo cáo Tiềm năng & Điểm mù đầy đủ markdown - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi - 60 biến thể"""
+    """v3.0 - Tạo báo cáo Tiềm năng & Điểm mù đầy đủ markdown - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi - 60 biến thể"""
     if not POTENTIAL_AVAILABLE:
         return "Potential tool chưa cài đặt"
     try:

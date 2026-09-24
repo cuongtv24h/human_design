@@ -1,3 +1,6 @@
+> **TÀI LIỆU LỊCH SỬ — KHÔNG PHẢI CONTRACT RUNTIME HIỆN TẠI.**
+> Snapshot v2.1 được giữ để truy nguyên. Xem `mcp/README.md` và `mcp/tools_manifest_latest.json` cho v3.0.0 hiện tại.
+
 # HUMAN DESIGN MCP SERVER v2.1 - 14 Tools - 100% Coverage
 
 > **v2.1.0 - 2026-09-23** | 14 Tools + 10 Resources + 9 Skills | 5 Types x 12 Profiles = 60 biến thể | 100% dân số

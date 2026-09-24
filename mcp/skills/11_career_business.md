@@ -1,6 +1,6 @@
 # SKILL: Career & Business Model - Mô Hình Kinh Doanh Theo Thiết Kế - 60 Biến Thể
 
-> **MỚI v2.2 - Nhóm Tài chính & Sự nghiệp - Mở rộng từ Money Map**
+> **v3.0 - Nhóm Tài chính & Sự nghiệp - Mở rộng từ Money Map**
 > Tích hợp từ: 04_5_loai_va_chien_luoc.md + 12_tham_van_tong_quat_60_bien_the.md + 13_money_wealth_full_map.md
 
 ## Mô tả

@@ -1,296 +1,188 @@
-# HUMAN DESIGN MCP SERVER - Model Context Protocol
+# Human Design MCP Server v3.0
 
-> Chuẩn hóa theo mô hình Agent với lõi LLM được cung cấp Knowledge qua Tools + Skills theo chuẩn MCP
+MCP stdio server hiện tại của Human Design Analyzer. Server dùng `mcp/server.py`, nạp calculator/analyzer từ `tools/` và cung cấp dữ liệu qua tools + resources.
 
-## 📋 Tổng quan
+> **Runtime chuẩn (2026-09-24):** 30 tools · 11 resources · 0 MCP prompts · 19 skill Markdown · MCP SDK `mcp==1.30.0`.
 
-MCP Server này cung cấp **8 Tools + 5 Resources + 4 Prompts (Skills)** cho bất kỳ LLM nào hỗ trợ MCP (Claude Desktop, Cursor, Windsurf, v.v.)
+## Kiến trúc
 
-- **Transport**: stdio (cho Claude Desktop) hoặc streamable-http
-- **SDK**: mcp==1.12.4 (FastMCP)
-- **Engine**: Swiss Ephemeris (NASA JPL DE431) chính xác <1 arc second
-- **Knowledge**: 8 file markdown chuyên sâu tiếng Việt + 4 skills
+```text
+LLM client (Claude Desktop / Cursor / Windsurf)
+                 │ MCP stdio
+                 ▼
+          mcp/server.py
+          ├── 30 tools
+          ├── 11 resources
+          └── import tools/hd_*.py
+                 │
+                 ▼
+       hd_calculator.py + Swiss Ephemeris
 
----
-
-## 🏗️ Kiến trúc Agent
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    LLM CORE (Claude, GPT, etc.)             │
-│  - Nhận yêu cầu người dùng: "Phân tích Human Design cho..." │
-│  - Gọi MCP Tools để lấy dữ liệu chính xác                   │
-│  - Dùng Skills (Prompts) để định hướng phân tích            │
-│  - Tổng hợp báo cáo cuối                                    │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ MCP Protocol (stdio)
-┌──────────────────────▼──────────────────────────────────────┐
-│              HUMAN DESIGN MCP SERVER (server.py)            │
-│                                                             │
-│  TOOLS (8):                                                 │
-│  ├─ calculate_human_design_chart (CORE)                     │
-│  ├─ analyze_human_design_deep                               │
-│  ├─ get_gate_info                                           │
-│  ├─ get_center_info                                         │
-│  ├─ get_channel_info                                        │
-│  ├─ get_profile_info                                        │
-│  ├─ compare_charts (Composite)                              │
-│  └─ generate_full_report                                    │
-│                                                             │
-│  RESOURCES (5):                                             │
-│  ├─ human-design://knowledge/gates (64 gates)               │
-│  ├─ human-design://knowledge/centers (9 centers)            │
-│  ├─ human-design://knowledge/channels (36 channels)         │
-│  ├─ human-design://knowledge/types (5 types)                │
-│  └─ human-design://mandala/order (64 gate order)            │
-│                                                             │
-│  PROMPTS/SKILLS (4):                                        │
-│  ├─ analyze_human_design_full                               │
-│  ├─ analyze_career_path                                     │
-│  ├─ analyze_relationship                                    │
-│  └─ explain_gate                                            │
-│                                                             │
-│  KNOWLEDGE BASE (8 files):                                  │
-│  └─ ../knowledge/*.md (751 dòng chuyên sâu)                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────────┐
-│              CALCULATION ENGINE (hd_calculator.py)          │
-│  - Swiss Ephemeris                                          │
-│  - Gate mapping: 302° = Gate 41 start                       │
-│  - 64 gates x 6 lines x 6 colors x 6 tones x 5 bases        │
-└─────────────────────────────────────────────────────────────┘
+ChatGPT Custom GPT / REST client
+                 │ HTTP/OpenAPI
+                 ▼
+       mcp/openapi_server.py (FastAPI)
 ```
 
----
+`mcp/skills/` là 19 file hướng dẫn Markdown cho LLM/client. Chúng không được đăng ký thành MCP prompts: `server.py` hiện có 0 decorator `@mcp.prompt()`.
 
-## 🔧 Cài đặt
+## Cài đặt
 
-### Yêu cầu
+Từ root repository:
+
 ```bash
-pip install mcp==1.12.4 pyswisseph pydantic
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements.txt
 ```
 
-### Cấu hình Claude Desktop
+Nếu cần xuất PNG hoặc nhúng BodyGraph vào PDF trên Debian/Ubuntu:
 
-Thêm vào `claude_desktop_config.json`:
+```bash
+sudo apt-get update
+sudo apt-get install -y libcairo2 fonts-dejavu
+```
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+Dependency Python được quản lý tập trung ở `../requirements.txt`; không dùng các lệnh `pip install` rời rạc trong tài liệu cũ.
+
+## Chạy MCP stdio
+
+```bash
+cd /home/user/human_design
+.venv/bin/python mcp/server.py
+```
+
+Lệnh này giữ stdout cho MCP protocol. Không gửi log debug vào stdout khi tích hợp client.
+
+Ví dụ cấu hình Claude Desktop: `mcp_config.json`. Hãy sửa đường dẫn tuyệt đối `command`/`args` theo vị trí checkout của bạn. Cấu hình mẫu hiện dùng:
 
 ```json
 {
   "mcpServers": {
     "human-design-analyzer": {
-      "command": "python",
-      "args": ["/home/user/human_design/mcp/server.py"],
-      "env": {},
-      "description": "Human Design Analysis System"
+      "command": "/home/user/human_design/.venv/bin/python",
+      "args": ["/home/user/human_design/mcp/server.py"]
     }
   }
 }
 ```
 
-Hoặc dùng file có sẵn: `mcp_config.json`
-
-### Chạy server độc lập
+Smoke test logic trực tiếp, không mở transport:
 
 ```bash
-# Development với Inspector
-mcp dev server.py
-
-# Chạy trực tiếp
-python server.py
-
-# Hoặc
-mcp run server.py
+PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 ```
 
----
+## 30 tools
 
-## 🛠️ Danh sách Tools chi tiết
+### Core — 8
 
-### 1. calculate_human_design_chart (CORE - BẮT BUỘC GỌI ĐẦU TIÊN)
+1. `calculate_human_design_chart`
+2. `analyze_human_design_deep`
+3. `get_gate_info`
+4. `get_center_info`
+5. `get_channel_info`
+6. `get_profile_info`
+7. `compare_charts`
+8. `generate_full_report`
 
-Tính toán chart chính xác.
+### Advanced — 4
 
-**Input:**
-- birth_date: YYYY-MM-DD
-- birth_time: HH:MM
-- timezone: +07:00 (mặc định VN)
-- name, birth_location (tùy chọn)
+9. `analyze_fear_gates`
+10. `analyze_love_gates`
+11. `get_incarnation_cross_details`
+12. `analyze_manifestor_deep`
 
-**Output:** JSON với Type, Strategy, Authority, Profile, Centers, Channels, Gates, Cross
+### General — 2
 
-**Ví dụ LLM gọi:**
-```json
-{
-  "tool": "calculate_human_design_chart",
-  "arguments": {
-    "birth_date": "1990-05-15",
-    "birth_time": "08:30",
-    "timezone": "+07:00",
-    "name": "Nguyen Van A"
-  }
-}
-```
+13. `analyze_consultation_general`
+14. `generate_consultation_report`
 
-### 2. analyze_human_design_deep
+### Money — 2
 
-Phân tích chuyên sâu tiếng Việt.
+15. `analyze_money_map`
+16. `generate_money_report`
 
-**Input:** birth_date, birth_time, timezone, name, focus_area (full/type/authority/centers/channels/profile/career/relationship/health)
+### Potential — 2
 
-### 3. get_gate_info
+17. `analyze_potential_blindspots`
+18. `generate_potential_report`
 
-Tra cứu 1 cổng 1-64.
+### v3.0 domains — 12
 
-### 4. get_center_info
+19. `analyze_health`
+20. `generate_health_report`
+21. `analyze_relationship`
+22. `generate_relationship_report`
+23. `analyze_decision`
+24. `generate_decision_report`
+25. `analyze_deconditioning`
+26. `generate_deconditioning_report`
+27. `analyze_purpose`
+28. `generate_purpose_report`
+29. `analyze_team`
+30. `generate_team_report`
 
-Tra cứu 1 trung tâm: Head, Ajna, Throat, G, Heart, Spleen, Sacral, Solar Plexus, Root
+Luồng phân tích chart nên bắt đầu bằng `calculate_human_design_chart`, sau đó dùng analyzer/domain tool phù hợp. Các tool nhận ngày/giờ local và timezone, rồi server chuyển sang UTC trước khi gọi calculator.
 
-### 5. get_channel_info
+## 11 resources
 
-Tra cứu 1 kênh: gate1, gate2
+| URI | Nội dung |
+|---|---|
+| `human-design://knowledge/gates` | 64 Gates và trung tâm |
+| `human-design://knowledge/centers` | 9 Centers |
+| `human-design://knowledge/types` | 5 Types |
+| `human-design://knowledge/money-channels` | 6 Money Channels |
+| `human-design://knowledge/money-gates` | 14 Money Gates |
+| `human-design://knowledge/health-type` | Health theo Type |
+| `human-design://knowledge/love-gates` | Love Gates |
+| `human-design://knowledge/authorities` | 7 Authorities |
+| `human-design://knowledge/notself` | Not-Self và Signature |
+| `human-design://knowledge/purpose-quarters` | Quarters và Angles |
+| `human-design://knowledge/team-roles` | Team roles |
 
-### 6. get_profile_info
+Resource `channels`, `mandala/order`, `fear-gates`, `incarnation-crosses`, `manifestor`, `general-consultation` và `potential-blindspots` từng xuất hiện trong manifest lịch sử nhưng **không** có decorator resource trong server hiện tại; không liệt kê chúng là runtime resource.
 
-Tra cứu Profile: 1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6, 4/1, 5/1, 5/2, 6/2, 6/3
+## Skill Markdown
 
-### 7. compare_charts
+Có 19 file tại `mcp/skills/`: `01`–`18` và `20`. Đây là prompt/template tài liệu để LLM tham khảo, không phải MCP prompt runtime. Manifest hiện tại vì vậy tách rõ:
 
-So sánh 2 người (Composite) - electromagnetic, dominance, common gates
+- `resources`: 11 runtime resources.
+- `prompts`: `[]`.
+- `skills_path`: `./skills/`, 19 Markdown files.
 
-### 8. generate_full_report
+## REST/OpenAPI bridge
 
-Tạo báo cáo đầy đủ markdown/json
-
----
-
-## 📚 Resources (Knowledge)
-
-LLM có thể đọc resources để có kiến thức nền:
-
-- `human-design://knowledge/gates` - 64 gates
-- `human-design://knowledge/centers` - 9 centers
-- `human-design://knowledge/channels` - 36 channels
-- `human-design://knowledge/types` - 5 types
-- `human-design://mandala/order` - Thứ tự Mandala
-
----
-
-## 🎯 Skills (Prompts)
-
-Skills là prompt templates hướng dẫn LLM phân tích:
-
-### Skill 1: analyze_human_design_full
-**Khi dùng:** Người dùng yêu cầu phân tích toàn diện
-**Quy trình:**
-1. Gọi calculate_human_design_chart
-2. Gọi analyze_human_design_deep full
-3. Gọi thêm get_gate_info, get_center_info nếu cần
-4. Tổng hợp báo cáo theo cấu trúc chuẩn 7 phần
-
-### Skill 2: analyze_career_path
-**Khi dùng:** Hướng nghiệp
-**Tập trung:** Type, Centers, Channels, Profile, Cross -> nghề phù hợp
-
-### Skill 3: analyze_relationship
-**Khi dùng:** Phân tích mối quan hệ
-**Quy trình:** calculate 2 charts + compare_charts -> electromagnetic, dominance
-
-### Skill 4: explain_gate
-**Khi dùng:** Giải thích 1 cổng cho người mới
-**Quy trình:** get_gate_info -> giải thích dễ hiểu + ví dụ
-
----
-
-## 📁 Cấu trúc thư mục
-
-```
-human_design/
-├── knowledge/ (8 files - 751 dòng)
-│   ├── 00_tong_quan_he_thong.md
-│   ├── 01_mandala_64_cong.md
-│   ├── 02_9_trung_tam.md
-│   ├── 03_36_kenh.md
-│   ├── 04_5_loai_va_chien_luoc.md
-│   ├── 05_profile_cross_definition.md
-│   ├── 06_phuong_phap_tinh_toan.md
-│   └── 07_ung_dung_thuc_tien.md
-├── tools/ (Engine)
-│   ├── hd_calculator.py (569 dòng - Swiss Ephemeris)
-│   ├── hd_analyzer.py (305 dòng)
-│   ├── hd_cli.py
-│   └── test_calculator.py
-└── mcp/ (MCP Standard)
-    ├── server.py (MCP Server - 8 tools + 5 resources + 4 prompts)
-    ├── tools_manifest.json (Manifest đầy đủ)
-    ├── mcp_config.json (Config cho Claude Desktop)
-    ├── client_example.py (Ví dụ gọi tools)
-    ├── README.md (File này)
-    └── skills/ (4 skills)
-        ├── 01_full_analysis.md
-        ├── 02_career_guidance.md
-        ├── 03_relationship_composite.md
-        └── 04_gate_deep_dive.md
-```
-
----
-
-## 🧪 Test
+`openapi_server.py` cung cấp 32 route decorator: 30 route nghiệp vụ, `/` và `/health`.
 
 ```bash
 cd /home/user/human_design/mcp
-python client_example.py
+../.venv/bin/python -m uvicorn openapi_server:app --host 0.0.0.0 --port 8000
 ```
 
-Kết quả: 8 tests pass, bao gồm tính chart, phân tích, tra cứu gate/center/channel/profile, composite, báo cáo.
+- `/docs`: Swagger UI
+- `/openapi.json`: OpenAPI spec cho Custom GPT Actions
+- `/health`: health check
 
----
+Hướng dẫn tích hợp riêng: `CHATGPT_WEB_INTEGRATION.md`. Không dùng MCP stdio config cho ChatGPT Web; ChatGPT Web cần REST server public và OpenAPI spec.
 
-## 🔄 Luồng hoạt động Agent chuẩn
+## Manifest
 
-**User:** "Phân tích Human Design cho Nguyễn Văn A sinh 1990-05-15 lúc 08:30 ở Hà Nội"
+`tools_manifest_latest.json` là manifest canonical cho việc phân phối tool/resource. Các file `tools_manifest.json`, `tools_manifest_v2.json`, … `tools_manifest_v6.json` là snapshot lịch sử.
 
-**LLM Core:**
+## Kiểm tra
 
-1. Nhận diện intent: full analysis
-2. Gọi Skill: `analyze_human_design_full` -> nhận prompt hướng dẫn
-3. Gọi Tool: `calculate_human_design_chart` với birth_date=1990-05-15, birth_time=08:30, timezone=+07:00, name=Nguyen Van A
-   -> Nhận: Type=Projector, Authority=Emotional, Profile=6/2, Centers=7 defined, Channels=5
-4. Gọi Tool: `analyze_human_design_deep` focus_area=full
-   -> Nhận báo cáo chi tiết tiếng Việt
-5. (Tùy chọn) Gọi thêm `get_channel_info` cho 5 kênh định nghĩa để giải thích sâu
-6. Tổng hợp thành báo cáo cuối cho user theo cấu trúc 7 phần chuẩn
+```bash
+cd /home/user/human_design
+.venv/bin/python -m compileall -q tools mcp
+PYTHONPATH=tools .venv/bin/python tools/test_calculator.py
+PYTHONPATH=tools .venv/bin/python tools/test_manifestor_profiles.py
+PYTHONPATH=tools:mcp .venv/bin/python - <<'PY'
+import server
+import openapi_server
+print("server import OK")
+print("OpenAPI decorator/runtime routes:", len(openapi_server.app.routes))
+PY
+```
 
-**User nhận:** Báo cáo đầy đủ, chuyên sâu, chính xác, có thể xuất file.
-
----
-
-## ✅ Đã chuẩn hóa theo MCP
-
-- ✅ Tools có input_schema/output_schema JSON Schema chuẩn
-- ✅ Resources có URI chuẩn human-design://
-- ✅ Prompts (Skills) có arguments rõ ràng
-- ✅ Knowledge base được cung cấp qua Resources + Skills
-- ✅ Server chạy được với mcp dev, mcp run, Claude Desktop
-- ✅ Có manifest, config, client example, README
-- ✅ Đã test 8 luồng
-
----
-
-## 🚀 Sẵn sàng tích hợp
-
-MCP Server này có thể tích hợp vào:
-- Claude Desktop
-- Cursor
-- Windsurf
-- Any LLM hỗ trợ MCP
-- Custom Agent với MCP Client
-
-Chỉ cần cấu hình `mcp_config.json` và LLM sẽ tự động có khả năng phân tích Human Design chuyên sâu.
-
----
-
-*Tác giả: Agent Mode - 2026-09-23 - Human Design MCP Server v1.0.0*
+Repository có `tests/test_runtime_contract.py` cho các invariant runtime/count/manifest; hai file trong `tools/` vẫn là smoke script lịch sử. Chạy `PYTHONPATH=tools:mcp .venv/bin/pytest -q` để kiểm tra contract hiện tại.

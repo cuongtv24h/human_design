@@ -1,6 +1,6 @@
 # SKILL: Tiềm Năng & Điểm Mù - Điểm Mạnh/Điểm Yếu - Quan Sát Đa Góc Nhìn - Lựa Chọn Hành Vi
 
-> **MỚI v2.3 - Ưu tiên #1 cho Ý kiến 2 - Self-Awareness, Self-Improvement**
+> **v3.0 - Ưu tiên #1 cho Ý kiến 2 - Self-Awareness, Self-Improvement**
 > Dựa trên ý kiến thực tế: "Thấy thêm các điểm mù của bản thân, điểm yếu - điểm mạnh, để quan sát mình dưới các góc nhìn khác nhau - rồi từ đó lựa chọn hành vi phù hợp nhất để cải thiện bản thân"
 > Tích hợp từ: 02_9_trung_tam.md (9 Centers), 03_36_kenh.md (36 Channels), 01_mandala_64_cong.md (64 Gates), 04_5_loai_va_chien_luoc.md (Type), 05_profile_cross_definition.md (Profile/Cross/Definition), 09_tam_ly_so_hai_co_che_tri_oc.md (Fear Gates)
 
@@ -37,7 +37,7 @@ calculate_human_design_chart
   Input: birth_date, birth_time, timezone, name
   Output: chart cơ bản
 
-analyze_potential_blindspots (TOOL CHÍNH MỚI v2.3)
+analyze_potential_blindspots (TOOL CHÍNH v3.0)
   Input: birth_datetime, name
   Output:
   - type, profile, authority, definition, incarnation_cross, defined_centers, undefined_centers
