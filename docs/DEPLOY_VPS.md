@@ -255,12 +255,13 @@ sudo -iu hd
 /srv/human_design/deploy/deploy.sh          # nhánh main; hoặc: deploy.sh ten-nhanh
 ```
 
-Script làm lần lượt:
+Script làm lần lượt (bước nào không đổi so với lần deploy **thành công** trước sẽ tự bỏ qua):
+
 1. Kiểm tra `.env`.
-2. Lấy code mới.
-3. Cài thư viện.
-4. `alembic upgrade head` để nâng cấp CSDL.
-5. Build giao diện.
+2. Lấy code mới. Nếu code không đổi gì → chỉ kiểm tra app có đang chạy không rồi xong trong vài giây (không restart).
+3. Cài thư viện — chỉ khi `requirements.txt` đổi (hoặc `.venv` bị hỏng).
+4. `alembic upgrade head` — chỉ khi có migration mới trong `backend/api/migrations/`.
+5. Build giao diện — chỉ khi `web/` đổi; `npm ci` chỉ khi `package-lock.json`/`package.json` đổi.
 6. `pm2 startOrReload`.
 7. Kiểm tra `/api/v1/health`. Nếu có lỗi, script báo ngay.
 
