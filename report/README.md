@@ -10,6 +10,10 @@ Các file trong thư mục này là snapshot/lịch sử theo từng giai đoạ
 - `../mcp/tools_manifest_latest.json` — manifest máy đọc được đã chuẩn hóa theo decorator trong source.
 - `../requirements.txt` — dependency Python được ghim phiên bản.
 
+## Kế hoạch triển khai
+
+- `KE_HOACH_TRIEN_KHAI_FRONTEND_ADMIN.md` — kế hoạch Frontend/Admin (v1.0, 2026-09-24): hiện trạng & gap backend, quyết định cần chốt, kiến trúc, mô hình dữ liệu, API v1, màn hình & nghiệm thu, lộ trình 5 giai đoạn ~10 tuần, triển khai, tuân thủ dữ liệu cá nhân, kiểm thử, rủi ro.
+
 ## Các báo cáo lịch sử
 
 - `BAO_CAO_CHUAN_HOA_MCP.md` — giai đoạn chuẩn hóa MCP ban đầu.
