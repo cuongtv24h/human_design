@@ -31,7 +31,8 @@ CLIENT = {
 
 @pytest.fixture()
 def app(tmp_path):
-    application = create_app(Settings(database_url=f"sqlite:///{tmp_path / 'api.sqlite3'}"))
+    application = create_app(Settings(database_url=f"sqlite:///{tmp_path / 'api.sqlite3'}",
+                                      artifact_dir=str(tmp_path / "artifacts")))
     ensure_admin(application.state.db, "admin@example.com", PASSWORD, "Quản trị")
     return application
 
@@ -146,6 +147,17 @@ def test_report_lifecycle_and_exports(app):
     assert "default-src 'none'" in html.headers["content-security-policy"]
     svg = client.get(f"/api/v1/reports/{rid}/bodygraph.svg")
     assert svg.headers["content-type"].startswith("image/svg+xml")
+
+    pdf = client.get(f"/api/v1/reports/{rid}/pdf")
+    assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
+    assert pdf.headers["content-type"] == "application/pdf"
+    docx = client.get(f"/api/v1/reports/{rid}/docx")
+    assert docx.status_code == 200 and docx.content[:2] == b"PK"
+    assert ".docx" in docx.headers["content-disposition"]
+    assert client.get(f"/api/v1/reports/{rid}/exe").status_code == 404
+    # Pre-rendered after creation and cached per version on disk.
+    cached = list((pathlib.Path(app.state.settings.artifact_dir) / rid).glob("v1-*"))
+    assert {p.suffix for p in cached} == {".pdf", ".docx"}
 
     dash = client.get("/api/v1/dashboard").json()
     assert dash["clients"] == 1 and dash["reports_by_status"] == {"ready": 1}

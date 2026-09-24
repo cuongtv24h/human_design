@@ -147,6 +147,7 @@ cd web && npm install && npm run dev        # http://localhost:3000
 - Tài liệu API: `http://localhost:8001/api/v1/docs`.
 - Production dùng PostgreSQL: `DATABASE_URL=postgresql+psycopg://…` trong `.env` (xem `.env.example`), rồi `.venv/bin/alembic upgrade head`.
 - Triển khai pm2 trên VPS: `deploy/ecosystem.config.cjs`, `deploy/deploy.sh`; trước khi deploy chạy `deploy/check.sh` (pytest + migration + typecheck + build).
+- Xuất **PDF/Word** từ cùng một `ReportDocument` (`backend/reporting/render_pdf.py`, `render_docx.py`). Cần font DejaVu (`sudo apt install fonts-dejavu-core`, hoặc đặt `HD_FONT_DIR`); hình BodyGraph PNG dùng `resvg-py`, không cần libcairo. File được render sẵn sau khi tạo báo cáo và lưu theo phiên bản ở `ARTIFACT_DIR` (mặc định `var/artifacts`).
 - Giờ sinh nhập và hiển thị theo **giờ Việt Nam khai báo**, tính theo UTC+07:00 cố định (`tools/hd_time.py`).
 - Chế độ nội dung LLM cần `HD_LLM_API_KEY`; hiện chạy nền bằng FastAPI background task (worker arq/Redis thuộc P2).
 

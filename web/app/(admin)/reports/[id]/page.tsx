@@ -82,6 +82,11 @@ export default function ReportPage() {
         actions={
           <>
             <Link href={`/clients/${r.client_id}`} className="inline-flex items-center rounded-lg px-3 py-2 text-sm text-brand-700 hover:bg-brand-50">Hồ sơ khách hàng</Link>
+            {hasDocument && (
+              <a href={fileUrl(r.id, "pdf", true)} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-600">
+                <Download className="size-4" /> Tải PDF
+              </a>
+            )}
             {r.status !== "archived" && r.status !== "generating" && (
               <Button variant="secondary" loading={archive.isPending}
                 onClick={() => confirm("Lưu trữ báo cáo này? Báo cáo sẽ ẩn khỏi danh sách đang dùng.") && archive.mutate()}>
@@ -168,11 +173,11 @@ export default function ReportPage() {
 
           {tab === "export" && (
             <Card className="divide-y divide-line">
+              <ExportRow icon={<FileText className="size-5" />} title="PDF" description="Bản in hoàn chỉnh: bìa, BodyGraph, mục lục và toàn bộ nội dung." href={fileUrl(r.id, "pdf", true)} />
+              <ExportRow icon={<FileText className="size-5" />} title="Word (.docx)" description="Cùng nội dung như PDF — chuyên viên chỉnh sửa, bổ sung trước khi gửi." href={fileUrl(r.id, "docx", true)} />
               <ExportRow icon={<FileText className="size-5" />} title="Markdown (.md)" description="Toàn bộ nội dung — mở bằng Word, Notion, Obsidian…" href={fileUrl(r.id, "markdown", true)} />
               <ExportRow icon={<FileCode2 className="size-5" />} title="Infographic (.html)" description="Trang tóm tắt một màn hình, gửi kèm cho khách hàng." href={fileUrl(r.id, "infographic.html", true)} />
               <ExportRow icon={<FileImage className="size-5" />} title="BodyGraph (.svg)" description="Hình BodyGraph chất lượng cao, in ấn không vỡ nét." href={fileUrl(r.id, "bodygraph.svg", true)} />
-              <ExportRow icon={<FileText className="size-5" />} title="PDF" description="Bản in hoàn chỉnh có bìa và BodyGraph." disabled />
-              <ExportRow icon={<FileText className="size-5" />} title="Word (.docx)" description="Bản chỉnh sửa được cho chuyên viên." disabled />
             </Card>
           )}
         </>

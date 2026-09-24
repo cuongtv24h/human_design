@@ -106,6 +106,21 @@ Luồng "AI host tự biên tập" (brief → apply) không cần API key: chín
 Claude/ChatGPT đang gọi MCP/Actions đóng vai biên tập viên; `apply_draft` tính
 lại chart deterministic từ cùng input nên không cần lưu state giữa hai lần gọi.
 
+### Định dạng PDF & Word (.docx)
+
+`render_pdf(document)` (ReportLab) và `render_docx(document)` (python-docx) nhận **cùng một** `ReportDocument`
+như Markdown, web và infographic, nên nội dung các định dạng luôn khớp nhau:
+
+- Bìa: thông tin người được phân tích (giờ sinh hiển thị đúng giờ Việt Nam đã khai báo) + bảng chỉ số song ngữ.
+- Trang BodyGraph: PNG rasterize từ SVG bằng `resvg-py` (không cần libcairo; CairoSVG là phương án dự phòng),
+  cache theo nội dung SVG.
+- Các section `included` theo đúng thứ tự; template `operating_manual` mỗi phần sang trang mới. PDF có mục lục +
+  bookmark; DOCX dùng style gốc của Word (Heading 1–3, List Bullet) để chuyên viên chỉnh sửa.
+- `warnings` là thông tin nội bộ cho chuyên viên — **không** in vào file gửi khách.
+- Markdown được đọc bằng `backend/reporting/mdblocks.py` (tiêu đề, đoạn, danh sách lồng, trích dẫn, bảng, code;
+  HTML thô chỉ hiện như chữ).
+- Theme (D10) qua `render_common.Theme`; API lấy từ `organizations.theme`.
+
 ## Contract chính
 
 > **Quy ước giờ sinh** (`tools/hd_time.py`, dùng chung cho mọi entry point): người dùng nhập giờ Việt

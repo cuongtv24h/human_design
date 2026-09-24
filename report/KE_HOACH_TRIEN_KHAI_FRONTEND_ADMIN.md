@@ -2,6 +2,8 @@
 
 > Phiên bản 1.3 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
 >
+> Thay đổi v1.3.1: **P0-5 PDF, P0-6 DOCX hoàn thành** (BodyGraph PNG qua resvg — không cần libcairo).
+>
 > Thay đổi v1.3: **đã có lát cắt chạy được P0 + P1** — API `/api/v1` (`backend/api/`) và Admin MVP (`web/`); xem mục 8.0 *Tiến độ*.
 >
 > Thay đổi v1.2: **không tự áp offset lịch sử** — tính đúng theo giờ khai báo với chuẩn Việt Nam = UTC+07:00; P0-4 đã hoàn thành (`tools/hd_time.py`).
@@ -292,11 +294,12 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P0-2 models + Alembic | ✅ | 7 bảng; migration `0001`, `alembic check` sạch; JSONB trên PostgreSQL |
 | P0-3 auth + RBAC | ✅ | Argon2, cookie httpOnly `hd_session` (chỉ lưu SHA-256), header chống CSRF `X-HD-Request`, admin/coach |
 | P0-4 quy ước giờ sinh | ✅ | `tools/hd_time.py` |
-| P0-5 PDF / P0-6 DOCX theo `ReportDocument` | ⏳ | UI hiển thị “Đang phát triển” |
+| P0-5 PDF theo `ReportDocument` | ✅ | `backend/reporting/render_pdf.py`: bìa + BodyGraph + mục lục + bookmark; ẩn cảnh báo nội bộ |
+| P0-6 DOCX theo `ReportDocument` | ✅ | `backend/reporting/render_docx.py`: style Word gốc (Heading/List), ảnh BodyGraph, số trang |
 | P0-7 worker arq | ⏳ tạm thay | LLM chạy bằng FastAPI `BackgroundTasks`; fallback template khi lỗi/thiếu key |
 | P0-8 CORS whitelist, rate limit | ◐ | CORS theo `CORS_ORIGINS`; giới hạn đăng nhập sai 5 lần/15 phút (trong tiến trình, chưa Redis) |
 | P0-9 `/catalog` | ✅ | Kiểu TS viết tay trong `web/lib/types.ts` (chưa sinh tự động) |
-| P0-10 artifact có token ký | ⏳ | Hiện tải trực tiếp qua phiên đăng nhập |
+| P0-10 artifact trên đĩa | ◐ | Cache PDF/DOCX theo phiên bản ở `ARTIFACT_DIR` (render sẵn sau khi tạo); link ký tên có hạn: chưa làm |
 | P1-1 khung web | ✅ | Next.js 15, Tailwind 4, TanStack Query; component tự viết (chưa dùng shadcn CLI) |
 | P1-2 đăng nhập + guard | ✅ | |
 | P1-3 API clients/reports/preview | ✅ | `tests/test_api_v1.py` (7 test) |

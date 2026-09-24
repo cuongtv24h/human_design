@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import unicodedata
 from urllib.parse import quote
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, Response
@@ -13,12 +14,13 @@ from backend.reporting.contract import ContentMode, ReportRequest
 from backend.reporting.export import _slug, bodygraph_svg
 from backend.reporting.infographic import render_infographic_html
 from backend.reporting.orchestrator import ReportOrchestrator
+from backend.reporting.render_common import MissingFontError
 
 from ..deps import client_ip, current_user, get_db
 from ..models import Client, Report, User
 from ..schemas import CatalogSection, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList
 from ..services import (
-    audit, chart_summary, create_report, get_client_or_404, get_report_or_404, load_document,
+    ARTIFACT_FORMATS, audit, chart_summary, render_artifact, report_theme, warm_artifacts, create_report, get_client_or_404, get_report_or_404, load_document,
     report_detail, report_summary, run_llm_generation, visible_reports,
 )
 
@@ -67,9 +69,13 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
     audit(db, user, "report.create", "report", report.id, ip=client_ip(request),
           content_mode=report.content_mode, tier=report.tier, template=report.template)
     db.commit()
+    state = request.app.state
     if payload.content_mode is ContentMode.LLM:
         # TODO(P2): move to arq/Redis worker (hd-worker) — BackgroundTasks for the MVP.
-        background.add_task(run_llm_generation, request.app.state.db.session_factory, report.id, user.email)
+        background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
+                            state.settings.artifact_dir)
+    else:
+        background.add_task(warm_artifacts, state.db.session_factory, state.settings.artifact_dir, report.id)
     return report_detail(report)
 
 
@@ -109,11 +115,17 @@ def archive(report_id: str, request: Request, user: User = Depends(current_user)
     return report_detail(report)
 
 
-def _download(report: Report, body: str, media_type: str, suffix: str, download: bool) -> Response:
+def _ascii(value: str) -> str:
+    """"Nguyễn Văn Đức" → "Nguyen Van Duc" for the legacy filename= parameter."""
+    value = value.replace("đ", "d").replace("Đ", "D")
+    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+
+
+def _download(report: Report, body: str | bytes, media_type: str, suffix: str, download: bool) -> Response:
     headers = {"Cache-Control": "private, no-store"}
     if download:
         name = f"{_slug(report.client.full_name)}_{report.id[:8]}{suffix}"
-        ascii_name = name.encode("ascii", "ignore").decode() or f"bao-cao{suffix}"
+        ascii_name = _ascii(name) or f"bao-cao{suffix}"
         headers["Content-Disposition"] = f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(name)}"
     return Response(content=body, media_type=media_type, headers=headers)
 
@@ -151,3 +163,20 @@ def bodygraph(report_id: str, request: Request, download: bool = False, user: Us
         audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format="bodygraph_svg")
         db.commit()
     return _download(report, body, "image/svg+xml", "_bodygraph.svg", download)
+
+
+@router.get("/{report_id}/{fmt}")
+def document_file(report_id: str, fmt: str, request: Request, download: bool = True,
+                  user: User = Depends(current_user), db: Session = Depends(get_db)) -> Response:
+    """PDF / DOCX built from the same ReportDocument as every other view."""
+    if fmt not in ARTIFACT_FORMATS:
+        raise HTTPException(status_code=404, detail="Định dạng không được hỗ trợ.")
+    report = get_report_or_404(db, user, report_id)
+    try:
+        data = render_artifact(request.app.state.settings.artifact_dir, report, fmt, report_theme(db, report))
+    except MissingFontError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format=fmt)
+    db.commit()
+    media_type, suffix = ARTIFACT_FORMATS[fmt]
+    return _download(report, data, media_type, suffix, download)

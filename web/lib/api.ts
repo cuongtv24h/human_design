@@ -45,7 +45,7 @@ export const api = {
   del: (path: string) => request<void>("DELETE", path),
 };
 
-export const fileUrl = (reportId: string, kind: "markdown" | "infographic.html" | "bodygraph.svg", download = false) =>
+export const fileUrl = (reportId: string, kind: "markdown" | "infographic.html" | "bodygraph.svg" | "pdf" | "docx", download = false) =>
   `${BASE}/reports/${reportId}/${kind}?download=${download}`;
 
 export function qs(params: Record<string, string | number | undefined | null>): string {

@@ -40,6 +40,7 @@ class Settings:
     session_hours: int = 12
     auto_create_tables: bool = True
     environment: str = "development"
+    artifact_dir: str = str(ROOT / "var" / "artifacts")
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -53,4 +54,5 @@ class Settings:
             session_hours=int(os.environ.get("SESSION_HOURS") or cls.session_hours),
             auto_create_tables=_bool(os.environ.get("AUTO_CREATE_TABLES"), environment != "production"),
             environment=environment,
+            artifact_dir=os.environ.get("ARTIFACT_DIR") or cls.artifact_dir,
         )

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import os
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -12,10 +15,13 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.reporting.contract import ContentMode, ReportDocument, ReportRequest
+from backend.reporting.render_common import Theme
+from backend.reporting.render_docx import render_docx
+from backend.reporting.render_pdf import render_pdf
 from backend.reporting.language_vn import TYPE_VN, vn_authority, vn_definition, vn_strategy
 from backend.reporting.service import generate_report
 
-from .models import AuditLog, Client, Report, ReportRevision, User
+from .models import AuditLog, Client, Organization, Report, ReportRevision, User
 from .schemas import ChartSummary, ClientOut, ReportDetailOut, ReportSummaryOut, SectionOut
 
 from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via backend.reporting)
@@ -177,7 +183,8 @@ def create_report(db: Session, user: User, client: Client, *, tier: str, templat
     return report
 
 
-def run_llm_generation(session_factory: sessionmaker, report_id: str, author: str) -> None:
+def run_llm_generation(session_factory: sessionmaker, report_id: str, author: str,
+                       artifact_dir: str | None = None) -> None:
     """Background job for content_mode=llm (30–120 s). Falls back to template inside service."""
     db = session_factory()
     try:
@@ -193,5 +200,60 @@ def run_llm_generation(session_factory: sessionmaker, report_id: str, author: st
             report.error = str(exc)[:1000]
         report.updated_at = datetime.now(timezone.utc)
         db.commit()
+        ready = report.status == "ready"
+    finally:
+        db.close()
+    if artifact_dir and ready:
+        warm_artifacts(session_factory, artifact_dir, report_id)
+
+
+# --- file exports (PDF / DOCX) ----------------------------------------------
+
+ARTIFACT_FORMATS = {
+    "pdf": ("application/pdf", ".pdf"),
+    "docx": ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"),
+}
+
+
+def report_theme(db: Session, report: Report) -> Theme:
+    org = db.get(Organization, report.org_id)
+    return Theme.from_mapping(org.theme if org else None)
+
+
+def _artifact_path(artifact_dir: str, report: Report, fmt: str, theme: Theme) -> Path:
+    theme_key = hashlib.sha256(repr(theme).encode("utf-8")).hexdigest()[:8]
+    return Path(artifact_dir) / report.id / f"v{report.version}-{theme_key}{ARTIFACT_FORMATS[fmt][1]}"
+
+
+def render_artifact(artifact_dir: str, report: Report, fmt: str, theme: Theme) -> bytes:
+    """PDF/DOCX bytes, cached on disk per report version (plan P0-10).
+
+    A new version (regenerate / edit) gets a new file name, so cached files never go stale.
+    """
+    path = _artifact_path(artifact_dir, report, fmt, theme)
+    if path.is_file():
+        return path.read_bytes()
+    document = load_document(report)
+    data = render_pdf(document, theme) if fmt == "pdf" else render_docx(document, theme)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + f".{uuid4().hex}.tmp")
+    tmp.write_bytes(data)
+    os.replace(tmp, path)  # atomic: concurrent workers never read half-written files
+    return data
+
+
+def warm_artifacts(session_factory: sessionmaker, artifact_dir: str, report_id: str) -> None:
+    """Pre-render PDF + DOCX right after generation so the first download is instant."""
+    db = session_factory()
+    try:
+        report = db.get(Report, report_id)
+        if report is None or not report.document:
+            return
+        theme = report_theme(db, report)
+        for fmt in ARTIFACT_FORMATS:
+            try:
+                render_artifact(artifact_dir, report, fmt, theme)
+            except Exception:  # noqa: BLE001 - downloads will retry and surface the error
+                log.exception("pre-render %s failed for %s", fmt, report_id)
     finally:
         db.close()
