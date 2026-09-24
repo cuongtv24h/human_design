@@ -1,6 +1,8 @@
 # Kế hoạch triển khai Frontend / Admin — Human Design Analyzer
 
-> Phiên bản 1.1 · 2026-09-24 · Trạng thái: **đã chốt D6-giờ VN, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+> Phiên bản 1.2 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+>
+> Thay đổi v1.2: **không tự áp offset lịch sử** — tính đúng theo giờ khai báo với chuẩn Việt Nam = UTC+07:00; P0-4 đã hoàn thành (`tools/hd_time.py`).
 >
 > Thay đổi v1.1: thêm mục 1.3 *Quy ước thời gian* (nhập & hiển thị giờ Việt Nam, tính theo UTC với offset lịch sử); bỏ Docker/CI → **pm2 trên VPS riêng**; thương hiệu dùng **template tự sinh**; bỏ geocoding; rút gọn lộ trình.
 > Nền tảng hiện có: branch `arena/01a0d215-human-design` @ `240d670` — 40 MCP tools, 44 REST routes, 48 test xanh.
@@ -55,56 +57,44 @@ Mốc quan trọng: **cuối P1 (tuần 5)** coach đã dùng được nội b�
 | B4 | **Job nền** | Mọi thứ chạy đồng bộ | LLM mất 30–120 giây → timeout HTTP |
 | B5 | **PDF theo chuẩn báo cáo** | `build_pdf(chart, ...)` nhận chart thô, nội dung riêng, định dạng ngày `dd/mm/YYYY` | PDF lệch nội dung với Markdown/LLM/Infographic |
 | B6 | **DOCX** | Chưa có | Không đáp ứng yêu cầu "xuất pdf/doc" |
-| B7 | **Giờ Việt Nam lịch sử** | Nhập offset cố định `+07:00` | **Sai chart** với người sinh vào giai đoạn Việt Nam không dùng UTC+7 — xem mục 1.3 |
+| B7 | ~~Quy ước giờ sinh~~ ✅ | Đã thống nhất ở `tools/hd_time.py` — mục 1.3 | — |
 | B8 | **Sửa từng phần + kiểm tra lại** | Chỉ merge draft LLM | Coach sửa tay có thể làm mất sự kiện kỹ thuật mà không ai biết |
 | B9 | **Catalog cho UI** | Nằm trong `catalog.py`, chưa có endpoint | Frontend phải hard-code tier/domain/section |
 | B10 | **CORS** | `allow_origins=["*"]` + `allow_credentials=True` | Không hợp lệ cho app có cookie đăng nhập; rủi ro bảo mật |
 | B11 | **Cấu hình chạy production** | Chưa có cấu hình pm2, reverse proxy, biến môi trường | Không triển khai lặp lại được |
 
-### 1.3 Quy ước thời gian (đã chốt)
+### 1.3 Quy ước thời gian (đã chốt & đã triển khai)
 
-**Nguyên tắc: nhập giờ Việt Nam → hiển thị giờ Việt Nam → tính toán bằng UTC.**
+**Nguyên tắc: nhập giờ Việt Nam → hiển thị giờ đã khai báo → tính toán bằng UTC, với chuẩn Việt Nam = UTC+07:00 cố định.**
 
 | Bước | Giá trị | Ghi chú |
 | --- | --- | --- |
-| Nhập | Giờ đồng hồ **tại Việt Nam** lúc sinh (VD `15/05/1990 08:30`) | Người dùng không cần biết múi giờ |
-| Hiển thị | Đúng giờ đã nhập — trên báo cáo, BodyGraph, infographic, PDF/DOCX | Chỉ mang tính hiển thị: `Giờ sinh: 08:30 (giờ Việt Nam)` |
-| Tính toán | **UTC** = giờ Việt Nam − offset có hiệu lực **vào ngày sinh** | Swiss Ephemeris tính vị trí hành tinh theo Julian Day ở thang UT; Design = thời điểm Mặt Trời lùi 88° |
+| Nhập | Giờ đồng hồ tại Việt Nam lúc sinh, đúng như người dùng khai báo (VD `15/05/1990 08:30`) | Người dùng không cần biết múi giờ |
+| Hiển thị | Đúng giờ đã khai báo — báo cáo, BodyGraph, infographic, PDF, brief LLM | `Ngày sinh: 15/05/1990 · Giờ sinh: 08:30 (giờ Việt Nam)`; **không hiển thị giờ UTC** |
+| Tính toán | **UTC = giờ khai báo − 7 giờ** (mọi ngày sinh) | Swiss Ephemeris tính theo Julian Day thang UT; Design = thời điểm Mặt Trời lùi 88° |
 
-**Vì sao phải dùng UTC:** vị trí hành tinh là một thời điểm vật lý duy nhất trên toàn cầu. 08:30 ở Hà Nội
-và 08:30 ở London là hai thời điểm khác nhau cách 7 giờ, nên phải quy về cùng một thang giờ (UTC) rồi mới
-tra lịch thiên văn. Code hiện tại đã làm đúng việc này (`orchestrator._parse_birth_datetime` đổi giờ
-địa phương sang UTC rồi mới gọi `calculate_hd_chart`). **Chỗ thiếu duy nhất là offset: hiện luôn dùng
-`+07:00`, trong khi Việt Nam không phải lúc nào cũng dùng UTC+7.**
+**Vì sao phải quy về UTC:** vị trí hành tinh là một thời điểm vật lý duy nhất trên toàn cầu; 08:30 ở
+Hà Nội và 08:30 ở London cách nhau 7 giờ, nên phải quy về cùng một thang giờ rồi mới tra lịch thiên văn.
+Bước này hoàn toàn nội bộ.
 
-Offset lịch sử theo tzdata (`Asia/Ho_Chi_Minh`, dữ liệu IANA):
+**Quyết định của chủ dự án:** **không** tự áp offset lịch sử theo ngày sinh. Mọi ngày sinh đều trừ đúng
+7 giờ. Tham khảo (không áp dụng): tzdata ghi một số giai đoạn Việt Nam dùng offset khác (VD miền Nam
+1960 – 13/06/1975 dùng UTC+8); nếu người dùng khai báo giờ theo đồng hồ thời đó, kết quả là theo giờ
+khai báo — đúng quy ước đã chốt.
 
-| Giai đoạn (giờ địa phương) | Offset | Ghi chú |
-| --- | --- | --- |
-| trước 01/05/1911 | UTC+7:06:30 | Giờ trung bình địa phương |
-| 01/05/1911 – 31/12/1942 | UTC+7 | |
-| 01/01/1943 – 14/03/1945 | UTC+8 | |
-| 15/03/1945 – 01/09/1945 | UTC+9 | Thời kỳ Nhật chiếm đóng |
-| 02/09/1945 – 31/03/1947 | UTC+7 | |
-| 01/04/1947 – 30/06/1955 | UTC+8 | |
-| 01/07/1955 – 31/12/1959 | UTC+7 | |
-| **01/01/1960 – 12/06/1975** | **UTC+8** | **Miền Nam (VNCH)**; miền Bắc giữ UTC+7 |
-| từ 13/06/1975 | UTC+7 | Thống nhất giờ cả nước |
+**Đã triển khai (P0-4 ✅):**
 
-**Mức ảnh hưởng (đo trên calculator của repo):** với 200 ca sinh ngẫu nhiên ở miền Nam giai đoạn
-1960–1974, dùng sai `+07:00` thay cho `+08:00` làm **61%** chart lệch cổng/hào ít nhất một hành tinh
-và **13%** lệch kết quả cốt lõi (Type, Authority, Profile, Definition, Cross hoặc Kênh) — VD ca sinh
-28/10/1962 02:16 bị ra Profile `3/5` thay vì `2/5`.
-
-**Giải pháp (P0-4, không cần geocoding):**
-
-- Hàm `resolve_vn_offset(birth_date, birth_time, region)` áp bảng trên; `region ∈ {bac, nam}` **chỉ
-  hỏi khi ngày sinh rơi vào giai đoạn hai miền khác nhau** (1960–13/06/1975). Các giai đoạn trước 1955
-  vẫn cần đối chiếu tư liệu cho từng vùng (vùng Việt Minh / vùng Pháp kiểm soát) → mặc định theo tzdata
-  và cho phép coach **ghi đè offset thủ công**.
-- Lưu cả `birth_local` (hiển thị), `utc_offset_applied` và `birth_utc` (tính toán) để truy vết.
-- Wizard hiển thị dòng xác nhận nhỏ: *"Đã quy đổi theo UTC+08:00 (giờ miền Nam trước 13/06/1975)"*.
-- Test bảng dữ liệu cho mọi mốc chuyển giờ (trước/sau đúng 1 phút).
+- `tools/hd_time.py` — nguồn duy nhất: `local_to_utc`, `display_birth`, `normalize_offset`… Thay thế 5
+  bản sao logic đổi giờ trước đây (orchestrator, MCP server, CLI, BodyGraph CLI, PDF CLI) vốn xử lý
+  không nhất quán (VD orchestrator nhận `Asia/Ho_Chi_Minh` và tự áp offset lịch sử; MCP/CLI âm thầm
+  đổi mọi tên múi giờ lạ thành +7).
+- `timezone` mặc định `+07:00`; các cách viết giờ Việt Nam (`+7`, `UTC+7`, `Asia/Ho_Chi_Minh`,
+  `Asia/Saigon`, `VN`…) đều quy về `+07:00` cố định. Offset cố định khác (`+08:00`…) vẫn nhận khi người
+  gọi API chủ động truyền; tên múi giờ khác bị từ chối rõ ràng (422) thay vì đoán sai.
+- BodyGraph và PDF bỏ dòng "GMT …" / "Giờ UTC tính toán"; brief LLM bỏ các trường giờ nội bộ
+  (UTC, Julian Day) để LLM không nhắc giờ UTC trong báo cáo.
+- `tests/test_time_convention.py` — công thức (qua ngày/năm/nhuận/giây), không áp lịch sử, mọi entry
+  point ra cùng chart, mọi bề mặt hiển thị chỉ có giờ khai báo.
 
 ---
 
@@ -133,7 +123,7 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 | D4 | CSDL | **PostgreSQL 16** + SQLAlchemy 2 + Alembic | JSONB lưu `ReportDocument` nguyên vẹn | SQLite (chỉ demo) |
 | D5 | Lưu file | **Ổ đĩa VPS** (`/var/lib/hd/artifacts`) + endpoint tải có token ký tên, hết hạn | Đơn giản, hợp VPS riêng; nếu cần scale chuyển sang Cloudflare R2 mà không đổi API | S3/R2 ngay từ đầu |
 | D6 | Đăng nhập | **Email + mật khẩu, session cookie httpOnly do backend cấp**; magic link cho khách (P3) | Không phụ thuộc bên thứ ba, tuân thủ dữ liệu trong nước | Clerk/Auth0/Supabase Auth |
-| D6b | Giờ sinh | ✅ **Đã chốt:** nhập & hiển thị giờ Việt Nam; tính bằng UTC với offset lịch sử (mục 1.3) | Người dùng không phải hiểu múi giờ; kết quả vẫn chính xác | — |
+| D6b | Giờ sinh | ✅ **Đã chốt & triển khai:** nhập & hiển thị giờ khai báo; tính bằng UTC với chuẩn Việt Nam **+07:00 cố định**, không áp offset lịch sử (mục 1.3) | Đơn giản, nhất quán, đúng giờ người dùng khai báo | — |
 | D7 | Job nền | **Redis + arq** (async, nhẹ) | Hợp FastAPI async; chỉ cần cho LLM/PDF/DOCX | Celery (nặng hơn), RQ |
 | D8 | Hosting | ✅ **Đã chốt: VPS riêng, chạy bằng pm2** (web, api, worker) + Nginx; PostgreSQL & Redis cài trực tiếp; **không Docker, không CI** | Theo hạ tầng sẵn có của chủ dự án | — |
 | D9 | Nhà cung cấp LLM | **Endpoint OpenAI-compatible cấu hình qua Admin** (mặc định `gpt-4o-mini`) | Code đã hỗ trợ `HD_LLM_BASE_URL` | Cố định một nhà cung cấp |
@@ -186,7 +176,7 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 | --- | --- | --- |
 | `organizations` | id, name, theme (JSONB, mặc định = template tự sinh), llm_settings (JSONB, key mã hóa) | D10: theme tự sinh, thay bằng thương hiệu thật sau |
 | `users` | id, org_id, email, password_hash, role (`admin`/`coach`), is_active, last_login_at | Argon2 hash |
-| `clients` | id, org_id, owner_user_id, full_name, email, phone, birth_date, birth_time (giờ VN), birth_time_known, birth_place (chữ, chỉ hiển thị), vn_region (`bac`/`nam`, nullable), utc_offset_applied, utc_offset_overridden (bool), birth_utc, notes, consent_at, deleted_at | Mục 1.3; dữ liệu cá nhân — xóa mềm + xóa cứng theo yêu cầu |
+| `clients` | id, org_id, owner_user_id, full_name, email, phone, birth_date, birth_time (giờ khai báo), birth_time_known, birth_place (chữ, chỉ hiển thị), timezone (mặc định `+07:00`), notes, consent_at, deleted_at | Mục 1.3; dữ liệu cá nhân — xóa mềm + xóa cứng theo yêu cầu |
 | `reports` | id (= `report_id`), org_id, client_id, created_by, tier, template, content_mode, domains[], status (`draft`/`generating`/`ready`/`failed`/`archived`), request (JSONB), document (JSONB), editor, warnings_count, version, created_at, updated_at | `document` = `ReportDocument` đầy đủ |
 | `report_revisions` | id, report_id, version, author (user / `llm:<model>`), change_type (`generate`/`llm_edit`/`manual_edit`/`regenerate`), sections_diff (JSONB), warnings (JSONB), created_at | Lịch sử + hoàn tác |
 | `report_artifacts` | id, report_id, version, format (`md`/`pdf`/`docx`/`infographic_html`/`bodygraph_svg`/`bodygraph_png`), storage_key, bytes, sha256, created_at | Cache theo (report, version, format) |
@@ -202,7 +192,6 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 | --- | --- | --- | --- |
 | Auth | `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`, `POST /auth/password/reset` | ✔ | — |
 | Catalog | `GET /catalog` → tiers, templates, content_modes, domains, sections (tiêu đề song ngữ) | ✔ | `catalog.py` |
-| Giờ sinh | `POST /time/resolve` {birth_date, birth_time, vn_region?} → `utc_offset`, `birth_utc`, `needs_region` (true nếu 1960–13/06/1975), `note` | ✔ | **mới (B7, mục 1.3)** |
 | Khách hàng | `GET/POST /clients`, `GET/PATCH/DELETE /clients/{id}`, `POST /clients/{id}/erase` | ✔ | — |
 | Xem trước | `POST /reports/preview` → document + markdown + infographic (không lưu) | ✔ ≤ 50 ms | `service.generate_report` |
 | Báo cáo | `POST /reports` (template → `ready` ngay; llm → `generating` + job_id), `GET /reports?client_id=&status=`, `GET /reports/{id}` | ✔ / job | `service`, `orchestrator` |
@@ -240,7 +229,7 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 
 | Bước | Nội dung | Chi tiết UX |
 | --- | --- | --- |
-| 1. Người được phân tích | Chọn khách có sẵn hoặc nhập mới: họ tên, ngày sinh, **giờ sinh (giờ Việt Nam)**, nơi sinh (chữ tự do, chỉ để hiển thị) | Nếu ngày sinh trong 1960–13/06/1975 → hiện lựa chọn **Miền Bắc / Miền Nam**; luôn hiện dòng xác nhận offset đã quy đổi + nút "Ghi đè offset" (coach); công tắc "Không rõ giờ sinh" → cảnh báo các phần phụ thuộc giờ |
+| 1. Người được phân tích | Chọn khách có sẵn hoặc nhập mới: họ tên, ngày sinh, **giờ sinh (giờ Việt Nam)**, nơi sinh (chữ tự do, chỉ để hiển thị) | Nhãn ô giờ: "Giờ sinh (giờ Việt Nam)"; ô ngày dạng `dd/mm/yyyy`; công tắc "Không rõ giờ sinh" → cảnh báo các phần phụ thuộc giờ |
 | 2. Gói phân tích | `free_basic` / `deep_core` + chọn domain add-on (8 thẻ có mô tả) | Lấy từ `GET /catalog`; hiển thị danh sách phần sẽ có |
 | 3. Cách viết | Template `sections` / `operating_manual`; Content mode **Mẫu chuẩn** / **Chuyên gia AI biên tập** | Giải thích ngắn 2 chế độ; nếu chưa cấu hình LLM → vô hiệu hóa kèm lý do |
 | 4. Xem trước & tạo | Preview tức thì (tóm tắt Type/Strategy/Authority/Profile + mini BodyGraph) → nút **Tạo báo cáo** | Preview gọi `/reports/preview` (< 50 ms) mỗi khi đổi lựa chọn |
@@ -300,7 +289,7 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P0-1 | Khung `backend/api/` (FastAPI, settings qua `.env`, `/api/v1/health`), `deploy/ecosystem.config.cjs` (pm2), script `deploy/check.sh` chạy pytest trước khi deploy | BE | 1d | `pm2 start deploy/ecosystem.config.cjs` chạy được trên máy dev |
 | P0-2 | SQLAlchemy models + Alembic migration theo mục 5 | BE | 2d | Migration up/down sạch |
 | P0-3 | Auth: login/logout/me, Argon2, session cookie httpOnly + CSRF, RBAC dependency | BE | 2d | Test phân quyền admin/coach/ẩn danh |
-| P0-4 | **Giờ Việt Nam lịch sử (B7, mục 1.3):** `resolve_vn_offset()` + `POST /time/resolve`; nối vào `SubjectInput` (thêm `vn_region`, `utc_offset_override`), MCP/REST cũ dùng chung; hiển thị giữ giờ VN | BE | 1,5d | Test mọi mốc chuyển giờ; 1962 miền Nam → +08:00, 1962 miền Bắc → +07:00, 1990 → +07:00, 1945-06 → +09:00 |
+| P0-4 | ✅ **Quy ước giờ sinh (mục 1.3)** — `tools/hd_time.py`, mọi entry point dùng chung, hiển thị giờ khai báo | BE | xong | 14 test `test_time_convention.py` xanh |
 | P0-5 | **PDF theo chuẩn (B5):** `render_pdf(document)` dùng `ReportDocument` (thông tin + BodyGraph + sections theo content_mode), font DejaVu hỗ trợ tiếng Việt; giữ `build_pdf` cũ cho CLI | BE | 2d | PDF khớp nội dung Markdown; test snapshot |
 | P0-6 | **DOCX (B6):** `render_docx(document)` bằng `python-docx` (tiêu đề, bảng thông tin, ảnh BodyGraph PNG, sections) | BE | 1,5d | Mở được trong Word/Google Docs, đúng dấu tiếng Việt |
 | P0-7 | Worker arq: job `llm_edit`, `render_pdf`, `render_docx`; bảng `jobs`; retry + timeout | BE | 1,5d | Job LLM chạy nền, fallback template khi lỗi |
@@ -315,7 +304,7 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P1-1 | Khung `web/` (Next.js, Tailwind, shadcn/ui, TanStack Query), layout, proxy `/api`, design tokens = theme tự sinh (D10) | FE | 2d | `npm run build` + lint + typecheck xanh trên máy dev |
 | P1-2 | Đăng nhập, guard theo vai trò, trang 403/404 | FE | 1d | E2E đăng nhập/đăng xuất |
 | P1-3 | API: CRUD `clients`, `reports` (template đồng bộ), `preview` | BE | 3d | Test contract |
-| P1-4 | Màn Khách hàng: danh sách, hồ sơ, form giờ sinh VN + chọn miền khi cần + xác nhận offset | FE | 2,5d | Nhập ngày 1965 → hỏi miền; offset hiển thị đúng |
+| P1-4 | Màn Khách hàng: danh sách, hồ sơ, form ngày/giờ sinh (giờ Việt Nam) | FE | 2d | Hiển thị đúng giờ đã khai báo ở mọi màn |
 | P1-5 | **Wizard tạo báo cáo 4 bước** + preview tức thì | FE | 4d | Nghiệm thu mục 7.1 |
 | P1-6 | Xem báo cáo: tab Nội dung / Infographic / BodyGraph / Tệp xuất (MD, Infographic) | FE | 3d | Nghiệm thu mục 7.2 (trừ Lịch sử) |
 | P1-7 | Tổng quan + nhật ký thao tác cơ bản | BE+FE | 1,5d | Ghi nhận tạo/xem/xuất |
@@ -479,7 +468,7 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 | Frontend | Vitest + Testing Library | Wizard, editor, cảnh báo |
 | E2E | Playwright | Đăng nhập → tạo khách → tạo báo cáo → sửa → xuất → chia sẻ → mở link |
 | Hình ảnh | Playwright screenshot | Infographic & trang chia sẻ (desktop + mobile) |
-| Giờ sinh | pytest bảng dữ liệu | Mọi mốc chuyển giờ Việt Nam (mục 1.3), hai miền 1960–1975, ghi đè offset |
+| Giờ sinh | pytest (`test_time_convention.py`) | Công thức −7 giờ, không áp lịch sử, mọi entry point cùng kết quả, hiển thị chỉ giờ khai báo |
 
 ---
 
@@ -487,7 +476,7 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 
 | Rủi ro | Mức | Giảm thiểu |
 | --- | --- | --- |
-| Sai offset giờ Việt Nam lịch sử → sai chart (đo được: 13% ca miền Nam 1960–1974 lệch kết quả cốt lõi) | **Cao** | P0-4 làm đầu tiên, test mọi mốc, luôn hiển thị offset đã dùng, cho phép ghi đè |
+| Người dùng khai báo giờ không theo chuẩn +07:00 (VD giờ đồng hồ miền Nam trước 1975 là UTC+8) | Thấp | Đã chốt: tính theo giờ khai báo; nếu cần, coach có thể truyền offset cố định khác qua API; ghi chú trong tài liệu hướng dẫn nhập liệu |
 | Không có CI → lỗi lọt lên production | Trung bình | `deploy/check.sh` (pytest + build + typecheck) bắt buộc chạy trước `deploy.sh`; gắn tag git mỗi lần deploy để hoàn tác nhanh |
 | LLM chậm/lỗi/đắt | Trung bình | Job nền, fallback template (đã có), giới hạn lượt theo tổ chức, cache theo phiên bản |
 | LLM làm mất/sai sự kiện kỹ thuật | Trung bình | Validator đã có + diff bắt buộc duyệt trước khi chấp nhận |
@@ -500,7 +489,7 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 ## 14. Việc cần làm ngay (Sprint 0 — 3 ngày)
 
 1. ✅ Đã chốt: giờ Việt Nam (D6b), pm2/VPS (D8), template tự sinh (D10). Các quyết định còn lại theo đề xuất mặc định.
-2. **P0-4 giờ Việt Nam lịch sử** — làm trước tiên, áp dụng luôn cho MCP/REST hiện có (sửa được lỗi chính xác ngay cả trước khi có frontend).
+2. ✅ **P0-4 quy ước giờ sinh** — đã xong, áp dụng cho mọi entry point hiện có.
 3. Khung `backend/api/` + `deploy/ecosystem.config.cjs` + `deploy/check.sh` (P0-1).
 4. Chuẩn bị VPS: Nginx, certbot, PostgreSQL 16, Redis 7, Node LTS + pm2, Python 3.11 + venv.
 5. Wireframe 3 màn **Wizard**, **Xem báo cáo**, **Trình biên tập** (mục 7.1–7.3).
@@ -511,7 +500,7 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 
 | Màn hình | API v1 | Module lõi dùng lại |
 | --- | --- | --- |
-| Wizard bước 1 | `/time/resolve`, `/clients` | `contract.SubjectInput` (validator), `resolve_vn_offset` |
+| Wizard bước 1 | `/clients` | `contract.SubjectInput` (validator), `tools/hd_time.py` |
 | Wizard bước 2–3 | `/catalog` | `catalog.py`, `contract` enums |
 | Wizard bước 4 | `/reports/preview`, `POST /reports` | `service.generate_report`, `infographic` |
 | Xem báo cáo | `/reports/{id}`, `/reports/{id}/artifacts/*` | `ReportDocument.to_markdown`, `export`, `infographic` |

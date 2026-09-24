@@ -56,7 +56,7 @@ def test_infographic_is_self_contained_and_carries_key_points():
     assert "<svg" in html  # inline BodyGraph
 
     text = _visible_text(html)
-    assert "Nguyễn Văn A" in text and "1990-05-15" in text and "Hòa Bình" in text
+    assert "Nguyễn Văn A" in text and "15/05/1990 08:30 (giờ Việt Nam)" in text and "Hòa Bình" in text
     assert chart["type"] in text
     assert vn_strategy(chart["strategy"], chart["type"]) in text
     assert vn_authority(chart["authority"]) in text

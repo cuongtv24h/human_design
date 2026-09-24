@@ -1105,17 +1105,14 @@ def main():
     ap.add_argument("--mode", default="full", choices=["full", "focus"])
     args = ap.parse_args()
 
-    dt_naive = datetime.strptime(f"{args.date} {args.time}", "%Y-%m-%d %H:%M")
-    sign = 1 if args.tz[0] == "+" else -1
-    off = timedelta(hours=sign * int(args.tz[1:3]),
-                    minutes=(sign * int(args.tz[4:6])) if len(args.tz) > 3 else 0)
-    dt_utc = (dt_naive.replace(tzinfo=timezone(off))).astimezone(timezone.utc).replace(tzinfo=None)
+    from hd_time import display_birth, local_to_utc
+    # Tính bằng UTC; hiển thị đúng giờ khai báo (quy ước tools/hd_time.py).
+    dt_utc = local_to_utc(args.date, args.time, args.tz)
 
     chart = calculate_hd_chart(dt_utc)
-    birth_local = f'Sinh {dt_naive.strftime("%d/%m/%Y %H:%M")} ({args.tz})' 
+    birth_local = f"Sinh {display_birth(args.date, args.time, args.tz)}"
     svg = generate_bodygraph_svg(chart, name=args.name or "Human Design Chart",
                                  birth_local_str=birth_local,
-                                 utc_str=dt_utc.strftime("%d/%m/%Y %H:%M"),
                                  place_str=args.place, mode=args.mode)
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(svg)

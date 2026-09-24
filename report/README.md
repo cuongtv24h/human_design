@@ -12,7 +12,7 @@ Các file trong thư mục này là snapshot/lịch sử theo từng giai đoạ
 
 ## Kế hoạch triển khai
 
-- `KE_HOACH_TRIEN_KHAI_FRONTEND_ADMIN.md` — kế hoạch Frontend/Admin (v1.1, 2026-09-24): quy ước giờ Việt Nam → UTC, hiện trạng & gap backend, quyết định (đã chốt giờ VN, pm2/VPS, template tự sinh), kiến trúc, mô hình dữ liệu, API v1, màn hình & nghiệm thu, lộ trình 5 giai đoạn ~9 tuần, triển khai pm2, tuân thủ dữ liệu cá nhân, kiểm thử, rủi ro.
+- `KE_HOACH_TRIEN_KHAI_FRONTEND_ADMIN.md` — kế hoạch Frontend/Admin (v1.2, 2026-09-24): quy ước giờ Việt Nam +07:00 cố định → UTC, hiện trạng & gap backend, quyết định (đã chốt giờ VN, pm2/VPS, template tự sinh), kiến trúc, mô hình dữ liệu, API v1, màn hình & nghiệm thu, lộ trình 5 giai đoạn ~9 tuần, triển khai pm2, tuân thủ dữ liệu cá nhân, kiểm thử, rủi ro.
 
 ## Các báo cáo lịch sử
 

@@ -209,7 +209,6 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
     if place_str:
         info += f"  •  Nơi sinh: {place_str}"
     story.append(Paragraph(info, st["center"]))
-    story.append(Paragraph(f"Giờ UTC tính toán: {utc_str}", st["center"]))
     story.append(Spacer(1, 8 * mm))
     story.append(HRFlowable(width="80%", color=ACCENT, thickness=1.2,
                             hAlign="CENTER", spaceAfter=8))
@@ -257,9 +256,9 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
         full_png = os.path.join(tmpdir, "bg_full.png")
         focus_png = os.path.join(tmpdir, "bg_focus.png")
         svg_full = generate_bodygraph_svg(chart, name=name, birth_local_str=birth_local_str,
-                                          utc_str=utc_str, place_str=place_str, mode="full")
+                                          place_str=place_str, mode="full")
         svg_focus = generate_bodygraph_svg(chart, name=name, birth_local_str=birth_local_str,
-                                           utc_str=utc_str, place_str=place_str, mode="focus")
+                                           place_str=place_str, mode="focus")
         cairosvg.svg2png(bytestring=svg_full.encode("utf-8"), write_to=full_png,
                          scale=2, background_color="white")
         cairosvg.svg2png(bytestring=svg_focus.encode("utf-8"), write_to=focus_png,
@@ -521,14 +520,12 @@ def main():
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
-    dt_naive = datetime.strptime(f"{args.date} {args.time}", "%Y-%m-%d %H:%M")
-    sign = 1 if args.tz[0] == "+" else -1
-    off = timedelta(hours=sign * int(args.tz[1:3]),
-                    minutes=sign * int(args.tz[4:6]) if len(args.tz) > 3 else 0)
-    dt_utc = (dt_naive.replace(tzinfo=timezone(off))).astimezone(timezone.utc).replace(tzinfo=None)
+    from hd_time import display_birth, local_to_utc
+    # Tính bằng UTC; hiển thị đúng giờ khai báo (quy ước tools/hd_time.py).
+    dt_utc = local_to_utc(args.date, args.time, args.tz)
 
     chart = calculate_hd_chart(dt_utc)
-    birth_local = f"{dt_naive.strftime('%d/%m/%Y %H:%M')} ({args.tz})"
+    birth_local = display_birth(args.date, args.time, args.tz)
     utc_s = dt_utc.strftime("%d/%m/%Y %H:%M")
     build_pdf(chart, args.name or "Human Design Chart", birth_local, utc_s,
               args.place, args.out)

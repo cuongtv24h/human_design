@@ -46,8 +46,8 @@ def test_content_mode_defaults_to_template_and_accepts_llm():
 def test_markdown_carries_subject_information_block():
     document = _run()
     markdown = document.to_markdown()
-    assert "Ngày sinh: 1990-05-15" in markdown
-    assert "Giờ sinh: 08:30 (UTC+07:00)" in markdown
+    assert "Ngày sinh: 15/05/1990" in markdown
+    assert "Giờ sinh: 08:30 (giờ Việt Nam)" in markdown
     assert "Nơi sinh: Hòa Bình, Việt Nam" in markdown
 
 
@@ -105,7 +105,7 @@ def test_export_writes_markdown_and_bodygraph_svg(tmp_path):
     assert svg.lstrip().startswith("<svg") or svg.lstrip().startswith("<?xml")
     markdown = paths["markdown"].read_text(encoding="utf-8")
     assert "![BodyGraph](" in markdown
-    assert "Ngày sinh: 1990-05-15" in markdown
+    assert "Ngày sinh: 15/05/1990" in markdown
 
     plain = export_report(document, tmp_path / "plain", include_bodygraph=False)
     assert "![BodyGraph](" not in plain["markdown"].read_text(encoding="utf-8")

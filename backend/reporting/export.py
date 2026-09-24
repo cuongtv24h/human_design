@@ -22,12 +22,14 @@ if _TOOLS_DIR not in sys.path:
 def bodygraph_svg(document: ReportDocument) -> str:
     """Generate the BodyGraph SVG for a document's calculated chart."""
     from hd_bodygraph import generate_bodygraph_svg  # noqa: PLC0415
+    from hd_time import display_birth  # noqa: PLC0415
 
     subject = document.subject
     return generate_bodygraph_svg(
         document.chart,
         name=subject.name,
-        birth_local_str=f"{subject.birth_date} {subject.birth_time}",
+        # Hiển thị đúng giờ khai báo, không kèm giờ UTC (tools/hd_time.py).
+        birth_local_str=f"Sinh {display_birth(subject.birth_date, subject.birth_time, subject.timezone)}",
         place_str=subject.birth_location,
     )
 

@@ -157,7 +157,7 @@ def test_rest_report_routes():
     data = generated.json()
     assert data["editor"] == "template"
     assert "<svg" in data["bodygraph_svg"]
-    assert "Ngày sinh: 1990-05-15" in data["markdown"]
+    assert "Ngày sinh: 15/05/1990" in data["markdown"]
 
     brief = client.post("/reports/llm-brief", json=body)
     assert brief.status_code == 200 and "channels_gates" in brief.json()["section_ids"]

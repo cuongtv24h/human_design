@@ -20,6 +20,7 @@ from html import escape
 from typing import Any, Iterable
 
 from .contract import ReportDocument, ReportTier
+from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via contract)
 from .export import bodygraph_svg
 from .language_vn import (
     AUTHORITY_LANGUAGE,
@@ -277,7 +278,7 @@ def render_infographic_html(document: ReportDocument, include_bodygraph: bool = 
     strategy = vn_strategy(str(chart.get("strategy", "")), chart_type)
     deep = document.tier is ReportTier.DEEP_CORE
 
-    birth_bits = [f"{subject.birth_date} · {subject.birth_time} (UTC{subject.timezone})"]
+    birth_bits = [display_birth(subject.birth_date, subject.birth_time, subject.timezone)]
     if subject.birth_location:
         birth_bits.append(subject.birth_location)
 

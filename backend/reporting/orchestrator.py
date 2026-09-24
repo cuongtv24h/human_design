@@ -13,10 +13,9 @@ Two presentation templates are supported (see ``docs/NARRATIVE_STANDARD.md``):
 from __future__ import annotations
 
 import sys
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
-from zoneinfo import ZoneInfo
 
 # The legacy tool modules use absolute imports such as ``hd_calculator``.
 # Expose the tools directory without changing those modules or their public API.
@@ -31,6 +30,7 @@ from hd_calculator import (  # noqa: E402
     calculate_hd_chart,
 )
 from hd_analyzer import CENTER_ANALYSIS, PROFILE_ANALYSIS, TYPE_ANALYSIS  # noqa: E402
+from hd_time import local_to_utc  # noqa: E402
 
 from .catalog import DOMAIN_SPECS, SectionSpec, get_manual_spec, get_plan_definition  # noqa: E402
 from .language_vn import (  # noqa: E402
@@ -73,40 +73,11 @@ KNOWLEDGE_VERSION = "2026-09-24"
 
 
 def _parse_birth_datetime(date_text: str, time_text: str, timezone_text: str) -> datetime:
-    """Convert a subject's local birth time to the naive UTC used by tools."""
-    try:
-        local_date = date.fromisoformat(date_text)
-    except ValueError as exc:
-        raise ValueError(f"birth_date must be a valid YYYY-MM-DD date: {date_text}") from exc
+    """Declared local birth time → naive UTC for the calculator (see ``tools/hd_time.py``).
 
-    parsed_time: datetime | None = None
-    for fmt in ("%H:%M", "%H:%M:%S"):
-        try:
-            parsed_time = datetime.strptime(time_text, fmt)
-            break
-        except ValueError:
-            continue
-    if parsed_time is None:
-        raise ValueError("birth_time must use HH:MM or HH:MM:SS")
-
-    local_naive = datetime.combine(local_date, parsed_time.time())
-    try:
-        if timezone_text.startswith(("+", "-")):
-            sign = 1 if timezone_text[0] == "+" else -1
-            clean = timezone_text[1:].replace(":", "")
-            if len(clean) not in (2, 4) or not clean.isdigit():
-                raise ValueError
-            hours = int(clean[:2])
-            minutes = int(clean[2:]) if len(clean) == 4 else 0
-            if hours > 23 or minutes > 59:
-                raise ValueError
-            tzinfo = timezone(sign * timedelta(hours=hours, minutes=minutes))
-        else:
-            tzinfo = ZoneInfo(timezone_text)
-    except (ValueError, KeyError) as exc:
-        raise ValueError(f"Unsupported timezone: {timezone_text}") from exc
-
-    return local_naive.replace(tzinfo=tzinfo).astimezone(timezone.utc).replace(tzinfo=None)
+    Vietnam = fixed UTC+07:00 by default; no historical offset is applied by birth date.
+    """
+    return local_to_utc(date_text, time_text, timezone_text)
 
 
 def _json_safe(value: Any) -> Any:

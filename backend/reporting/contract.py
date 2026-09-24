@@ -7,12 +7,20 @@ individual analyzers.  A future API or frontend can therefore submit a
 
 from __future__ import annotations
 
+import sys
 from datetime import date, datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+_TOOLS_DIR = str(Path(__file__).resolve().parents[2] / "tools")
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
+
+from hd_time import VN_UTC_OFFSET, format_local, normalize_offset, zone_label  # noqa: E402
 
 
 class ReportTier(str, Enum):
@@ -87,17 +95,33 @@ def _validate_birth_time(value: str) -> str:
     raise ValueError("birth_time must use HH:MM or HH:MM:SS")
 
 
+def _validate_timezone(value: str) -> str:
+    """Canonical fixed offset; Vietnam aliases/empty → +07:00 (tools/hd_time.py)."""
+    return normalize_offset(value)
+
+
+def _birth_display(birth_date: str, birth_time: str, tz: str) -> tuple[str, str]:
+    """(``15/05/1990``, ``08:30 (giờ Việt Nam)``) — exactly the declared time."""
+    local = format_local(birth_date, birth_time)
+    day, clock = local.split(" ", 1)
+    return day, f"{clock} ({zone_label(tz)})"
+
+
 class SubjectInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = ""
     birth_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
     birth_time: str = Field(..., pattern=r"^\d{2}:\d{2}(:\d{2})?$")
-    timezone: str = "+07:00"
+    timezone: str = Field(
+        VN_UTC_OFFSET,
+        description="Offset cố định của giờ khai báo; mặc định giờ Việt Nam +07:00 (không áp offset lịch sử).",
+    )
     birth_location: str = ""
 
     _date_validator = field_validator("birth_date")(_validate_birth_date)
     _time_validator = field_validator("birth_time")(_validate_birth_time)
+    _tz_validator = field_validator("timezone")(_validate_timezone)
 
 
 class PartnerInput(BaseModel):
@@ -106,10 +130,11 @@ class PartnerInput(BaseModel):
     name: str = ""
     birth_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
     birth_time: str = Field(..., pattern=r"^\d{2}:\d{2}(:\d{2})?$")
-    timezone: str = "+07:00"
+    timezone: str = VN_UTC_OFFSET
 
     _date_validator = field_validator("birth_date")(_validate_birth_date)
     _time_validator = field_validator("birth_time")(_validate_birth_time)
+    _tz_validator = field_validator("timezone")(_validate_timezone)
 
 
 class ReportRequest(BaseModel):
@@ -225,16 +250,16 @@ class ReportDocument(BaseModel):
     def to_markdown(self, bodygraph_path: str | None = None) -> str:
         """Render a deterministic Markdown document without invoking an LLM."""
         lines = [f"# {self.title}", ""]
-        info_bits = [
-            f"Ngày sinh: {self.subject.birth_date}",
-            f"Giờ sinh: {self.subject.birth_time} (UTC{self.subject.timezone})",
-        ]
+        day, clock = _birth_display(
+            self.subject.birth_date, self.subject.birth_time, self.subject.timezone
+        )
+        info_bits = [f"Ngày sinh: {day}", f"Giờ sinh: {clock}"]
         if self.subject.birth_location:
             info_bits.append(f"Nơi sinh: {self.subject.birth_location}")
         if self.partner:
             info_bits.append(
                 f"Đối tác: {self.partner.name or '—'} "
-                f"({self.partner.birth_date} {self.partner.birth_time})"
+                f"({' '.join(_birth_display(self.partner.birth_date, self.partner.birth_time, self.partner.timezone))})"
             )
         lines += ["> " + " · ".join(info_bits), ""]
         if bodygraph_path:

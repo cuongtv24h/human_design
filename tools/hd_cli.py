@@ -13,34 +13,14 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from hd_calculator import calculate_hd_chart, format_chart_text
+from hd_time import local_to_utc, normalize_offset, parse_local
 from hd_analyzer import analyze_chart
 
 def parse_datetime(date_str, time_str, tz_str):
-    """Parse ngày giờ và timezone"""
-    # date: YYYY-MM-DD, time: HH:MM, tz: +07:00 hoặc Asia/Bangkok
-    dt_str = f"{date_str} {time_str}"
-    try:
-        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
-    except:
-        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-    
-    # Xử lý timezone
-    if tz_str.startswith("+") or tz_str.startswith("-"):
-        # +07:00
-        sign = 1 if tz_str[0] == "+" else -1
-        hours = int(tz_str[1:3])
-        mins = int(tz_str[4:6]) if len(tz_str) > 3 else 0
-        offset = timedelta(hours=sign*hours, minutes=sign*mins)
-        tz = timezone(offset)
-        dt_aware = dt_naive.replace(tzinfo=tz)
-        dt_utc = dt_aware.astimezone(timezone.utc).replace(tzinfo=None)
-    else:
-        # Mặc định +07:00 cho VN
-        offset = timedelta(hours=7)
-        tz = timezone(offset)
-        dt_aware = dt_naive.replace(tzinfo=tz)
-        dt_utc = dt_aware.astimezone(timezone.utc).replace(tzinfo=None)
-    
+    """Giờ khai báo → (UTC, giờ khai báo, offset chuẩn). Quy ước: tools/hd_time.py."""
+    dt_utc = local_to_utc(date_str, time_str, tz_str)
+    dt_naive = parse_local(date_str, time_str)
+    tz_str = normalize_offset(tz_str)
     return dt_utc, dt_naive, tz_str
 
 def main():

@@ -108,6 +108,13 @@ lại chart deterministic từ cùng input nên không cần lưu state giữa h
 
 ## Contract chính
 
+> **Quy ước giờ sinh** (`tools/hd_time.py`, dùng chung cho mọi entry point): người dùng nhập giờ Việt
+> Nam; hiển thị đúng giờ khai báo (`15/05/1990 08:30 (giờ Việt Nam)`) trên báo cáo, BodyGraph,
+> infographic, PDF và brief LLM; tính toán bằng `UTC = giờ khai báo − 7 giờ`. Chuẩn Việt Nam là
+> **+07:00 cố định — không áp offset lịch sử theo ngày sinh**. `SubjectInput.timezone` mặc định
+> `+07:00`, chuẩn hóa các cách viết giờ Việt Nam, nhận offset cố định khác khi người gọi chủ động
+> truyền, từ chối tên múi giờ khác.
+
 - `SubjectInput`: ngày, giờ, timezone và thông tin định danh của khách hàng.
 - `PartnerInput`: dữ liệu đối tác cho relationship/composite report.
 - `ReportRequest`: tier, template, domain add-on, output format, locale và options.

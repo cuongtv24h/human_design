@@ -29,6 +29,7 @@ import json
 from typing import Any, Mapping
 
 from .contract import ReportDocument
+from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via contract)
 from .language_vn import (
     AUTHORITY_VN,
     CENTER_VN,
@@ -89,9 +90,15 @@ def _glossary_lines() -> str:
     return "\n".join(lines)
 
 
+_INTERNAL_TIME_KEYS = frozenset({"birth_datetime", "birth_jd", "design_jd", "design_datetime"})
+
+
 def build_llm_brief(document: ReportDocument) -> str:
     """Assemble the complete, self-contained prompt bundle for the LLM editor."""
-    chart_json = json.dumps(document.chart, ensure_ascii=False, indent=2, default=str)
+    # Internal calculation times (UTC, Julian Day, Design time) stay out of the brief:
+    # the report only ever shows the declared Vietnam time (tools/hd_time.py).
+    source = {k: v for k, v in document.chart.items() if k not in _INTERNAL_TIME_KEYS}
+    chart_json = json.dumps(source, ensure_ascii=False, indent=2, default=str)
     rules = "\n".join(f"{index}. {rule}" for index, rule in enumerate(LLM_RULES, 1))
     structure_blocks = []
     for section in sorted(document.sections, key=lambda item: item.order):
@@ -104,15 +111,16 @@ def build_llm_brief(document: ReportDocument) -> str:
     subject = document.subject
     return "\n\n".join(
         [
-            "# BRIÊN TẬP BÁO CÁO HUMAN DESIGN",
+            "# BIÊN TẬP BÁO CÁO HUMAN DESIGN",
             "## 1. Vai trò của bạn",
             LLM_PERSONA.strip(),
             "## 2. Quy tắc bắt buộc",
             rules,
             "## 3. Người được phân tích",
             f"- Tên: {subject.name or '(chưa có tên)'}\n"
-            f"- Ngày sinh: {subject.birth_date} · Giờ sinh: {subject.birth_time} "
-            f"(UTC{subject.timezone}) · Nơi sinh: {subject.birth_location or '(không rõ)'}",
+            f"- Sinh: {display_birth(subject.birth_date, subject.birth_time, subject.timezone)}"
+            f" · Nơi sinh: {subject.birth_location or '(không rõ)'}\n"
+            "- Khi nhắc tới giờ sinh, dùng đúng giờ khai báo ở trên; không quy đổi, không nêu giờ UTC.",
             "## 4. Dữ liệu nguồn đã tính toán (source of truth — KHÔNG tính lại)",
             f"```json\n{chart_json}\n```",
             "## 5. Cấu trúc báo cáo và nội dung template tham chiếu",

@@ -18,6 +18,7 @@ KNOWLEDGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'k
 from mcp.server.fastmcp import FastMCP, Context
 from hd_calculator import calculate_hd_chart, format_chart_text, GATE_MEANINGS, GATE_TO_CENTER, CHANNEL_TO_CENTERS, GATE_ORDER, CHANNELS
 from hd_analyzer import analyze_chart, TYPE_ANALYSIS, PROFILE_ANALYSIS, CENTER_ANALYSIS
+from hd_time import local_to_utc
 
 try:
     from hd_advanced_tools import analyze_fear_gates as adv_fear, analyze_love_gates as adv_love, get_incarnation_cross_details as adv_cross, analyze_manifestor_deep as adv_manifestor
@@ -83,26 +84,11 @@ except:
 mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 40 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 4 report), 22 resources, Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
 
 def parse_birth_datetime(date_str: str, time_str: str, tz_str: str = "+07:00") -> datetime:
-    dt_str = f"{date_str} {time_str}"
-    try:
-        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
-    except:
-        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-    if tz_str.startswith("+") or tz_str.startswith("-"):
-        sign = 1 if tz_str[0] == "+" else -1
-        tz_clean = tz_str.replace(":", "")
-        hours = int(tz_clean[1:3]) if len(tz_clean) >=3 else int(tz_clean[1:])
-        mins = int(tz_clean[3:5]) if len(tz_clean) >=5 else 0
-        offset = timedelta(hours=sign*hours, minutes=sign*mins)
-        tz = timezone(offset)
-        dt_aware = dt_naive.replace(tzinfo=tz)
-        dt_utc = dt_aware.astimezone(timezone.utc).replace(tzinfo=None)
-    else:
-        offset = timedelta(hours=7)
-        tz = timezone(offset)
-        dt_aware = dt_naive.replace(tzinfo=tz)
-        dt_utc = dt_aware.astimezone(timezone.utc).replace(tzinfo=None)
-    return dt_utc
+    """Giờ khai báo (mặc định giờ Việt Nam, UTC+07:00 cố định) → UTC naive cho calculator.
+
+    Quy ước chung ở tools/hd_time.py: không tự áp offset lịch sử theo ngày sinh.
+    """
+    return local_to_utc(date_str, time_str, tz_str)
 
 def chart_to_dict(chart: dict) -> dict:
     return {
