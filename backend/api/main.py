@@ -6,6 +6,7 @@ Run (dev):  .venv/bin/uvicorn backend.api.main:app --host 0.0.0.0 --port 8001
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -40,7 +41,20 @@ def _field_label(loc: tuple) -> str:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
-    app = FastAPI(title="Human Design Admin API", version="1.0.0",
+
+    @asynccontextmanager
+    async def lifespan(application: FastAPI):
+        sweeper = None
+        if settings.job_recovery:
+            from .jobs import RecoverySweeper
+
+            sweeper = RecoverySweeper(application.state.db.session_factory, settings, application.state.secret_key)
+            sweeper.start()
+        yield
+        if sweeper is not None:
+            sweeper.stop()
+
+    app = FastAPI(title="Human Design Admin API", version="1.0.0", lifespan=lifespan,
                   docs_url=f"{API_PREFIX}/docs", openapi_url=f"{API_PREFIX}/openapi.json", redoc_url=None)
     app.state.settings = settings
     app.state.secret_key = resolve_secret_key(settings.secret_key, Path(settings.secret_key_file))

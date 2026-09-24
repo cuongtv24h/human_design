@@ -1,6 +1,8 @@
 # Kế hoạch triển khai Frontend / Admin — Human Design Analyzer
 
-> Phiên bản 1.3.3 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+> Phiên bản 1.3.4 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+>
+> Thay đổi v1.3.4: **P0-7 chốt phương án (a)** — không dùng arq/Redis; tác vụ nền có heartbeat + tự khôi phục khi `hd-api` khởi động lại. Bỏ P3-3 (email).
 >
 > Thay đổi v1.3.3: **P0-10, P2-6, P3-1, P3-2 hoàn thành** — link tải ký tên 5 phút, cấu hình AI/LLM (khóa mã hóa) + kiểm tra kết nối, link chia sẻ cho khách + trang `/r/[token]`.
 >
@@ -300,7 +302,7 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P0-4 quy ước giờ sinh | ✅ | `tools/hd_time.py` |
 | P0-5 PDF theo `ReportDocument` | ✅ | `backend/reporting/render_pdf.py`: bìa + BodyGraph + mục lục + bookmark; ẩn cảnh báo nội bộ |
 | P0-6 DOCX theo `ReportDocument` | ✅ | `backend/reporting/render_docx.py`: style Word gốc (Heading/List), ảnh BodyGraph, số trang |
-| P0-7 worker arq | ⏳ tạm thay | LLM chạy bằng FastAPI `BackgroundTasks`; fallback template khi lỗi/thiếu key |
+| P0-7 tác vụ nền | ✅ phương án (a) | Chủ dự án chọn **không dùng arq/Redis** (24/9). LLM chạy bằng `BackgroundTasks` trong `hd-api`, ghi heartbeat 15 giây/lần; mỗi worker quét lúc khởi động và 30 giây/lần (`backend/api/jobs.py`): báo cáo “Đang tạo” mất heartbeat > 60 giây được **nhận lại nguyên tử** (không chạy trùng giữa 2 worker) và chạy tiếp, tối đa 3 lần rồi báo lỗi rõ ràng; ghi nhật ký `report.recover`. Kiểm thử thật: `kill -9` giữa chừng → khởi động lại → tự hoàn tất |
 | P0-8 CORS whitelist, rate limit | ◐ | CORS theo `CORS_ORIGINS`; giới hạn đăng nhập sai 5 lần/15 phút (trong tiến trình, chưa Redis) |
 | P0-9 `/catalog` | ✅ | Kiểu TS viết tay trong `web/lib/types.ts` (chưa sinh tự động) |
 | P0-10 artifact trên đĩa + link ký tên | ✅ | Cache PDF/DOCX theo phiên bản ở `ARTIFACT_DIR` (render sẵn, xóa bản cũ); `POST /reports/{id}/links` → `/api/v1/files/{token}` (HMAC-SHA256, hết hạn 5 phút, không cần đăng nhập, ghi nhật ký) |

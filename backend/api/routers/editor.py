@@ -198,10 +198,11 @@ def regenerate(report_id: str, payload: RegenerateIn, request: Request, backgrou
     state = request.app.state
     if request_model.content_mode is ContentMode.LLM:
         report.status, report.error = "generating", ""
+        report.generation_attempts, report.job_heartbeat_at = 0, None
         db.commit()
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
                             state.settings.artifact_dir, "regenerate",
-                            org_llm_config(db, user.org_id, state.secret_key))
+                            org_llm_config(db, user.org_id, state.secret_key), state.settings.job_heartbeat_seconds)
     else:
         store_document(db, report, generate_report(request_model), author=user.email, change_type="regenerate")
         db.commit()

@@ -72,10 +72,10 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
     db.commit()
     state = request.app.state
     if payload.content_mode is ContentMode.LLM:
-        # TODO(P2): move to arq/Redis worker (hd-worker) — BackgroundTasks for the MVP.
+        # Background task + heartbeat; interrupted jobs are resumed by backend/api/jobs.py.
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
                             state.settings.artifact_dir, "generate",
-                            org_llm_config(db, user.org_id, state.secret_key))
+                            org_llm_config(db, user.org_id, state.secret_key), state.settings.job_heartbeat_seconds)
     else:
         background.add_task(warm_artifacts, state.db.session_factory, state.settings.artifact_dir, report.id)
     return report_detail(report)

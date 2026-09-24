@@ -5,13 +5,14 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.reporting.contract import ContentMode, ReportDocument, ReportRequest
@@ -223,27 +224,75 @@ def org_llm_config(db: Session, org_id: int, secret: str) -> LLMConfig | None:
     )
 
 
+class Heartbeat:
+    """Refresh ``reports.job_heartbeat_at`` every few seconds while a job runs (own DB session)."""
+
+    def __init__(self, session_factory: sessionmaker, report_id: str, interval: float) -> None:
+        self._factory, self._id, self._interval = session_factory, report_id, interval
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, name=f"hb-{report_id[:8]}", daemon=True)
+
+    def _run(self) -> None:
+        while not self._stop.wait(self._interval):
+            try:
+                with self._factory() as db:
+                    db.execute(update(Report).where(Report.id == self._id, Report.status == "generating")
+                               .values(job_heartbeat_at=datetime.now(timezone.utc)))
+                    db.commit()
+            except Exception:  # noqa: BLE001 - a missed beat only delays recovery
+                log.warning("heartbeat failed for %s", self._id, exc_info=True)
+
+    def __enter__(self) -> "Heartbeat":
+        self._thread.start()
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self._stop.set()
+        self._thread.join(timeout=5)
+
+
 def run_llm_generation(session_factory: sessionmaker, report_id: str, author: str,
                        artifact_dir: str | None = None, change_type: str = "generate",
-                       llm_config: LLMConfig | None = None) -> None:
-    """Background job for content_mode=llm (30–120 s). Falls back to template inside service."""
-    db = session_factory()
-    try:
+                       llm_config: LLMConfig | None = None, heartbeat_seconds: float = 15.0,
+                       claimed: bool = False) -> None:
+    """Background job for content_mode=llm (30-120 s). Falls back to template inside service.
+
+    No DB session is held during the LLM call; a heartbeat thread proves the job is alive so
+    ``jobs.recover_stale_reports`` can resume it if the process dies (restart / deploy / crash).
+    ``claimed=True`` when the recovery sweep already counted this attempt.
+    """
+    with session_factory() as db:
         report = db.get(Report, report_id)
-        if report is None:
+        if report is None or report.status != "generating":
             return
+        if not claimed:
+            report.generation_attempts = (report.generation_attempts or 0) + 1
+        report.job_heartbeat_at = datetime.now(timezone.utc)
+        request = ReportRequest.model_validate(report.request)
+        db.commit()
+
+    document: ReportDocument | None = None
+    error = ""
+    with Heartbeat(session_factory, report_id, heartbeat_seconds):
         try:
-            document = generate_report(ReportRequest.model_validate(report.request), llm_config=llm_config)
-            store_document(db, report, document, author=author, change_type=change_type)
+            document = generate_report(request, llm_config=llm_config)
         except Exception as exc:  # noqa: BLE001 - surface any failure to the UI
             log.exception("report generation failed: %s", report_id)
-            report.status = "failed"
-            report.error = str(exc)[:1000]
+            error = str(exc)[:1000] or exc.__class__.__name__
+
+    ready = False
+    with session_factory() as db:
+        report = db.get(Report, report_id)
+        if report is None or report.status != "generating":
+            return  # archived / superseded meanwhile
+        if document is not None:
+            store_document(db, report, document, author=author, change_type=change_type)
+        else:
+            report.status, report.error = "failed", error
+        report.job_heartbeat_at = None
         report.updated_at = datetime.now(timezone.utc)
         db.commit()
         ready = report.status == "ready"
-    finally:
-        db.close()
     if artifact_dir and ready:
         warm_artifacts(session_factory, artifact_dir, report_id)
 

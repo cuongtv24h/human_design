@@ -49,6 +49,13 @@ class Settings:
     secret_key_file: str = str(ROOT / "var" / "secret_key")
     # Signed direct-download links (plan P0-10, D5).
     download_link_seconds: int = 300
+    # Restart recovery for background generation (no Redis needed).
+    job_recovery: bool = True
+    job_heartbeat_seconds: float = 15.0
+    job_stale_seconds: float = 60.0  # 4 missed heartbeats
+    job_sweep_seconds: float = 30.0
+    job_max_attempts: int = 3
+    job_workers: int = 2
 
     @property
     def cookie_partitioned(self) -> bool:
@@ -75,5 +82,7 @@ class Settings:
             environment=environment,
             artifact_dir=os.environ.get("ARTIFACT_DIR") or cls.artifact_dir,
             secret_key=os.environ.get("HD_SECRET_KEY", ""),
+            job_recovery=_bool(os.environ.get("HD_JOB_RECOVERY"), True),
+            job_max_attempts=int(os.environ.get("HD_JOB_MAX_ATTEMPTS") or cls.job_max_attempts),
             secret_key_file=os.environ.get("HD_SECRET_KEY_FILE") or cls.secret_key_file,
         )

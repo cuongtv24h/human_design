@@ -15,8 +15,9 @@ module.exports = {
       max_memory_restart: "600M",
       env: { HD_ENV: "production" },
     },
-    // hd-worker (arq + Redis) is planned for P2. Until then LLM-mode reports run as
-    // FastAPI background tasks inside hd-api.
+    // No separate worker/Redis (owner decision, option a): LLM-mode reports run as background
+    // tasks inside hd-api with a heartbeat; after a restart each worker resumes interrupted
+    // reports automatically (backend/api/jobs.py).
     {
       name: "hd-web",
       cwd: `${ROOT}/web`,

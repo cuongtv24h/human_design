@@ -96,6 +96,10 @@ class Report(Base):
     warnings_count: Mapped[int] = mapped_column(Integer, default=0)
     version: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str] = mapped_column(Text, default="")
+    # Background generation bookkeeping (restart recovery): a running job refreshes the
+    # heartbeat; a "generating" report whose heartbeat stopped is resumed or failed.
+    generation_attempts: Mapped[int] = mapped_column(Integer, default=0)
+    job_heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
