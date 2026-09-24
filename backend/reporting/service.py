@@ -102,5 +102,31 @@ __all__ = [
     "apply_draft",
     "build_request",
     "generate_report",
+    "llm_edit_section",
     "report_payload",
 ]
+
+
+def llm_edit_section(
+    document: ReportDocument,
+    section_id: str,
+    *,
+    llm_config: LLMConfig | None = None,
+    transport: Transport | None = None,
+) -> str:
+    """Ask the LLM to rewrite one section; returns the proposed markdown (not saved).
+
+    Raises ``LLMError`` when AI is not configured or the call fails, and
+    ``KeyError`` for an unknown / omitted section.
+    """
+    section = next((s for s in document.sections if s.id == section_id and s.status == "included"), None)
+    if section is None:
+        raise KeyError(section_id)
+    config = llm_config or LLMConfig.from_env()
+    if config is None:
+        raise LLMError("chưa cấu hình HD_LLM_API_KEY")
+    drafts = call_llm(build_llm_brief(document, section_ids=[section_id]), config, transport=transport)
+    draft = drafts.get(section_id)
+    if not draft or not draft.strip():
+        raise LLMError("AI không trả về nội dung cho phần này")
+    return draft.strip() + "\n"

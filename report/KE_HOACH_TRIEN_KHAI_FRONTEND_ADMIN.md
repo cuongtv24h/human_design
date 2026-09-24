@@ -1,6 +1,8 @@
 # Kế hoạch triển khai Frontend / Admin — Human Design Analyzer
 
-> Phiên bản 1.3 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+> Phiên bản 1.3.2 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+>
+> Thay đổi v1.3.2: **P2-1, P2-3, P2-4 hoàn thành** — trình biên tập từng phần, phiên bản/khôi phục, cảnh báo mất sự kiện kỹ thuật, AI biên tập từng phần kèm so sánh.
 >
 > Thay đổi v1.3.1: **P0-5 PDF, P0-6 DOCX hoàn thành** (BodyGraph PNG qua resvg — không cần libcairo).
 >
@@ -307,6 +309,10 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P1-5 wizard 4 bước + preview | ✅ | Preview BodyGraph + chỉ số + nội dung nháp |
 | P1-6 xem báo cáo | ✅ | Tab Nội dung / Infographic (iframe sandbox) / BodyGraph / Xuất file (MD, HTML, SVG) |
 | P1-7 tổng quan + nhật ký | ✅ | Bảng `audit_logs`: đăng nhập, tạo/sửa/xóa, xuất file |
+| P2-1 API sửa section + revision + restore + regenerate | ✅ | `backend/api/routers/editor.py`: `PUT /reports/{id}/sections/{sid}` (khóa lạc quan `base_version` → 409), `GET …/revisions`, `POST …/revisions/{v}/restore` (tạo phiên bản mới), `POST …/regenerate`; lưu 18–60 ms; PDF/DOCX render lại nền, xóa cache bản cũ |
+| P2-2 API LLM | ◐ | `POST …/sections/{sid}/llm` đồng bộ, chỉ trả **đề xuất** (không lưu), 503 khi thiếu key; LLM cả báo cáo = `regenerate` với `content_mode=llm`. SSE tiến trình: chưa làm (trang tự thăm dò) |
+| P2-3 trình biên tập | ✅ | `web/app/(admin)/reports/[id]/edit`: danh sách phần · Markdown Soạn thảo/Xem trước · dữ liệu nguồn / thuật ngữ chuẩn / lịch sử; cảnh báo vàng khi mất Type/Strategy/Authority… (`POST …/check`, không chặn lưu); tự lưu nháp trình duyệt 10 giây + khôi phục; Ctrl/⌘+S |
+| P2-4 “AI biên tập phần này” | ✅ | Diff theo dòng (LCS), “Dùng bản này” / “Bỏ đề xuất”; proxy Next `proxyTimeout` 180 s |
 
 ### P0 — Nền móng backend (tuần 1–2)
 

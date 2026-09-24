@@ -26,7 +26,7 @@ channel, center, type, authority, profile, cross; không bịa số liệu.
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
 
 from .contract import ReportDocument
 from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via contract)
@@ -93,8 +93,22 @@ def _glossary_lines() -> str:
 _INTERNAL_TIME_KEYS = frozenset({"birth_datetime", "birth_jd", "design_jd", "design_datetime"})
 
 
-def build_llm_brief(document: ReportDocument) -> str:
-    """Assemble the complete, self-contained prompt bundle for the LLM editor."""
+def strip_internal_times(value: Any) -> Any:
+    """Recursively drop UTC / Julian-day keys from data shown to people or LLMs."""
+    if isinstance(value, Mapping):
+        return {k: strip_internal_times(v) for k, v in value.items() if k not in _INTERNAL_TIME_KEYS}
+    if isinstance(value, list):
+        return [strip_internal_times(v) for v in value]
+    return value
+
+
+def build_llm_brief(document: ReportDocument, section_ids: Iterable[str] | None = None) -> str:
+    """Assemble the complete, self-contained prompt bundle for the LLM editor.
+
+    ``section_ids`` limits the rewrite to those sections (editor: "AI biên tập phần này");
+    the other sections are still listed as context so tone and facts stay consistent.
+    """
+    only = set(section_ids) if section_ids is not None else None
     # Internal calculation times (UTC, Julian Day, Design time) stay out of the brief:
     # the report only ever shows the declared Vietnam time (tools/hd_time.py).
     source = {k: v for k, v in document.chart.items() if k not in _INTERNAL_TIME_KEYS}
@@ -103,6 +117,9 @@ def build_llm_brief(document: ReportDocument) -> str:
     structure_blocks = []
     for section in sorted(document.sections, key=lambda item: item.order):
         if section.status != "included":
+            continue
+        if only is not None and section.id not in only:
+            structure_blocks.append(f"### Section `{section.id}` — {section.title} (chỉ để tham khảo, KHÔNG viết lại)")
             continue
         structure_blocks.append(
             f"### Section `{section.id}` — {section.title}\n\n"
@@ -128,7 +145,8 @@ def build_llm_brief(document: ReportDocument) -> str:
             "## 6. Bảng thuật ngữ chuẩn (bắt buộc dùng đúng)",
             _glossary_lines(),
             "## 7. Định dạng trả về",
-            'JSON: {"<section_id>": "<markdown mới>"} — chỉ gồm những phần bạn biên tập.',
+            'JSON: {"<section_id>": "<markdown mới>"} — chỉ gồm những phần bạn biên tập.'
+            + ("" if only is None else " Chỉ biên tập: " + ", ".join(f"`{sid}`" for sid in sorted(only)) + "."),
         ]
     )
 
@@ -157,6 +175,16 @@ def validate_llm_draft(chart: Mapping[str, Any], markdown: str) -> list[str]:
     return violations
 
 
+def missing_facts(chart: Mapping[str, Any], baseline_markdown: str, markdown: str) -> list[str]:
+    """Technical facts present in ``baseline_markdown`` but lost in ``markdown``.
+
+    Used after LLM rewrites and manual edits: a section keeps every calculated fact
+    (Type, Strategy, Authority, Profile…) that its generated version carried.
+    """
+    return sorted({fact for _, fact in _required_facts(chart)
+                   if fact and fact in baseline_markdown and fact not in markdown})
+
+
 def merge_llm_draft(
     document: ReportDocument,
     drafts: Mapping[str, str],
@@ -175,12 +203,7 @@ def merge_llm_draft(
             updated.warnings.append(f"LLM draft cho section không tồn tại: {section_id}")
             continue
         # Facts the deterministic section carried must survive the rewrite.
-        original_facts = [
-            fact
-            for _, fact in _required_facts(updated.chart)
-            if fact and fact in section.content_markdown
-        ]
-        missing = sorted(fact for fact in original_facts if fact not in draft)
+        missing = missing_facts(updated.chart, section.content_markdown, draft)
         section.content_markdown = draft
         if missing:
             violations = [
@@ -197,5 +220,7 @@ __all__ = [
     "LLM_RULES",
     "build_llm_brief",
     "merge_llm_draft",
+    "missing_facts",
+    "strip_internal_times",
     "validate_llm_draft",
 ]

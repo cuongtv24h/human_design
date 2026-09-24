@@ -171,3 +171,32 @@ def test_rest_report_routes():
 
     invalid = client.post("/reports/generate", json={"subject": {**SUBJECT, "birth_date": "15/05/1990"}})
     assert invalid.status_code == 422
+
+
+def test_llm_edit_section_only_rewrites_requested_section(monkeypatch):
+    from backend.reporting.llm_editor import build_llm_brief, missing_facts
+    from backend.reporting.service import llm_edit_section
+
+    document = ReportOrchestrator().run(ReportRequest.model_validate(
+        {"subject": {"birth_date": "1990-05-15", "birth_time": "08:30"}}))
+    brief = build_llm_brief(document, section_ids=["summary"])
+    assert "Chỉ biên tập: `summary`" in brief
+    assert "chỉ để tham khảo, KHÔNG viết lại" in brief
+    assert "chỉ để tham khảo" not in build_llm_brief(document)
+
+    captured = {}
+
+    def transport(url, headers, payload, timeout):
+        captured["brief"] = payload["messages"][1]["content"]
+        return {"choices": [{"message": {"content": json.dumps({"summary": "Bản mới về Projector"})}}]}
+
+    config = LLMConfig(api_key="k")
+    assert llm_edit_section(document, "summary", llm_config=config, transport=transport) == "Bản mới về Projector\n"
+    assert "Chỉ biên tập: `summary`" in captured["brief"]
+    with pytest.raises(KeyError):
+        llm_edit_section(document, "khong-co", llm_config=config, transport=transport)
+    monkeypatch.delenv("HD_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    with pytest.raises(LLMError):
+        llm_edit_section(document, "summary", transport=transport)
+    assert missing_facts(document.chart, "Projector và 6/2", "chỉ 6/2") == ["Projector"]

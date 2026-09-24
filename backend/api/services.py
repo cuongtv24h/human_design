@@ -153,8 +153,9 @@ def build_request(client: Client, *, tier: str, template: str, content_mode: str
     return ReportRequest.model_validate(payload)
 
 
-def _store_document(db: Session, report: Report, document: ReportDocument, author: str,
-                    change_type: str) -> None:
+def store_document(db: Session, report: Report, document: ReportDocument, author: str,
+                   change_type: str) -> None:
+    """Save ``document`` as the report's next version (+ full revision snapshot)."""
     report.document = document.model_dump(mode="json")
     report.editor = document.provenance.editor
     report.warnings_count = len(document.warnings)
@@ -179,12 +180,12 @@ def create_report(db: Session, user: User, client: Client, *, tier: str, templat
     db.add(report)
     if request.content_mode is not ContentMode.LLM:
         # Template mode is deterministic and takes a few milliseconds: generate inline.
-        _store_document(db, report, generate_report(request), author=user.email, change_type="generate")
+        store_document(db, report, generate_report(request), author=user.email, change_type="generate")
     return report
 
 
 def run_llm_generation(session_factory: sessionmaker, report_id: str, author: str,
-                       artifact_dir: str | None = None) -> None:
+                       artifact_dir: str | None = None, change_type: str = "generate") -> None:
     """Background job for content_mode=llm (30–120 s). Falls back to template inside service."""
     db = session_factory()
     try:
@@ -193,7 +194,7 @@ def run_llm_generation(session_factory: sessionmaker, report_id: str, author: st
             return
         try:
             document = generate_report(ReportRequest.model_validate(report.request))
-            _store_document(db, report, document, author=author, change_type="generate")
+            store_document(db, report, document, author=author, change_type=change_type)
         except Exception as exc:  # noqa: BLE001 - surface any failure to the UI
             log.exception("report generation failed: %s", report_id)
             report.status = "failed"
@@ -255,5 +256,22 @@ def warm_artifacts(session_factory: sessionmaker, artifact_dir: str, report_id: 
                 render_artifact(artifact_dir, report, fmt, theme)
             except Exception:  # noqa: BLE001 - downloads will retry and surface the error
                 log.exception("pre-render %s failed for %s", fmt, report_id)
+        prune_artifacts(artifact_dir, report_id, keep_version=report.version)
     finally:
         db.close()
+
+
+def prune_artifacts(artifact_dir: str, report_id: str, keep_version: int) -> int:
+    """Delete cached files of older versions (any version can be re-rendered from its revision)."""
+    folder = Path(artifact_dir) / report_id
+    removed = 0
+    if not folder.is_dir():
+        return 0
+    for path in folder.iterdir():
+        if path.is_file() and not path.name.startswith(f"v{keep_version}-") and not path.name.startswith("."):
+            try:
+                path.unlink()
+                removed += 1
+            except OSError:  # concurrent download / already gone
+                pass
+    return removed

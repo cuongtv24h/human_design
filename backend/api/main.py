@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .db import Database
-from .routers import auth, catalog, clients, dashboard, reports, users
+from .routers import auth, catalog, clients, dashboard, editor, reports, users
 from .security import CSRF_HEADER
 from .settings import Settings
 
@@ -77,7 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health() -> dict:
         return {"status": "ok", "environment": settings.environment}
 
-    for module in (auth, catalog, clients, reports, dashboard, users):
+    for module in (auth, catalog, clients, editor, reports, dashboard, users):
         app.include_router(module.router, prefix=API_PREFIX)
     return app
 

@@ -37,10 +37,23 @@ class Settings:
     database_url: str = f"sqlite:///{ROOT / 'var' / 'hd_dev.sqlite3'}"
     cors_origins: tuple[str, ...] = field(default_factory=tuple)
     cookie_secure: bool = False
+    # "lax" (default, first-party admin). "none" only when the admin is embedded in a
+    # cross-site iframe (e.g. a preview host) — forces Secure + Partitioned (CHIPS).
+    cookie_samesite: str = "lax"
     session_hours: int = 12
     auto_create_tables: bool = True
     environment: str = "development"
     artifact_dir: str = str(ROOT / "var" / "artifacts")
+
+    @property
+    def cookie_partitioned(self) -> bool:
+        return self.cookie_options()["samesite"] == "none"
+
+    def cookie_options(self) -> dict:
+        samesite = self.cookie_samesite if self.cookie_samesite in {"lax", "strict", "none"} else "lax"
+        if samesite == "none":
+            return {"samesite": "none", "secure": True}
+        return {"samesite": samesite, "secure": self.cookie_secure}
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -51,6 +64,7 @@ class Settings:
             database_url=os.environ.get("DATABASE_URL") or cls.database_url,
             cors_origins=origins,
             cookie_secure=_bool(os.environ.get("COOKIE_SECURE"), environment == "production"),
+            cookie_samesite=(os.environ.get("COOKIE_SAMESITE") or "lax").strip().lower(),
             session_hours=int(os.environ.get("SESSION_HOURS") or cls.session_hours),
             auto_create_tables=_bool(os.environ.get("AUTO_CREATE_TABLES"), environment != "production"),
             environment=environment,

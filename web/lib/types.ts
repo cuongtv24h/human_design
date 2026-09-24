@@ -107,3 +107,29 @@ export interface Dashboard {
   reports_by_status: Record<string, number>;
   recent_reports: ReportSummary[];
 }
+
+// --- editor (P2) ---
+export interface GlossaryGroup { title: string; terms: { source: string; term: string }[] }
+
+export interface EditorSection {
+  id: string;
+  title: string;
+  kind: string;
+  order: number;
+  content_markdown: string;
+  data: Record<string, unknown>;
+  warnings: string[];
+  knowledge_refs: string[];
+}
+
+export interface EditorData {
+  report: ReportSummary;
+  subject_display: string;
+  sections: EditorSection[];
+  llm_available: boolean;
+  glossary: GlossaryGroup[];
+}
+
+export interface SectionSave { version: number; section: EditorSection; missing_facts: string[] }
+export interface Revision { version: number; author: string; change_type: string; warnings_count: number; created_at: string }
+export interface LlmProposal { draft: string; missing_facts: string[] }

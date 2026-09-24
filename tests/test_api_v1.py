@@ -181,3 +181,106 @@ def test_llm_mode_without_key_falls_back_in_background(app, monkeypatch):
     assert detail["status"] == "ready"
     assert detail["editor"] == "template (llm fallback)"
     assert any("LLM" in w for w in detail["warnings"])
+
+
+# --- editor (P2) ------------------------------------------------------------
+
+def _ready_report(client) -> str:
+    person = client.post("/api/v1/clients", json=CLIENT, headers=H).json()
+    report = client.post("/api/v1/reports", json={"client_id": person["id"], "tier": "free_basic",
+                                                  "template": "sections"}, headers=H).json()
+    return report["id"]
+
+
+def test_editor_payload_hides_internal_times_and_has_glossary(app):
+    client = login(app)
+    rid = _ready_report(client)
+    data = client.get(f"/api/v1/reports/{rid}/editor").json()
+    assert data["report"]["version"] == 1
+    assert [s["id"] for s in data["sections"]][0] == "summary"
+    assert "birth_datetime" not in str(data["sections"]) and "birth_jd" not in str(data["sections"])
+    assert any(g["title"].startswith("Loại năng lượng") for g in data["glossary"])
+
+
+def test_section_save_facts_warning_versions_and_restore(app):
+    client = login(app)
+    rid = _ready_report(client)
+    section = next(s for s in client.get(f"/api/v1/reports/{rid}/editor").json()["sections"]
+                   if s["id"] == "type_strategy_authority")
+    assert "Projector" in section["content_markdown"]
+
+    check = client.post(f"/api/v1/reports/{rid}/sections/{section['id']}/check",
+                        json={"content_markdown": "Bạn là người rất đặc biệt."}, headers=H).json()
+    assert "Projector" in check["missing_facts"]
+
+    saved = client.put(f"/api/v1/reports/{rid}/sections/{section['id']}",
+                       json={"content_markdown": "Bạn là người rất đặc biệt.", "base_version": 1}, headers=H)
+    assert saved.status_code == 200, saved.text
+    body = saved.json()
+    assert body["version"] == 2 and "Projector" in body["missing_facts"]
+    assert any("mất sự kiện" in w for w in body["section"]["warnings"])  # warns, never blocks
+
+    stale = client.put(f"/api/v1/reports/{rid}/sections/{section['id']}",
+                       json={"content_markdown": "x", "base_version": 1}, headers=H)
+    assert stale.status_code == 409
+
+    detail = client.get(f"/api/v1/reports/{rid}").json()
+    assert "Bạn là người rất đặc biệt." in detail["markdown"] and detail["version"] == 2
+    history = client.get(f"/api/v1/reports/{rid}/revisions").json()
+    assert [(r["version"], r["change_type"]) for r in history] == [(2, "manual_edit"), (1, "generate")]
+
+    restored = client.post(f"/api/v1/reports/{rid}/revisions/1/restore", headers=H).json()
+    assert restored["version"] == 3 and "Bạn là người rất đặc biệt." not in restored["markdown"]
+    assert client.get(f"/api/v1/reports/{rid}/revisions").json()[0]["change_type"] == "restore:v1"
+    # Files follow the new version.
+    assert client.get(f"/api/v1/reports/{rid}/pdf").status_code == 200
+    cached = sorted(p.name.split("-")[0] for p in (pathlib.Path(app.state.settings.artifact_dir) / rid).iterdir())
+    assert cached == ["v3", "v3"]  # older versions pruned after the new one is pre-rendered
+
+
+def test_llm_section_proposal(app, monkeypatch):
+    client = login(app)
+    rid = _ready_report(client)
+    monkeypatch.delenv("HD_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    no_key = client.post(f"/api/v1/reports/{rid}/sections/summary/llm", headers=H)
+    assert no_key.status_code == 503 and "HD_LLM_API_KEY" in no_key.json()["detail"]
+
+    import backend.api.routers.editor as editor_router
+
+    seen = {}
+
+    def fake_edit(document, section_id):
+        seen["section"] = section_id
+        return "Bản AI viết lại, vẫn nhắc Projector.\n"
+
+    monkeypatch.setattr(editor_router, "llm_edit_section", fake_edit)
+    proposal = client.post(f"/api/v1/reports/{rid}/sections/summary/llm", headers=H).json()
+    assert seen["section"] == "summary"
+    assert proposal["draft"].startswith("Bản AI viết lại")
+    assert client.get(f"/api/v1/reports/{rid}").json()["version"] == 1  # proposal is not saved
+
+
+def test_regenerate_template_creates_new_version(app):
+    client = login(app)
+    rid = _ready_report(client)
+    client.put(f"/api/v1/reports/{rid}/sections/summary", json={"content_markdown": "sửa tay", "base_version": 1},
+               headers=H)
+    regenerated = client.post(f"/api/v1/reports/{rid}/regenerate", json={}, headers=H).json()
+    assert regenerated["version"] == 3 and "sửa tay" not in regenerated["markdown"]
+
+
+def test_cookie_options_for_embedded_preview():
+    assert Settings().cookie_options() == {"samesite": "lax", "secure": False}
+    assert Settings(cookie_samesite="none").cookie_options() == {"samesite": "none", "secure": True}
+    assert Settings(cookie_samesite="none").cookie_partitioned
+    assert Settings(cookie_samesite="weird", cookie_secure=True).cookie_options() == {"samesite": "lax", "secure": True}
+
+
+def test_partitioned_session_cookie(tmp_path):
+    app = create_app(Settings(database_url=f"sqlite:///{tmp_path}/c.db", artifact_dir=str(tmp_path / "a"),
+                              cookie_samesite="none"))
+    ensure_admin(app.state.db, "p@demo.vn", "12345678")
+    response = TestClient(app).post("/api/v1/auth/login", json={"email": "p@demo.vn", "password": "12345678"}, headers=H)
+    cookie = response.headers["set-cookie"]
+    assert response.status_code == 200 and "SameSite=none" in cookie and "Secure" in cookie and cookie.endswith("Partitioned")

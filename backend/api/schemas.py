@@ -228,3 +228,70 @@ class DashboardOut(BaseModel):
     reports_total: int
     reports_by_status: dict[str, int]
     recent_reports: list[ReportSummaryOut]
+
+
+# --- editor (P2) ------------------------------------------------------------
+
+class GlossaryTerm(BaseModel):
+    source: str
+    term: str
+
+
+class GlossaryGroup(BaseModel):
+    title: str
+    terms: list[GlossaryTerm]
+
+
+class EditorSection(BaseModel):
+    id: str
+    title: str
+    kind: str
+    order: int
+    content_markdown: str
+    data: dict
+    warnings: list[str]
+    knowledge_refs: list[str]
+
+
+class EditorOut(BaseModel):
+    report: ReportSummaryOut
+    subject_display: str
+    sections: list[EditorSection]
+    llm_available: bool
+    glossary: list[GlossaryGroup]
+
+
+class SectionUpdate(BaseModel):
+    content_markdown: str = Field(max_length=100_000)
+    base_version: int
+
+
+class FactCheckIn(BaseModel):
+    content_markdown: str = Field(max_length=100_000)
+
+
+class FactCheckOut(BaseModel):
+    missing_facts: list[str]
+
+
+class SectionSaveOut(BaseModel):
+    version: int
+    section: EditorSection
+    missing_facts: list[str]
+
+
+class RevisionOut(BaseModel):
+    version: int
+    author: str
+    change_type: str
+    warnings_count: int
+    created_at: datetime
+
+
+class LlmSectionOut(BaseModel):
+    draft: str
+    missing_facts: list[str]
+
+
+class RegenerateIn(BaseModel):
+    content_mode: ContentMode | None = None

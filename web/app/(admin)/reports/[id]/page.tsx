@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Loader2, RefreshCw } from "lucide-react";
+import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Loader2, PencilLine, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -62,6 +62,14 @@ export default function ReportPage() {
     },
   });
 
+  const regenerate = useMutation({
+    mutationFn: () => api.post<ReportDetail>(`/reports/${id}/regenerate`, {}),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["report", id], data);
+      queryClient.invalidateQueries({ queryKey: ["reports"] });
+    },
+  });
+
   if (report.isLoading) return <Spinner />;
   if (!report.data) return <ErrorBox error={report.error ?? "Không tìm thấy báo cáo."} />;
   const r = report.data;
@@ -82,6 +90,11 @@ export default function ReportPage() {
         actions={
           <>
             <Link href={`/clients/${r.client_id}`} className="inline-flex items-center rounded-lg px-3 py-2 text-sm text-brand-700 hover:bg-brand-50">Hồ sơ khách hàng</Link>
+            {r.status === "ready" && (
+              <Link href={`/reports/${r.id}/edit`} className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-ink shadow-sm hover:bg-paper">
+                <PencilLine className="size-4" /> Biên tập
+              </Link>
+            )}
             {hasDocument && (
               <a href={fileUrl(r.id, "pdf", true)} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-600">
                 <Download className="size-4" /> Tải PDF
@@ -110,9 +123,13 @@ export default function ReportPage() {
         <Card className="space-y-3 p-6">
           <div className="flex items-center gap-2 font-semibold text-red-800"><AlertTriangle className="size-5" /> Tạo báo cáo thất bại</div>
           <p className="text-sm text-muted">{r.error || "Không rõ nguyên nhân."}</p>
-          <Button variant="secondary" onClick={() => router.push(`/reports/new?client=${r.client_id}`)}>
-            <RefreshCw className="size-4" /> Tạo lại
-          </Button>
+          <ErrorBox error={regenerate.error} />
+          <div className="flex flex-wrap gap-2">
+            <Button loading={regenerate.isPending} onClick={() => regenerate.mutate()}>
+              <RefreshCw className="size-4" /> Tạo lại với cùng tùy chọn
+            </Button>
+            <Button variant="secondary" onClick={() => router.push(`/reports/new?client=${r.client_id}`)}>Tạo báo cáo mới</Button>
+          </div>
         </Card>
       )}
 

@@ -149,6 +149,8 @@ cd web && npm install && npm run dev        # http://localhost:3000
 - Triển khai pm2 trên VPS: `deploy/ecosystem.config.cjs`, `deploy/deploy.sh`; trước khi deploy chạy `deploy/check.sh` (pytest + migration + typecheck + build).
 - Xuất **PDF/Word** từ cùng một `ReportDocument` (`backend/reporting/render_pdf.py`, `render_docx.py`). Cần font DejaVu (`sudo apt install fonts-dejavu-core`, hoặc đặt `HD_FONT_DIR`); hình BodyGraph PNG dùng `resvg-py`, không cần libcairo. File được render sẵn sau khi tạo báo cáo và lưu theo phiên bản ở `ARTIFACT_DIR` (mặc định `var/artifacts`).
 - Giờ sinh nhập và hiển thị theo **giờ Việt Nam khai báo**, tính theo UTC+07:00 cố định (`tools/hd_time.py`).
+- **Biên tập báo cáo** (`/reports/{id}/edit`): sửa từng phần bằng Markdown, “Lưu phiên bản” (Ctrl/⌘+S) tạo phiên bản mới, xem/khôi phục lịch sử, cảnh báo vàng khi nội dung mất thông tin kỹ thuật gốc (Type, Strategy, Authority…), bản nháp tự lưu trong trình duyệt mỗi 10 giây. Nút “AI biên tập phần này” trả về đề xuất kèm so sánh để chấp nhận hoặc bỏ.
+- Preview nhúng trong iframe khác site: đặt `COOKIE_SAMESITE=none` (cookie `Secure; Partitioned`). Production cùng domain giữ mặc định `lax`.
 - Chế độ nội dung LLM cần `HD_LLM_API_KEY`; hiện chạy nền bằng FastAPI background task (worker arq/Redis thuộc P2).
 
 ## Kiểm tra

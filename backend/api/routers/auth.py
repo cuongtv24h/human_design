@@ -62,9 +62,16 @@ def login(payload: LoginIn, request: Request, response: Response, db: Session = 
     user.last_login_at = now
     audit(db, user, "auth.login", "user", user.id, ip=ip)
     db.commit()
-    response.set_cookie(SESSION_COOKIE, token, max_age=settings.session_hours * 3600, httponly=True,
-                        secure=settings.cookie_secure, samesite="lax", path="/")
+    _cookie(response, settings, token, settings.session_hours * 3600)
     return user_out(user)
+
+
+def _cookie(response: Response, settings, value: str, max_age: int) -> None:
+    """Session cookie; adds CHIPS ``Partitioned`` for embedded previews (Starlette only does so on Python 3.14+)."""
+    response.set_cookie(SESSION_COOKIE, value, max_age=max_age, httponly=True, path="/", **settings.cookie_options())
+    if settings.cookie_partitioned:
+        name, header = response.raw_headers[-1]
+        response.raw_headers[-1] = (name, header + b"; Partitioned")
 
 
 @router.post("/logout", status_code=204)
@@ -77,7 +84,7 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)) 
             db.delete(session)
             db.commit()
     response.status_code = 204
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    _cookie(response, request.app.state.settings, "", 0)
     return response
 
 
