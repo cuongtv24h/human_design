@@ -10,6 +10,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_TO_CENTER
+from hd_language import vn_type
 
 TYPE_TEAM_ROLE = {
     "Generator": {"share": "37%", "role": "LỰC LƯỢNG XÂY DỰNG (Workforce)",
@@ -112,7 +113,7 @@ def format_team_report(d):
     r = d["team_analysis"]
     role = r["your_role"]
     L = [f"# BÁO CÁO TEAM & HỆ THỐNG - {d['name']} - {d['type']} {d['profile']}",
-         f"**Type:** {d['type']} ({role['share']}) | **Vai trò:** {role['role']}",
+         f"**Loại năng lượng:** {vn_type(d['type'], gloss=True)} ({role['share']}) | **Vai trò:** {role['role']}",
          "", "## 1. VAI TRÒ CỦA BẠN TRONG HỆ THỐNG",
          f"**{role['role']}**", f"**Điểm mạnh:** {role['strength']}",
          f"**Cách quản lý bạn hiệu quả:** {role['manage']}", f"**Ghế ngồi hợp:** {role['seat']}",

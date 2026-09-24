@@ -13,6 +13,7 @@ Tích hợp từ knowledge:
 
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER, CHANNEL_TO_CENTERS, CHANNELS
 from hd_consultation_general import TYPE_DEEP_DIVE, PROFILE_DEEP_DIVE
+from hd_language import vn_authority, vn_definition, vn_type
 from datetime import datetime
 import json
 
@@ -351,23 +352,23 @@ def analyze_money_map(birth_datetime, name=""):
     # Definition for business
     definition = chart["definition"]
     definition_money = {
-        "Single": "Single Definition - Bạn có thể làm việc một mình, tự chủ về tiền, không cần đối tác để kiếm tiền. Phù hợp solopreneur, freelancer.",
-        "Split": "Split Definition - Bạn cần cầu nối (người, nơi, hoạt động) để kết nối các phần của mình. Tiền đến qua đối tác, cầu nối. Phù hợp partnership, cần đối tác kinh doanh.",
-        "Triple Split": "Triple Split - Bạn có 3 phần tách biệt, cần nhiều cầu nối. Tiền đến qua nhiều đối tác, nhiều lĩnh vực. Phù hợp nhiều dòng tiền, nhiều đối tác.",
-        "Quadruple Split": "Quadruple Split - Bạn có 4 phần tách biệt, cần nhiều cầu nối. Tiền đến qua team, nhiều người. Phù hợp team business, cần team để kiếm tiền."
-    }.get(definition, definition)
+        "Single": "Định nghĩa đơn — bạn có thể làm việc một mình, tự chủ về tiền, không cần đối tác để kiếm tiền. Phù hợp solopreneur, freelancer.",
+        "Split": "Định nghĩa chia tách — bạn cần cầu nối (người, nơi, hoạt động) để kết nối các phần của mình. Tiền đến qua đối tác, cầu nối. Phù hợp partnership, cần đối tác kinh doanh.",
+        "Triple": "Định nghĩa chia ba — bạn có 3 phần tách biệt, cần nhiều cầu nối. Tiền đến qua nhiều đối tác, nhiều lĩnh vực. Phù hợp nhiều dòng tiền, nhiều đối tác.",
+        "Quadruple": "Định nghĩa chia bốn — bạn có 4 phần tách biệt, cần nhiều cầu nối. Tiền đến qua team, nhiều người. Phù hợp team business, cần team để kiếm tiền."
+    }.get(definition.split()[0] if definition else "", vn_definition(definition))
     
     # Authority money
     authority_money = {
-        "Emotional - Solar Plexus": "Authority cảm xúc - Không có sự thật về tiền trong khoảnh khắc. Cần chờ sóng cảm xúc rõ ràng (vài giờ đến vài ngày) trước khi quyết định tiền lớn. Đừng quyết định tiền khi đang cao trào hoặc thấp trào cảm xúc.",
-        "Sacral": "Authority Sacral - Lắng nghe tiếng bụng uh-huh/uh-uh cho quyết định tiền. Uh-huh = CÓ với cơ hội tiền, uh-uh = KHÔNG. Đừng quyết định tiền bằng đầu óc.",
-        "Splenic": "Authority Spleen - Trực giác tức thì về tiền. Trực giác nói 1 lần, khẽ, trong khoảnh khắc. Tin tưởng trực giác tức thì về tiền, đừng chờ đợi.",
-        "Ego": "Authority Ego - Ý chí - Hỏi: 'Tôi có ý chí cam kết cho điều này không?' Tiền đến khi bạn có ý chí cam kết. Đừng cam kết tiền nếu không có ý chí.",
-        "Self-Projected": "Authority Self-Projected - G Center - Cần nói ra thành tiếng với người tin cậy để nghe sự thật về tiền. Sự thật tiền bạc đến qua giọng nói của bạn.",
-        "Mental": "Authority Mental - Cần nói chuyện với nhiều người tin cậy ở nhiều môi trường khác nhau để có sự rõ ràng về tiền. Không quyết định tiền một mình.",
-        "Lunar": "Authority Lunar - Chu kỳ Mặt Trăng - Chờ 28-29 ngày cho quyết định tiền lớn. Nói chuyện với nhiều người ở nhiều môi trường trong 28 ngày.",
-        "None": "Reflector - Không có Authority cố định - Chờ chu kỳ Mặt Trăng 28-29 ngày, môi trường là tất cả cho tiền."
-    }.get(authority, authority)
+        "Emotional - Solar Plexus": "Quyền cảm xúc — không có sự thật về tiền trong khoảnh khắc. Cần chờ sóng cảm xúc rõ ràng (vài giờ đến vài ngày) trước khi quyết định tiền lớn. Đừng quyết định tiền khi đang cao trào hoặc thấp trào cảm xúc.",
+        "Sacral": "Quyền Xương Cùng — lắng nghe tiếng bụng uh-huh/uh-uh cho quyết định tiền. Uh-huh = CÓ với cơ hội tiền, uh-uh = KHÔNG. Đừng quyết định tiền bằng đầu óc.",
+        "Splenic": "Quyền Lách — trực giác tức thì về tiền. Trực giác nói 1 lần, khẽ, trong khoảnh khắc. Tin tưởng trực giác tức thì về tiền, đừng chờ đợi.",
+        "Ego (Heart)": "Quyền Bản ngã — Tim — hỏi: 'Tôi có ý chí cam kết cho điều này không?' Tiền đến khi bạn có ý chí cam kết. Đừng cam kết tiền nếu không có ý chí.",
+        "Ego (Heart) - Manifested": "Quyền Bản ngã — Tim (biểu hiện) — hỏi: 'Tôi có ý chí cam kết cho điều này không?' Tiền đến khi bạn có ý chí cam kết. Đừng cam kết tiền nếu không có ý chí.",
+        "Self-Projected (G-Center)": "Quyền Tự chiếu — Trung tâm G — cần nói ra thành tiếng với người tin cậy để nghe sự thật về tiền. Sự thật tiền bạc đến qua giọng nói của bạn.",
+        "Mental - Environment / No Inner Authority": "Dựa vào môi trường — cần nói chuyện với nhiều người tin cậy ở nhiều môi trường khác nhau để có sự rõ ràng về tiền. Không quyết định tiền một mình.",
+        "Lunar - Reflector": "Quyền Mặt Trăng — chờ 28-29 ngày cho quyết định tiền lớn. Nói chuyện với nhiều người ở nhiều môi trường trong 28 ngày."
+    }.get(authority, f"Quyền nội tại: {vn_authority(authority)} — quan sát nhịp tiền của bạn trong 7 ngày trước khi quyết định lớn.")
     
     result = {
         "name": name,
@@ -405,7 +406,7 @@ def format_money_report(money_data):
     """Format báo cáo Money Map đầy đủ"""
     lines = []
     lines.append(f"# FULL MONEY MAP - BẢN ĐỒ DÒNG TIỀN HUMAN DESIGN - {money_data.get('name','')} - {money_data['type']} {money_data['profile']}")
-    lines.append(f"**Type:** {money_data['type']} | **Profile:** {money_data['profile']} | **Authority:** {money_data['authority']} | **Definition:** {money_data['definition']}")
+    lines.append(f"**Loại năng lượng:** {vn_type(money_data['type'], gloss=True)} | **Nhân cách:** {money_data['profile']} | **Quyền nội tại:** {vn_authority(money_data['authority'])} | **Định nghĩa:** {vn_definition(money_data['definition'])}")
     lines.append(f"**Heart Defined:** {'Có' if money_data['money_analysis']['heart_center_money']['defined'] else 'Không (65%)'} | **Money Channels:** {money_data['money_analysis']['money_channels']['count']} | **Money Gates:** {money_data['money_analysis']['money_gates']['count']}")
     lines.append("")
     
@@ -498,7 +499,7 @@ def format_money_report(money_data):
     lines.append(f"## 9. KẾT LUẬN - Hiểu Mình Để Giàu Có Đúng Cách")
     lines.append(f"Bạn là {money_data['type']} {money_data['profile']} - Heart {'Defined' if money_data['money_analysis']['heart_center_money']['defined'] else 'Open'} - {money_data['money_analysis']['money_channels']['count']} kênh tiền - {money_data['money_analysis']['money_gates']['count']} cổng tiền")
     lines.append(f"Chiến lược tiền bạc của bạn là: {tm.get('how_to_attract', [''])[0] if tm.get('how_to_attract') else ''}")
-    lines.append(f"Hãy thử nghiệm 7 ngày với Strategy tiền bạc: {money_data['type']} + Authority: {money_data['authority']}")
+    lines.append(f"Hãy thử nghiệm 7 ngày với chiến lược tiền bạc của {vn_type(money_data['type'], gloss=True)} và quyền nội tại: {vn_authority(money_data['authority'])}")
     lines.append("")
     lines.append(f"> \"Tiền là năng lượng - Khi bạn sống đúng thiết kế, tiền sẽ chảy\"")
     lines.append(f"> \"Đừng cố chứng minh giá trị qua tiền - Bạn đã có giá trị\" (Đặc biệt cho Heart Open 65%)")

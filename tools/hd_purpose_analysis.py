@@ -10,6 +10,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER
+from hd_language import vn_authority, vn_strategy
 
 QUARTERS = {
     "Initiation": {"vn": "Khởi xướng (Tâm trí)", "purpose": "Mục đích qua TÂM TRÍ - học hỏi, đặt câu hỏi, tìm hiểu, khởi đầu. Bạn ở đây để tâm trí dẫn đường cho hành trình."},
@@ -115,7 +116,7 @@ def analyze_purpose(birth_datetime, name=""):
             vocations.append({"channel": f"{g1}-{g2}", "vocations": v})
 
     steps = [
-        f"Bước 1: Sống đúng Strategy ({chart['strategy']}) + Authority ({chart['authority']}) - sứ mệnh chỉ lộ khi đi đúng đường.",
+        f"Bước 1: Sống đúng chiến lược sống ({vn_strategy(chart['strategy'], chart['type'])}) + quyền nội tại ({vn_authority(chart['authority'])}) - sứ mệnh chỉ lộ khi đi đúng đường.",
         f"Bước 2: Đào sâu cổng {sun_work['gate']} ({sun_work['meaning']}) - 70% sứ mệnh nằm ở đây.",
         f"Bước 3: Sống vai trò Profile {p}: {PROFILE_ROLE_PURPOSE.get(p, '')}",
         f"Bước 4: Đóng góp theo {t}: {TYPE_CONTRIBUTION[t]}",

@@ -55,7 +55,16 @@ def test_free_basic_report_has_chart_snapshot_plan_and_markdown():
     assert document.chart["type"]
     assert document.input_snapshot["subject"]["birth_date"] == SUBJECT["birth_date"]
     assert document.provenance.calculator_version
-    assert "Type" in document.to_markdown()
+    markdown = document.to_markdown()
+    assert "Type" in markdown
+    # Display markdown uses the shared polished terminology — raw bilingual
+    # calculator strings never reach the rendered report.
+    from backend.reporting.language_vn import vn_authority, vn_strategy
+
+    assert document.chart["strategy"] not in markdown
+    assert document.chart["authority"] not in markdown
+    assert vn_strategy(document.chart["strategy"], document.chart["type"]) in markdown
+    assert vn_authority(document.chart["authority"]) in markdown
     # The complete contract must be serializable for persistence or an API.
     assert '"schema_name":"human_design.report"' in document.model_dump_json()
 

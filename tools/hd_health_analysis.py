@@ -10,6 +10,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER
+from hd_language import vn_authority, vn_type
 
 TYPE_HEALTH = {
     "Generator": {
@@ -189,7 +190,7 @@ def analyze_health(birth_datetime, name=""):
 def format_health_report(d):
     h = d["health_analysis"]
     L = [f"# BÁO CÁO SỨC KHỎE THÂN-TÂM-TRÍ - {d['name']} - {d['type']} {d['profile']}",
-         f"**Type:** {d['type']} | **Profile:** {d['profile']} | **Authority:** {d['authority']}",
+         f"**Loại năng lượng:** {vn_type(d['type'], gloss=True)} | **Nhân cách:** {d['profile']} | **Quyền nội tại:** {vn_authority(d['authority'])}",
          f"**Trung tâm mở (cần chăm):** {', '.join(h['open_centers'] if 'open_centers' in h else d['open_centers'])}",
          "",
          "## 1. QUY LUẬT SỨC KHỎE THEO TYPE",

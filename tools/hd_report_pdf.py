@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from hd_calculator import (calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER)
 from hd_analyzer import TYPE_ANALYSIS, CENTER_ANALYSIS, PROFILE_ANALYSIS
+from hd_language import vn_authority, vn_center, vn_definition, vn_strategy, vn_type
 from hd_bodygraph import generate_bodygraph_svg, CHANNEL_NAMES, CENTERS
 from hd_potential_analysis import analyze_potential_blindspots, format_potential_report, CENTER_BLINDSPOTS
 from hd_money_analysis import analyze_money_map, format_money_report
@@ -214,13 +215,13 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
                             hAlign="CENTER", spaceAfter=8))
 
     facts = [
-        ("Type (Loại năng lượng)", f"{chart['type']}<br/>{chart['strategy']}"),
-        ("Authority (Thẩm quyền)", str(chart["authority"])),
+        ("Type (Loại năng lượng)", f"{vn_type(chart['type'], gloss=True)}<br/>{vn_strategy(chart['strategy'], chart['type'])}"),
+        ("Authority (Thẩm quyền)", vn_authority(chart["authority"])),
         ("Profile (Vai trò)", f"{chart['profile']}"),
-        ("Definition (Cấu trúc)", str(chart["definition"])),
+        ("Definition (Cấu trúc)", vn_definition(chart["definition"])),
         ("Incarnation Cross (Sứ mệnh)", str(chart["incarnation_cross"])),
-        ("Trung tâm", f"Định nghĩa {len(defined)}: {', '.join(sorted(defined))}<br/>"
-                      f"Mở {9 - len(defined)}: {', '.join(sorted(set(CENTER_ORDER) - defined))}"),
+        ("Trung tâm", f"Định nghĩa {len(defined)}: {', '.join(vn_center(c) for c in sorted(defined))}<br/>"
+                      f"Mở {9 - len(defined)}: {', '.join(vn_center(c) for c in sorted(set(CENTER_ORDER) - defined))}"),
         ("Kênh & Cổng", f"{len(chart['defined_channels'])} kênh định nghĩa  •  "
                         f"{len(chart['all_activated_gates'])} cổng kích hoạt"),
     ]
@@ -274,7 +275,7 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
 
     # ================= SỐNG ĐÚNG THIẾT KẾ =================
     story.append(Paragraph("1. Sống đúng thiết kế của bạn", st["h1"]))
-    story.append(Paragraph(f"<b>Type: {chart['type']}</b>", st["h2"]))
+    story.append(Paragraph(f"<b>Loại năng lượng (Type): {vn_type(chart['type'], gloss=True)}</b>", st["h2"]))
     for line in str(TYPE_ANALYSIS.get(chart["type"], "")).strip().split("\n"):
         line = line.strip()
         if not line:
@@ -283,19 +284,19 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
             story.append(Paragraph(line[1:].strip(), st["bullet"], bulletText="•"))
         else:
             story.append(Paragraph(line, st["body"]))
-    story.append(Paragraph(f"<b>Strategy (Chiến lược): {chart['strategy']}</b>", st["h2"]))
+    story.append(Paragraph(f"<b>Chiến lược sống: {vn_strategy(chart['strategy'], chart['type'])}</b>", st["h2"]))
     story.append(Paragraph("Strategy là cách bạn tương tác đúng với cuộc đời để giảm kháng cự "
                            "và nhận về đúng cơ hội. Với Manifesting Generator: <b>Chờ tín hiệu để "
                            "Đáp Ứng từ Sacral (uh-huh/uh-uh), rồi Thông Báo</b> cho những người bị "
                            "ảnh hưởng trước khi hành động.", st["body"]))
-    story.append(Paragraph(f"<b>Authority (Thẩm quyền ra quyết định): {chart['authority']}</b>", st["h2"]))
+    story.append(Paragraph(f"<b>Quyền nội tại: {vn_authority(chart['authority'])}</b>", st["h2"]))
     story.append(Paragraph("Bạn là người cảm xúc: <b>không có sự thật trong khoảnh khắc</b>. Sóng cảm xúc "
                            "cần thời gian để lắng xuống và cho bạn sự rõ ràng. Với quyết định lớn, hãy chờ "
                            "ít nhất một đêm (tốt hơn là vài ngày), và đừng quyết khi đang ở đỉnh cao hứng khởi "
                            "hay đáy sâu tuyệt vọng.", st["body"]))
     story.append(Paragraph(f"<b>Profile (Vai trò): {chart['profile']}</b>", st["h2"]))
     story.append(Paragraph(str(PROFILE_ANALYSIS.get(chart["profile"], "")), st["body"]))
-    story.append(Paragraph(f"<b>Definition: {chart['definition']}</b>", st["h2"]))
+    story.append(Paragraph(f"<b>Định nghĩa: {vn_definition(chart['definition'])}</b>", st["h2"]))
     story.append(Paragraph("Bạn có 2 cụm năng lượng tách rời — chủ đề cuộc đời là tìm kiếm sự kết nối "
                            "(qua người khác hoặc dòng chảy hành tinh). Đừng phụ thuộc vào cầu nối; "
                            "hãy kiên nhẫn với sự tách rời.", st["body"]))
@@ -489,7 +490,7 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
     # ================= THỰC HÀNH =================
     story.append(Paragraph("7. Thực hành 7 ngày", st["h1"]))
     practices = [
-        "Mỗi sáng: nhắc mình Strategy — <b>Chờ để Đáp Ứng, rồi Thông Báo</b>. Đừng khởi xướng từ đầu óc.",
+        f"Mỗi sáng: nhắc mình chiến lược sống — <b>{vn_strategy(chart['strategy'], chart['type'])}</b>. Đừng khởi xướng từ đầu óc.",
         "Trước mỗi quyết định lớn: hỏi Sacral (uh-huh/uh-uh), rồi <b>chờ qua đêm</b> cho sóng cảm xúc lắng xuống.",
         "Quan sát 4 trung tâm mở (Head, Ajna, Heart, Spleen): đây là nơi học trí tuệ, không phải nơi ra quyết định.",
         "Để ý dấu hiệu Not-Self: <b>Thất vọng + Tức giận</b> = đang đi lệch thiết kế. Chữ ký đúng: <b>Thỏa mãn + Bình yên</b>.",

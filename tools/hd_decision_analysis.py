@@ -10,6 +10,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart
+from hd_language import vn_authority, vn_type
 
 AUTHORITY_GUIDE = {
     "Emotional": {
@@ -149,7 +150,7 @@ def analyze_decision(birth_datetime, name=""):
             "mind_traps": mind_traps,
             "big_vs_small": ("Việc LỚN (nghề, nhà, hôn nhân, đầu tư lớn): đi đủ quy trình + đủ thời gian. "
                              "Việc NHỎ hàng ngày: rút gọn - Strategy nhanh + 1 câu hỏi Authority."),
-            "summary": (f"{name or 'Bạn'} quyết đúng bằng {g['full']}. Quy trình: {' -> '.join(g['process'][:3])}... "
+            "summary": (f"{name or 'Bạn'} quyết đúng bằng {vn_authority(g['full'])}. Quy trình: {' -> '.join(g['process'][:3])}... "
                         f"Thời gian: {g['timing']} Kết hợp Strategy {t}: {STRATEGY_FLOW[t]}"),
         },
         "áp_dụng_cho": "100% dân số - 7 Authorities - 60 biến thể",
@@ -159,7 +160,7 @@ def analyze_decision(birth_datetime, name=""):
 def format_decision_report(d):
     r = d["decision_analysis"]
     L = [f"# BÁO CÁO RA QUYẾT ĐỊNH - {d['name']} - {d['type']} {d['profile']}",
-         f"**Authority:** {r['authority_full']} | **Type:** {d['type']}",
+         f"**Quyền nội tại:** {vn_authority(r['authority_full'])} | **Loại năng lượng:** {vn_type(d['type'], gloss=True)}",
          "", "## 1. AUTHORITY CỦA BẠN HOẠT ĐỘNG THẾ NÀO", r["how_it_works"],
          "", "## 2. QUY TRÌNH QUYẾT ĐỊNH TỪNG BƯỚC"]
     L += [f"{i}. {s}" for i, s in enumerate(r["process"], 1)]

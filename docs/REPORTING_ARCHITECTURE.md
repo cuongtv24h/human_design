@@ -119,6 +119,11 @@ Orchestrator tính chart đúng một lần bằng `tools/hd_calculator.py`. Cá
 | Purpose | `analyze_purpose` | `format_purpose_report` |
 | Team | `analyze_team` | `format_team_report` |
 
+**Ngôn ngữ hiển thị:** mọi Markdown hiển thị (cả hai template và cả 8 formatter domain,
+cộng `hd_analyzer`/`hd_report_pdf`) render thuật ngữ qua lớp chuẩn
+`tools/hd_language.py` — không chuỗi song ngữ thô của calculator. `ReportSection.data`
+và `chart` snapshot vẫn giữ giá trị thô làm source of truth.
+
 Nếu một domain lỗi, section được đánh dấu `failed` và warning được lưu trong document thay vì làm mất toàn bộ report. Lỗi chart input vẫn làm request thất bại vì không thể tạo report có provenance đúng.
 
 ## Reproducibility và giới hạn

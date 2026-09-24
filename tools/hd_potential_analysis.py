@@ -18,6 +18,7 @@ Tích hợp từ:
 """
 
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER, CHANNEL_TO_CENTERS, CHANNELS, GATE_ORDER
+from hd_language import vn_authority, vn_definition, vn_strategy, vn_type
 from hd_consultation_general import TYPE_DEEP_DIVE, PROFILE_DEEP_DIVE
 from hd_advanced_tools import analyze_fear_gates
 from datetime import datetime
@@ -194,12 +195,12 @@ def analyze_potential_blindspots(birth_datetime, name=""):
         },
         "authority": {
             "name": authority,
-            "description": f"Authority {authority} - Cách ra quyết định đúng cho bạn",
+            "description": f"Quyền nội tại: {vn_authority(authority)} — Cách ra quyết định đúng cho bạn",
             "type": "Authority - Ra quyết định"
         },
         "not_self_mind": "Tâm trí (Mind) KHÔNG BAO GIỜ là Authority - Mind để đo lường, không phải ra quyết định - Bẫy lớn nhất là để Mind ra quyết định thay vì Authority",
         "deconditioning": {
-            "7_days": f"Thử nghiệm 7 ngày với Strategy: {chart['strategy']} + Authority: {authority}",
+            "7_days": f"Thử nghiệm 7 ngày với chiến lược sống: {vn_strategy(chart['strategy'], chart['type'])} + quyền nội tại: {vn_authority(authority)}",
             "7_months": f"Quan sát {len(undefined_centers)} Open Centers - Nơi bạn học trí tuệ, không phải ra quyết định: {', '.join(undefined_centers)}",
             "7_years": "Deconditioning 7 năm - Giải điều kiện hóa, tế bào thay mới hoàn toàn (chu kỳ Uranus)"
         }
@@ -250,7 +251,7 @@ def format_potential_report(potential_data):
     """Format báo cáo Tiềm năng & Điểm mù"""
     lines = []
     lines.append(f"# TIỀM NĂNG & ĐIỂM MÙ - BẢN ĐỒ ĐA GÓC NHÌN - {potential_data.get('name','')} - {potential_data['type']} {potential_data['profile']}")
-    lines.append(f"**Type:** {potential_data['type']} | **Profile:** {potential_data['profile']} | **Authority:** {potential_data['authority']} | **Definition:** {potential_data['definition']}")
+    lines.append(f"**Loại năng lượng:** {vn_type(potential_data['type'], gloss=True)} | **Nhân cách:** {potential_data['profile']} | **Quyền nội tại:** {vn_authority(potential_data['authority'])} | **Định nghĩa:** {vn_definition(potential_data['definition'])}")
     lines.append(f"**Defined Centers:** {len(potential_data['defined_centers'])} | **Open Centers:** {len(potential_data['undefined_centers'])} | **Cross:** {potential_data['incarnation_cross']}")
     lines.append("")
     
@@ -314,11 +315,11 @@ def format_potential_report(potential_data):
     # Appropriate behavior
     lines.append(f"## 4. LỰA CHỌN HÀNH VI PHÙ HỢP - APPROPRIATE BEHAVIOR - Cải thiện bản thân")
     ab = pa["appropriate_behavior"]
-    lines.append(f"### Strategy - {ab['strategy']['name']} (cho {potential_data['type']}):")
+    lines.append(f"### Chiến lược sống - {vn_strategy(ab['strategy']['name'], potential_data['type'])} (cho {potential_data['type']}):")
     lines.append(f"- **Mô tả:** {ab['strategy']['description']}")
     lines.append(f"- **Thực hành:** {ab['strategy']['practice']}")
     lines.append("")
-    lines.append(f"### Authority - {ab['authority']['name']}:")
+    lines.append(f"### Quyền nội tại - {vn_authority(ab['authority']['name'])}:")
     lines.append(f"- {ab['authority']['description']}")
     lines.append("")
     lines.append(f"### Not-Self Mind - Bẫy lớn nhất:")
@@ -333,7 +334,7 @@ def format_potential_report(potential_data):
     lines.append(f"## 5. KẾT LUẬN - Hiểu mình qua đa góc nhìn để cải thiện")
     lines.append(f"Bạn là {potential_data['type']} {potential_data['profile']} - Có {pa['strengths']['count_centers']} điểm mạnh cố định (Defined Centers) + {pa['strengths']['count_channels']} tài năng cố định (Defined Channels) + {pa['blindspots']['count_centers']} điểm mù + trí tuệ (Open Centers) + {pa['blindspots']['count_hanging_gates']} tiềm năng treo")
     lines.append(f"Bạn có {pa['perspectives']['count']} góc nhìn khác nhau về bản thân - Hãy quan sát mình dưới các góc nhìn này")
-    lines.append(f"Hành vi phù hợp nhất để cải thiện bản thân là sống đúng Strategy: {potential_data['type']} - {ab['strategy']['name']} và Authority: {ab['authority']['name']}")
+    lines.append(f"Hành vi phù hợp nhất để cải thiện bản thân là sống đúng chiến lược sống: {vn_strategy(ab['strategy']['name'], potential_data['type'])} và quyền nội tại: {vn_authority(ab['authority']['name'])}")
     lines.append(f"Hãy thử nghiệm 7 ngày và quan sát")
     lines.append("")
     lines.append(f"> \"Hiểu mình - Sống là mình\"")

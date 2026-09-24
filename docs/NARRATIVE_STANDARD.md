@@ -77,6 +77,8 @@ BodyGraph, báo cáo PDF, MCP/REST đều lấy thuật ngữ từ đây qua `vn
 `AUTHORITY_VN`, `DEFINITION_VN`, `TYPE_VN`, `NOT_SELF_SIGNATURE`, `CENTER_VN`
 (tên trung tâm theo `knowledge/02_9_trung_tam.md`) và nhãn giao diện `UI`.
 Quy tắc: không bao giờ hiển thị chuỗi thô kiểu "Chờ Đáp Ứng rồi Thông Báo".
+Hiện tại lớp này đã được nối vào: report orchestrator (template `sections` và
+`operating_manual`), `hd_analyzer`, `hd_report_pdf` và cả 8 formatter domain.
 
 **Tầng 2 — `backend/reporting/language_vn.py` (ngữ liệu kể chuyện của báo cáo),**
 re-export toàn bộ tầng 1 và thêm dữ liệu thuần (không phụ thuộc report):

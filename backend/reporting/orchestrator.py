@@ -33,6 +33,13 @@ from hd_calculator import (  # noqa: E402
 from hd_analyzer import CENTER_ANALYSIS, PROFILE_ANALYSIS, TYPE_ANALYSIS  # noqa: E402
 
 from .catalog import DOMAIN_SPECS, SectionSpec, get_manual_spec, get_plan_definition  # noqa: E402
+from .language_vn import (  # noqa: E402
+    vn_authority,
+    vn_center,
+    vn_definition,
+    vn_strategy,
+    vn_type,
+)
 from .contract import (  # noqa: E402
     DomainName,
     ReportDocument,
@@ -135,9 +142,10 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
     if spec.id == "summary":
         data = {"name": subject_name, **_person_summary(chart)}
         markdown = (
-            f"**{subject_name or 'Khách hàng'}** có Type **{chart['type']}**, "
-            f"Strategy **{chart['strategy']}**, Authority **{chart['authority']}**, "
-            f"Profile **{chart['profile']}** và Definition **{chart['definition']}**."
+            f"**{subject_name or 'Khách hàng'}** thuộc loại **{vn_type(chart['type'], gloss=True)}**, "
+            f"chiến lược sống **{vn_strategy(chart['strategy'], chart['type'])}**, "
+            f"quyền nội tại **{vn_authority(chart['authority'])}**, "
+            f"nhân cách **{chart['profile']}** và định nghĩa **{vn_definition(chart['definition'])}**."
         )
     elif spec.id == "type_strategy_authority":
         data = {
@@ -148,9 +156,9 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             "authority": chart["authority"],
         }
         markdown = (
-            f"- **Type:** {chart['type']}\n"
-            f"- **Strategy:** {chart['strategy']}\n"
-            f"- **Authority:** {chart['authority']}\n\n"
+            f"- **Loại năng lượng (Type):** {vn_type(chart['type'], gloss=True)}\n"
+            f"- **Chiến lược sống:** {vn_strategy(chart['strategy'], chart['type'])}\n"
+            f"- **Quyền nội tại:** {vn_authority(chart['authority'])}\n\n"
             f"{TYPE_ANALYSIS.get(chart['type'], '').strip()}"
         )
     elif spec.id == "profile_definition":
@@ -170,9 +178,9 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             },
         }
         markdown = (
-            f"- **Profile:** {chart['profile']}\n"
-            f"- **Definition:** {chart['definition']}\n"
-            f"- **Incarnation Cross:** {chart['incarnation_cross']}\n\n"
+            f"- **Nhân cách (Profile):** {chart['profile']}\n"
+            f"- **Định nghĩa:** {vn_definition(chart['definition'])}\n"
+            f"- **Chữ thập hóa thân:** {chart['incarnation_cross']}\n\n"
             f"{PROFILE_ANALYSIS.get(chart['profile'], '').strip()}"
         )
     elif spec.id == "centers":
@@ -191,8 +199,8 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             }
         data = {"name": subject_name, "defined_count": len(defined), "centers": centers}
         markdown = "\n".join(
-            f"- **{center}:** {'DEFINED' if info['status'] == 'defined' else 'OPEN'} "
-            f"(activated gates: {', '.join(map(str, info['activated_gates'])) or 'none'})"
+            f"- **{vn_center(center)}:** {'ĐỊNH NGHĨA (có màu)' if info['status'] == 'defined' else 'MỞ (trắng)'} "
+            f"(cổng kích hoạt: {', '.join(map(str, info['activated_gates'])) or 'không có'})"
             for center, info in centers.items()
         )
     elif spec.id == "channels_gates":
@@ -229,7 +237,7 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             },
             "quarters": chart["quarters"],
         }
-        markdown = f"**{chart['incarnation_cross']}**\n\nCross type: {chart['cross_type']}."
+        markdown = f"**{chart['incarnation_cross']}**\n\nKiểu chữ thập: {chart['cross_type']}."
     elif spec.id == "practical_actions":
         data = {
             "name": subject_name,
