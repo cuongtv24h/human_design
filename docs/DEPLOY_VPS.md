@@ -240,6 +240,27 @@ Muốn deploy nhánh khác thì thêm tên nhánh: `git up main`.
 > `git up` dừng an toàn nếu `.env` thiếu/chưa đúng, hoặc code trên VPS có sửa đổi chưa commit
 > (do `git pull --ff-only`). Sửa xong chạy lại `git up` là tiếp tục.
 
+### Thử nhánh test trên VPS rồi gộp vào main
+
+Khi có tính năng mới cần thử trên VPS trước:
+
+```bash
+sudo -iu hd
+cd /srv/human_design
+git up ten-nhanh-test        # VPS chuyển sang chạy nhánh test
+git up                       # mỗi khi có code test mới, chạy lại để cập nhật
+```
+
+Thử xong, gộp vào `main` (nên tạo Pull Request trên GitHub để có lịch sử), rồi cho VPS về lại nhánh ổn định:
+
+```bash
+git up main
+```
+
+> File `.env` không nằm trong git nên chuyển nhánh không mất cấu hình (khóa AI, chuỗi kết nối CSDL…).
+> Nếu nhánh test có migration mới thì nó sẽ áp vào CSDL chung và không tự gỡ khi quay về `main`
+> (thường vô hại — code cũ bỏ qua bảng/cột thừa), nên đừng thử migration nguy hiểm trên CSDL thật.
+
 ### Chi tiết các bước (để tham khảo)
 
 Trên máy phát triển, nếu có thể, kiểm tra trước khi đưa lên:
@@ -280,6 +301,7 @@ Nên sao lưu trước những lần cập nhật lớn: `deploy/backup.sh && de
 | Tải PDF báo lỗi font | Thiếu DejaVu | `sudo apt install fonts-dejavu-core`, rồi `pm2 restart hd-api` |
 | `npm run build` bị “Killed” | Hết RAM | Tạo swap (xem mục 0) |
 | `alembic upgrade` lỗi xác thực | Sai `DATABASE_URL` | Kiểm tra lại mật khẩu, user và tên CSDL trong `.env` |
+| `git up` báo `set: Illegal option -o pipefail` | Alias cũ dùng `sh` (trên Ubuntu là `dash`) | Cài lại alias ở mục 13 (dùng `bash`), rồi chạy lại `git up` |
 | Nút “AI biên tập phần này” báo quá thời gian | Nginx cắt kết nối sớm | Giữ `proxy_read_timeout 180s` trong cấu hình Nginx |
 | Báo cáo AI “Thất bại: Máy chủ khởi động lại… đã thử 3 lần” | AI lỗi liên tục, hoặc VPS khởi động lại nhiều lần | Kiểm tra **Cài đặt → AI / LLM → Kiểm tra kết nối**, rồi bấm “Tạo lại với cùng tùy chọn” |
 | Quên mật khẩu admin | — | `sudo -iu hd; cd /srv/human_design; .venv/bin/python -m backend.api.cli create-admin --email <email cũ>` để đặt lại mật khẩu |
