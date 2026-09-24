@@ -94,6 +94,29 @@ def test_deep_core_domain_is_normalized_and_keeps_provenance():
     assert not document.warnings
 
 
+def test_deep_core_channels_and_cross_are_explained():
+    request = ReportRequest.model_validate({"subject": SUBJECT, "tier": "deep_core"})
+    document = ReportOrchestrator().run(request)
+
+    from backend.reporting.language_vn import CROSS_FRAMING, vn_channel
+
+    channels_section = next(s for s in document.sections if s.id == "channels_gates")
+    cross_section = next(s for s in document.sections if s.id == "cross")
+
+    # Every defined channel gets its bilingual name + life sentence.
+    assert document.chart["defined_channels"]
+    for gate1, gate2 in document.chart["defined_channels"]:
+        lang = vn_channel(gate1, gate2)
+        assert lang, f"missing language entry for channel {gate1}-{gate2}"
+        assert lang["name"] in channels_section.content_markdown
+        assert lang["life"] in channels_section.content_markdown
+    assert "Cổng treo (Hanging Gates)" in channels_section.content_markdown
+
+    # The cross section frames the meaning, not just the technical label.
+    assert CROSS_FRAMING in cross_section.content_markdown
+    assert document.chart["cross_type"] in cross_section.content_markdown
+
+
 def test_relationship_domain_accepts_partner_snapshot():
     request = ReportRequest.model_validate(
         {

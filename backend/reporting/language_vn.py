@@ -379,6 +379,56 @@ PROFILE_STORIES: dict[str, dict[str, str]] = {
 }
 
 # ---------------------------------------------------------------------------
+# 36 CHANNELS — tên song ngữ + một câu đời sống (theo knowledge/03_36_kenh.md)
+# ---------------------------------------------------------------------------
+
+CHANNEL_LANGUAGE: dict[str, dict[str, str]] = {
+    "1-8": {"name": "Hình mẫu sáng tạo (Inspiration)", "life": "Bạn đóng góp bằng sự khác biệt thật của chính mình — không cần giống ai."},
+    "2-14": {"name": "Người giữ chìa khóa (Beat)", "life": "Phương hướng đúng mở ra qua nhịp cơ thể, không qua phân tích."},
+    "3-60": {"name": "Đột biến (Mutation)", "life": "Năng lượng thay đổi theo nhịp lúc có lúc không — ép đều đặn là đi ngược thiết kế."},
+    "4-63": {"name": "Logic", "life": "Mọi ý tưởng đều phải qua cửa nghi ngờ: chứng minh được mới thật sự là của bạn."},
+    "5-15": {"name": "Nhịp điệu (Rhythm)", "life": "Bạn khỏe nhất khi sống đúng nhịp riêng — giờ giấc, thói quen là tài sản."},
+    "6-59": {"name": "Thân mật (Intimacy)", "life": "Ranh giới và sự thân mật học qua nhau: mở đúng người, đóng đúng lúc."},
+    "7-31": {"name": "Lãnh đạo (Alpha)", "life": "Vai trò dẫn dắt đến tự nhiên khi cộng đồng công nhận bạn."},
+    "9-52": {"name": "Tập trung (Concentration)", "life": "Khả năng tập trung sâu và bền khi việc đó thật sự đáng làm."},
+    "10-20": {"name": "Thức tỉnh (Awakening)", "life": "Sống tỉnh thức và truyền sự tỉnh thức qua chính cách bạn hiện diện."},
+    "10-34": {"name": "Khám phá niềm tin (Exploration)", "life": "Bạn đi theo niềm tin của chính mình, không theo số đông."},
+    "10-57": {"name": "Hình thức hoàn hảo (Perfected Form)", "life": "Bản năng hoàn thiện cách mình sống và làm — đẹp và đúng."},
+    "11-56": {"name": "Tò mò (Curiosity)", "life": "Người kể chuyện: gom ý tưởng và trải nghiệm, rồi kể lại thành câu chuyện."},
+    "12-22": {"name": "Cởi mở (Openness)", "life": "Cảm xúc cần được lắng nghe trước khi cất lời — im lặng đúng lúc cũng là tài năng."},
+    "13-33": {"name": "Người kể chuyện (Prodigal)", "life": "Biến trải nghiệm của mình và của người khác thành bài học chia sẻ được."},
+    "16-48": {"name": "Tài năng (Wavelength)", "life": "Tài năng sâu lên qua lặp lại: kiên trì là chìa khóa, không phải cảm hứng."},
+    "17-62": {"name": "Tổ chức (Acceptance)", "life": "Biến ý kiến thành cấu trúc rõ ràng, chi tiết và dùng được."},
+    "18-58": {"name": "Hoàn thiện (Judgement)", "life": "Thấy chỗ chưa hoàn thiện để sửa cho tốt hơn — và học cách tận hưởng thành quả."},
+    "19-49": {"name": "Nhạy cảm (Synthesis)", "life": "Nhạy với nhu cầu và nguyên tắc — biết khi nào nên giữ, khi nào nên đổi thay."},
+    "20-34": {"name": "Sức hút (Charisma)", "life": "Biến nhận thức thành hành động ngay — bận rộn đúng việc thì bạn tỏa sáng."},
+    "20-57": {"name": "Sóng não (Brainwave)", "life": "Trực giác xuyên thấu trong hiện tại, và bạn nói ra được cho người khác."},
+    "21-45": {"name": "Dòng tiền (Money Line)", "life": "Tài năng vật chất rõ: tạo giá trị, kiểm soát nguồn lực, nuôi bộ lạc của mình."},
+    "23-43": {"name": "Thiên tài cấu trúc (Structuring)", "life": "Insight cá nhân 'không giống ai' — khi được mời nói, nó thay đổi cuộc chơi."},
+    "24-61": {"name": "Nhận thức (Awareness)", "life": "Áp lực phải hiểu điều chưa ai hiểu — món quà của bạn là câu hỏi đúng."},
+    "26-44": {"name": "Thuyết phục (Surrender)", "life": "Người truyền đạt bẩm sinh: kể đúng câu chuyện, với đúng người, đúng lúc."},
+    "27-50": {"name": "Bảo tồn (Preservation)", "life": "Bản năng bảo vệ, chăm sóc và giữ giá trị cho những gì quan trọng."},
+    "28-38": {"name": "Đấu tranh (Struggle)", "life": "Đấu tranh tìm ý nghĩa — bướng bỉnh đúng chỗ sẽ thành sức mạnh."},
+    "29-46": {"name": "Khám phá (Discovery)", "life": "Cam kết đi đến cùng nơi người khác bỏ cuộc — thành công qua trải nghiệm."},
+    "30-41": {"name": "Khao khát trải nghiệm (Recognition)", "life": "Cảm xúc tập trung vào điều mới — khao khát là nhiên liệu, không phải mệnh lệnh."},
+    "32-54": {"name": "Biến đổi (Transformation)", "life": "Tham vọng lành mạnh: liên tục nâng cấp bản thân và con đường mình đi."},
+    "35-36": {"name": "Phù du (Transitoriness)", "life": "Đa trải nghiệm, đa tài — bài học là ở lại đủ lâu để hái quả."},
+    "37-40": {"name": "Cộng đồng (Community)", "life": "Xây cộng đồng bằng thỏa thuận rõ ràng và sự chăm sóc đôi bên."},
+    "39-55": {"name": "Tâm trạng (Emoting)", "life": "Cảm xúc sâu và lãng mạn — cần người nghe, không cần ai sửa."},
+    "42-53": {"name": "Trưởng thành (Maturation)", "life": "Bắt đầu đúng và đi đến chín muồi — biết kết thúc cũng là một tài năng."},
+    "47-64": {"name": "Trừu tượng (Abstraction)", "life": "Xử lý quá khứ thành minh mẫn — đi từ nhầm lẫn đến rõ ràng."},
+    "34-57": {"name": "Sức mạnh (Power)", "life": "Sức mạnh sinh tồn bản năng — tin vào trực giác về nhịp của chính mình."},
+    "25-51": {"name": "Khởi xướng (Initiation)", "life": "Cần là người đầu tiên: khởi xướng bằng tình yêu, không bằng ganh đua."},
+}
+
+
+def vn_channel(gate1: int | str, gate2: int | str) -> dict[str, str] | None:
+    """Look up channel language by either gate order (canonical = ascending)."""
+    lo, hi = sorted((int(gate1), int(gate2)))
+    return CHANNEL_LANGUAGE.get(f"{lo}-{hi}")
+
+
+# ---------------------------------------------------------------------------
 # DEFINITION (4) — Phần 4
 # ---------------------------------------------------------------------------
 

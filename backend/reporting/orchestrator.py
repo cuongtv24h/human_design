@@ -34,8 +34,11 @@ from hd_analyzer import CENTER_ANALYSIS, PROFILE_ANALYSIS, TYPE_ANALYSIS  # noqa
 
 from .catalog import DOMAIN_SPECS, SectionSpec, get_manual_spec, get_plan_definition  # noqa: E402
 from .language_vn import (  # noqa: E402
+    CROSS_FRAMING,
+    CROSS_TYPE_LANGUAGE,
     vn_authority,
     vn_center,
+    vn_channel,
     vn_definition,
     vn_strategy,
     vn_type,
@@ -214,16 +217,26 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
                 "gate_meanings": [GATE_MEANINGS.get(gate1), GATE_MEANINGS.get(gate2)],
             })
         connected = {gate for channel in chart["defined_channels"] for gate in channel}
+        hanging = sorted(set(chart["all_activated_gates"]) - connected)
         data = {
             "name": subject_name,
             "defined_channels": channels,
-            "hanging_activated_gates": sorted(set(chart["all_activated_gates"]) - connected),
+            "hanging_activated_gates": hanging,
         }
-        markdown = (
-            f"**Defined channels ({len(channels)}):** "
-            + (", ".join(channel["channel"] for channel in channels) or "none")
-            + f"\n\n**Hanging activated gates:** {', '.join(map(str, data['hanging_activated_gates'])) or 'none'}"
-        )
+        lines = [f"**Kênh định nghĩa ({len(channels)})** — tài năng cố định, năng lượng nhất quán của bạn:"]
+        for ch in channels:
+            lo, hi = sorted(ch["gates"])
+            lang = vn_channel(lo, hi)
+            center_pair = " ↔ ".join(vn_center(c) for c in ch["centers"])
+            if lang:
+                lines.append(f"- **Kênh {lo}-{hi} · {lang['name']}** ({center_pair}): {lang['life']}")
+            else:
+                lines.append(f"- **Kênh {lo}-{hi}** ({center_pair})")
+        lines += ["", f"**Cổng treo (Hanging Gates)** — {len(hanging)} cổng kích hoạt chưa thành kênh, chờ 'cầu nối' qua người khác hoặc dòng chảy cuộc sống:"]
+        for gate in hanging:
+            center = GATE_TO_CENTER.get(gate, "")
+            lines.append(f"- Cổng {gate}: {GATE_MEANINGS.get(gate, '')} ({vn_center(center)})")
+        markdown = "\n".join(lines)
     elif spec.id == "cross":
         data = {
             "name": subject_name,
@@ -237,14 +250,36 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             },
             "quarters": chart["quarters"],
         }
-        markdown = f"**{chart['incarnation_cross']}**\n\nKiểu chữ thập: {chart['cross_type']}."
+        cross_type = chart["cross_type"]
+        cross_life = CROSS_TYPE_LANGUAGE.get(cross_type, "")
+        quarters = chart.get("quarters") or {}
+        lines = [
+            f"**{chart['incarnation_cross']}**",
+            "",
+            f"**{cross_type}** — {cross_life}".rstrip(" —"),
+            "",
+            CROSS_FRAMING,
+            "",
+            f"- Mặt Trời nhân cách (Personality Sun): Cổng {chart['p_sun_gate']} — {GATE_MEANINGS.get(chart['p_sun_gate'], '')}",
+            f"- Trái Đất nhân cách (Personality Earth): Cổng {chart['p_earth_gate']} — {GATE_MEANINGS.get(chart['p_earth_gate'], '')}",
+            f"- Mặt Trời thiết kế (Design Sun): Cổng {chart['d_sun_gate']} — {GATE_MEANINGS.get(chart['d_sun_gate'], '')}",
+            f"- Trái Đất thiết kế (Design Earth): Cổng {chart['d_earth_gate']} — {GATE_MEANINGS.get(chart['d_earth_gate'], '')}",
+        ]
+        if quarters:
+            lines += [
+                "",
+                "Quarters: Personality Sun — "
+                f"{quarters.get('p_sun', '')} · Personality Earth — {quarters.get('p_earth', '')} · "
+                f"Design Sun — {quarters.get('d_sun', '')} · Design Earth — {quarters.get('d_earth', '')}.",
+            ]
+        markdown = "\n".join(lines)
     elif spec.id == "practical_actions":
         data = {
             "name": subject_name,
             "first_7_days": [
-                "Ghi lại một quyết định theo Strategy và Authority mỗi ngày.",
-                "Đánh dấu lúc xuất hiện Signature và Not-Self.",
-                "Chọn một trung tâm mở để quan sát thay vì sửa chữa bản thân.",
+                "Mỗi ngày, ghi lại một quyết định bạn ra theo chiến lược sống và quyền nội tại của mình.",
+                "Đánh dấu khoảnh khắc xuất hiện dấu hiệu sống đúng (Signature) và khi sống sai thiết kế (Not-Self).",
+                "Chọn một trung tâm mở để quan sát thay vì cố sửa chữa bản thân.",
             ],
             "strategy": chart["strategy"],
             "authority": chart["authority"],

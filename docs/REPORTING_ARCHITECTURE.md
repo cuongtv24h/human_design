@@ -46,7 +46,7 @@ Tier và domain là hai chiều độc lập:
 | Tier | Core sections |
 | --- | --- |
 | `free_basic` | summary, Type/Strategy/Authority, Profile/Definition, Centers, Practical actions |
-| `deep_core` | toàn bộ Free Basic + Channels/Gates + Incarnation Cross |
+| `deep_core` | toàn bộ Free Basic + Channels/Gates (tên kênh song ngữ + câu đời sống + cổng treo kèm ý nghĩa) + Incarnation Cross (khung diễn giải + 4 cổng + Quarters) |
 
 Domain được thêm vào cùng một orchestrator, ví dụ:
 
@@ -63,7 +63,7 @@ chart được phân tích, template chọn *cách viết*.
 
 | Template | Section chuẩn | Phong cách |
 | --- | --- | --- |
-| `sections` (mặc định) | 5 section structured theo tier (`summary` ... `practical_actions`) | Dữ liệu kỹ thuật kèm phân tích ngắn |
+| `sections` (mặc định) | 5 section structured theo tier (`summary` ... `practical_actions`) | Dữ liệu kỹ thuật kèm phân tích ngắn, thuật ngữ song ngữ tùy biến |
 | `operating_manual` | 5 phần tự sự (`part1_identity` ... `part5_field_application`) | "Cẩm nang vận hành" bằng tiếng Việt đời sống, chuẩn `docs/NARRATIVE_STANDARD.md` |
 
 Template `operating_manual` render qua `backend/reporting/narrative.py` trên lớp ngôn

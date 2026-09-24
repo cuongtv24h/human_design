@@ -52,6 +52,13 @@ Mọi báo cáo `operating_manual` render đúng 5 phần theo đúng thứ tự
 3. **Tỉ lệ 70/30:** ~70% hành vi thực tế (làm gì, khi nào, nói câu gì, hỏi câu nào);
    ~30% khái niệm kỹ thuật (Type, Authority, Center, Profile, Cross, Definition) giữ
    nguyên để người đọc tra cứu.
+3b. **Song ngữ tùy biến cho thuật ngữ quan trọng:** những thuật ngữ mà dịch hoàn toàn
+   sang tiếng Việt sẽ gây khó cho người đã có trình độ thì GIỮ SONG NGỮ — dạng
+   "Tiếng Việt (English Term)", ví dụ: *Người kể chuyện (Prodigal)*,
+   *Chữ thập hóa thân (Incarnation Cross)*, *Cổng treo (Hanging Gates)*,
+   *Quyền Xương Cùng (Sacral)*. Chống mẫu vẫn là chuỗi thô máy
+   ("Wait to Respond - Chờ để Đáp Ứng"); dạng "đời sống (thuật ngữ)" trau chuốt
+   là đúng chuẩn.
 4. **Hệ ẩn dụ chuẩn** (dùng nhất quán, không sáng tạo ẩn dụ mới khi chưa đồng ý):
    - cơ thể/vessel = **chiếc xe** (mỗi Type một loại xe — bảng `TYPE_LANGUAGE.car`);
    - 9 centers = **9 trạm năng lượng**;

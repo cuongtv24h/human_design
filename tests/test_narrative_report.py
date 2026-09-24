@@ -122,6 +122,18 @@ def test_seven_day_log_personalized_by_authority():
     assert "7 ngày" in markdown
 
 
+def test_channel_language_covers_all_36_channels():
+    from hd_calculator import CHANNELS
+
+    assert len(language_vn.CHANNEL_LANGUAGE) == 36
+    for gate1, gate2 in CHANNELS:
+        lang = language_vn.vn_channel(gate1, gate2)
+        assert lang is not None, f"missing language entry for channel {gate1}-{gate2}"
+        assert lang["name"] and lang["life"]
+        # Either gate order resolves to the same entry.
+        assert language_vn.vn_channel(gate2, gate1) == lang
+
+
 def test_render_is_deterministic():
     first = _run()
     second = _run()

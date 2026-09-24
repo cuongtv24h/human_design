@@ -31,11 +31,11 @@ class DomainSpec:
 
 CORE_SECTIONS: tuple[SectionSpec, ...] = (
     SectionSpec("summary", "Tóm tắt chart", "summary", ("calculate_hd_chart",), ("00_tong_quan_he_thong.md",)),
-    SectionSpec("type_strategy_authority", "Type, Strategy và Authority", "core", ("calculate_hd_chart",), ("04_5_loai_va_chien_luoc.md",)),
-    SectionSpec("profile_definition", "Profile và Definition", "core", ("calculate_hd_chart",), ("05_profile_cross_definition.md",)),
-    SectionSpec("centers", "9 Centers", "core", ("calculate_hd_chart",), ("02_9_trung_tam.md",)),
-    SectionSpec("channels_gates", "Channels và Gates", "core", ("calculate_hd_chart",), ("01_mandala_64_cong.md", "03_36_kenh.md")),
-    SectionSpec("cross", "Incarnation Cross", "core", ("calculate_hd_chart",), ("08_192_incarnation_crosses_chi_tiet.md",)),
+    SectionSpec("type_strategy_authority", "Loại năng lượng · Chiến lược · Quyền nội tại (Type · Strategy · Authority)", "core", ("calculate_hd_chart",), ("04_5_loai_va_chien_luoc.md",)),
+    SectionSpec("profile_definition", "Nhân cách & Định nghĩa (Profile · Definition)", "core", ("calculate_hd_chart",), ("05_profile_cross_definition.md",)),
+    SectionSpec("centers", "9 trung tâm năng lượng (9 Centers)", "core", ("calculate_hd_chart",), ("02_9_trung_tam.md",)),
+    SectionSpec("channels_gates", "Kênh & Cổng (Channels & Gates)", "core", ("calculate_hd_chart",), ("01_mandala_64_cong.md", "03_36_kenh.md")),
+    SectionSpec("cross", "Chữ thập hóa thân (Incarnation Cross)", "core", ("calculate_hd_chart",), ("08_192_incarnation_crosses_chi_tiet.md",)),
     SectionSpec("practical_actions", "Ứng dụng thực tiễn", "practice", ("calculate_hd_chart",), ("07_ung_dung_thuc_tien.md",)),
 )
 
