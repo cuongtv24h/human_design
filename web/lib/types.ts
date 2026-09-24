@@ -217,6 +217,59 @@ export interface LlmUsage {
   recent: LlmUsageRow[];
 }
 
+export interface AssistantModel { index: number; name: string; model: string }
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  provider: string;
+  model: string;
+  message_count: number;
+  total_cost_usd: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  role: string;
+  content: string;
+  tools_used: string[];
+  sources: string[];
+  prompt_tokens: number;
+  completion_tokens: number;
+  cost_usd: number | null;
+  latency_ms: number;
+  created_at: string;
+}
+
+export interface ChatSend { session: ChatSession; message: ChatMessage; provider: string; model: string }
+export interface ChatDetail { session: ChatSession; messages: ChatMessage[] }
+
+export interface ChatUserStat {
+  user_id: number;
+  email: string;
+  full_name: string;
+  sessions: number;
+  messages: number;
+  cost_usd: number;
+}
+
+export interface ChatAdminStats {
+  days: number;
+  sessions: number;
+  messages: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  cost_usd: number;
+  by_user: ChatUserStat[];
+}
+
+export interface ChatAdminSession extends ChatSession {
+  user_email: string;
+  user_name: string;
+}
+
 export interface PublicReport {
   client_name: string;
   subject_display: string;

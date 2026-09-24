@@ -17,7 +17,7 @@ const PRESETS = [
 ];
 
 const ROLE_LABEL = ["Chính", "Dự phòng 1", "Dự phòng 2"];
-const PURPOSE_LABEL: Record<string, string> = { report: "Báo cáo", section: "Sửa mục", test: "Kiểm tra" };
+const PURPOSE_LABEL: Record<string, string> = { report: "Báo cáo", section: "Sửa mục", test: "Kiểm tra", chat: "Trợ lý" };
 
 interface ProviderForm {
   uid: number;

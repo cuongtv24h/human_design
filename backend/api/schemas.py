@@ -440,6 +440,88 @@ class LlmUsageOut(BaseModel):
     recent: list[LlmUsageRow]
 
 
+# --- chat assistant (lookup widget) --------------------------------------------
+
+class AssistantModelOut(BaseModel):
+    index: int
+    name: str
+    model: str
+
+
+class ChatSendIn(BaseModel):
+    session_id: str | None = Field(default=None, max_length=36)
+    model_index: int = Field(default=0, ge=0, le=2)
+    message: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("message")
+    @classmethod
+    def _strip(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Tin nhắn không được để trống")
+        return value
+
+
+class ChatSessionOut(BaseModel):
+    id: str
+    title: str
+    provider: str
+    model: str
+    message_count: int
+    total_cost_usd: float
+    created_at: datetime
+    updated_at: datetime
+
+
+class ChatMessageOut(BaseModel):
+    id: int
+    role: str
+    content: str
+    tools_used: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    cost_usd: float | None = None
+    latency_ms: int = 0
+    created_at: datetime
+
+
+class ChatSendOut(BaseModel):
+    session: ChatSessionOut
+    message: ChatMessageOut
+    provider: str
+    model: str
+
+
+class ChatSessionDetailOut(BaseModel):
+    session: ChatSessionOut
+    messages: list[ChatMessageOut]
+
+
+class ChatAdminSessionOut(ChatSessionOut):
+    user_email: str = ""
+    user_name: str = ""
+
+
+class ChatUserStat(BaseModel):
+    user_id: int
+    email: str
+    full_name: str
+    sessions: int
+    messages: int
+    cost_usd: float
+
+
+class ChatAdminStatsOut(BaseModel):
+    days: int
+    sessions: int
+    messages: int
+    prompt_tokens: int
+    completion_tokens: int
+    cost_usd: float
+    by_user: list[ChatUserStat]
+
+
 # --- share links (P3) ---------------------------------------------------------
 
 ShareFormat = Literal["pdf", "docx", "markdown"]

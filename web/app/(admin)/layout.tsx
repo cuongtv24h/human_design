@@ -1,10 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Bot, FilePlus2, FileText, LayoutDashboard, LogOut, Menu, UserCog, Users, X } from "lucide-react";
+import { Bot, FilePlus2, FileText, LayoutDashboard, LogOut, Menu, MessagesSquare, UserCog, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { AssistantWidget } from "@/components/AssistantWidget";
 import { Logo } from "@/components/Logo";
 import { Spinner, cx } from "@/components/ui";
 import { api, ApiError } from "@/lib/api";
@@ -45,7 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
   const user = me.data;
   const nav = user.role === "admin"
-    ? [...NAV, { href: "/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/settings/llm", label: "AI / LLM", icon: Bot }]
+    ? [...NAV, { href: "/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/settings/llm", label: "AI / LLM", icon: Bot }, { href: "/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare }]
     : NAV;
 
   async function logout() {
@@ -119,6 +120,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <span className="text-sm font-semibold">Human Design Studio</span>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">{children}</main>
+      <AssistantWidget />
     </div>
   );
 }
