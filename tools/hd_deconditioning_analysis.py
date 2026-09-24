@@ -10,6 +10,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart
+from hd_language import vn_authority, vn_strategy, vn_type
 
 TYPE_NOTSELF = {
     "Generator": {"notself": "FRUSTRATION (Thất vọng/Bực bội)",
@@ -78,7 +79,8 @@ DEFINED_WARNINGS = {
 
 
 def analyze_deconditioning(birth_datetime, name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # Accept a precomputed chart when called from the report pipeline.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t = chart["type"]
     defined = set(chart["defined_centers"])
     order = ["Head", "Ajna", "Throat", "G", "Heart", "Spleen", "Sacral", "Solar Plexus", "Root"]
@@ -88,7 +90,7 @@ def analyze_deconditioning(birth_datetime, name=""):
     opens = [{"center": c, **OPEN_CENTER_DECOND[c]} for c in open_c]
     warns = [{"center": c, "warning": DEFINED_WARNINGS[c]} for c in order if c in defined]
     roadmap = {
-        "7d": f"7 NGÀY: Thử nghiệm Strategy ({chart['strategy']}) + Authority ({chart['authority']}). Ghi nhật ký Not-Self mỗi tối: hôm nay mình {ns['notself'].split('(')[0].strip()} lúc nào? Vì sao?",
+        "7d": f"7 NGÀY: Thử nghiệm chiến lược sống ({vn_strategy(chart['strategy'], chart['type'])}) + quyền nội tại ({vn_authority(chart['authority'])}). Ghi nhật ký Not-Self mỗi tối: hôm nay mình {ns['notself'].split('(')[0].strip()} lúc nào? Vì sao?",
         "7m": f"7 THÁNG: Mỗi tháng làm việc với 1-2 trung tâm mở ({', '.join(open_c)}). Thực hành mantra + bài tập từng trung tâm. Quan sát quan hệ thay đổi.",
         "7y": ("7 NĂM: Chu kỳ thay tế bào hoàn toàn. Năm 1-2: nhận diện điều kiện hóa. Năm 3-5: sống Strategy+Authority thành bản năng. "
                "Năm 6-7: trí tuệ từ trung tâm mở chín - bạn thành người hướng dẫn người khác bằng chính trải nghiệm."),
@@ -115,7 +117,7 @@ def analyze_deconditioning(birth_datetime, name=""):
 def format_deconditioning_report(d):
     r = d["deconditioning_analysis"]
     L = [f"# BÁO CÁO GIẢI ĐIỀU KIỆN HÓA - {d['name']} - {d['type']} {d['profile']}",
-         f"**Type:** {d['type']} | **Strategy:** {d.get('strategy', '')} | **Authority:** {d['authority']}",
+         f"**Loại năng lượng:** {vn_type(d['type'], gloss=True)} | **Chiến lược sống:** {vn_strategy(d.get('strategy', ''), d['type'])} | **Quyền nội tại:** {vn_authority(d['authority'])}",
          "", "## 1. NOT-SELF vs CHỮ KÝ CỦA BẠN",
          f"**Not-Self (đèn đỏ):** {r['notself_theme']}",
          f"**Chữ ký (đèn xanh):** {r['signature']}",

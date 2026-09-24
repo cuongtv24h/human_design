@@ -10,6 +10,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER, CHANNELS
+from hd_language import vn_authority, vn_type
 
 LOVE_GATES = {
     6: "Ma sát & Thân mật - ranh giới thân mật, cần đúng người mới mở.",
@@ -80,7 +81,8 @@ def _hanging(chart):
 
 
 def analyze_relationship(birth_datetime, name="", partner_datetime=None, partner_name=""):
-    chart = calculate_hd_chart(birth_datetime)
+    # The primary chart may be supplied by the report orchestrator.
+    chart = birth_datetime if isinstance(birth_datetime, dict) else calculate_hd_chart(birth_datetime)
     t, p = chart["type"], chart["profile"]
     allg = _gate_sets(chart)
     hanging = _hanging(chart)
@@ -130,7 +132,7 @@ def analyze_relationship(birth_datetime, name="", partner_datetime=None, partner
         f"Profile {p} trong yêu: {PROFILE_LOVE.get(p, '')}",
         emotional_dynamics,
         f"Bạn tìm ở đối phương {len(hanging)} mảnh ghép (cổng treo) - nhưng đừng biến đối phương thành 'nửa còn lại' duy nhất.",
-        "Quy tắc vàng: Strategy + Authority áp dụng cho CẢ việc chọn người yêu và quyết định trong quan hệ.",
+        "Quy tắc vàng: chiến lược sống + quyền nội tại áp dụng cho CẢ việc chọn người yêu và quyết định trong quan hệ.",
     ]
     return {
         "name": name, "birth_datetime": str(chart["birth_datetime"]),
@@ -155,7 +157,7 @@ def analyze_relationship(birth_datetime, name="", partner_datetime=None, partner
 def format_relationship_report(d):
     r = d["relationship_analysis"]
     L = [f"# BÁO CÁO MỐI QUAN HỆ & THÂN MẬT - {d['name']} - {d['type']} {d['profile']}",
-         f"**Type:** {d['type']} | **Profile:** {d['profile']} | **Authority:** {d['authority']} | **Cổng tình yêu:** {r['count_love_gates']}",
+         f"**Loại năng lượng:** {vn_type(d['type'], gloss=True)} | **Nhân cách:** {d['profile']} | **Quyền nội tại:** {vn_authority(d['authority'])} | **Cổng tình yêu:** {r['count_love_gates']}",
          "", "## 1. PHONG CÁCH YÊU CỦA BẠN",
          f"**Aura {d['type']}:** {r['aura_style']}",
          f"**Profile {d['profile']}:** {r['profile_style']}",
@@ -177,5 +179,5 @@ def format_relationship_report(d):
     L += ["", "## 5. LỜI KHUYÊN", *[f"{i}. {a}" for i, a in enumerate(r["advice"], 1)],
           "", "## 6. KẾT LUẬN", r["summary"], "",
           "> \"Đừng tìm nửa còn lại - hãy là một người trọn vẹn rồi gặp nhau\"",
-          "> \"Strategy + Authority cũng dùng để chọn người yêu\""]
+          "> \"Chiến lược sống + quyền nội tại cũng dùng để chọn người yêu\""]
     return "\n".join(L)

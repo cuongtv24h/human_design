@@ -19,3 +19,15 @@ cairosvg==2.9.1
 
 # Test runner for the project's Python checks
 pytest==9.1.1
+
+# Admin API (backend/api): persistence, migrations, password hashing
+sqlalchemy==2.0.54
+alembic==1.20.0
+argon2-cffi==25.1.0
+cryptography==50.0.1
+psycopg[binary]==3.3.6  # PostgreSQL driver (production DATABASE_URL=postgresql+psycopg://…)
+
+# Report files from ReportDocument: Word export + BodyGraph PNG without system libraries
+python-docx==1.2.0
+resvg-py==0.5.0  # SVG → PNG (Rust wheel); CairoSVG stays as optional fallback
+pypdf==6.19.0  # tests: read back generated PDFs

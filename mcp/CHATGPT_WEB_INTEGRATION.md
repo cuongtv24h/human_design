@@ -2,7 +2,7 @@
 
 `server.py` là MCP stdio server. ChatGPT Custom GPT Actions không dùng trực tiếp file MCP config; hãy dùng `openapi_server.py` để expose cùng logic qua REST/OpenAPI.
 
-> **Snapshot hiện tại:** API v3.0.0 · 30 route nghiệp vụ · 2 route hệ thống (`/`, `/health`) · OpenAPI spec tự sinh tại `/openapi.json`.
+> **Snapshot hiện tại:** API v3.0.0 · 36 route nghiệp vụ · 2 route hệ thống (`/`, `/health`) · OpenAPI spec tự sinh tại `/openapi.json`.
 
 ## 1. Chạy và kiểm tra API local
 
@@ -49,6 +49,7 @@ Sau khi deploy, kiểm tra các URL:
 
 Các nhóm endpoint gồm:
 
+- Foundation: `/calculation-method`, `/analyze-centers`, `/analyze-channels`, `/analyze-type-strategy-authority`, `/analyze-profile-definition`, `/analyze-practical-application`.
 - Core: `/calculate-chart`, `/analyze-deep`, lookup Gate/Center/Channel/Profile, `/compare-charts`, `/generate-report`.
 - Advanced: fear, love, incarnation cross, Manifestor.
 - General/Money/Potential: consultation, money map, blind spots.

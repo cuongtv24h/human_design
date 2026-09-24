@@ -7,6 +7,7 @@ from hd_calculator import (
     calculate_hd_chart, format_chart_text,
     GATE_MEANINGS, GATE_TO_CENTER, CHANNEL_TO_CENTERS, GATE_ORDER
 )
+from hd_language import vn_authority, vn_center, vn_definition, vn_strategy, vn_type
 from datetime import datetime
 import json
 
@@ -162,14 +163,14 @@ def analyze_chart(chart):
     report.append("")
     
     # Type
-    report.append(f"## 1. TYPE: {chart['type']}")
+    report.append(f"## 1. LOẠI NĂNG LƯỢNG: {vn_type(chart['type'], gloss=True)}")
     report.append(TYPE_ANALYSIS.get(chart['type'], ""))
-    report.append(f"**Strategy**: {chart['strategy']}")
-    report.append(f"**Authority**: {chart['authority']}")
+    report.append(f"**Chiến lược sống**: {vn_strategy(chart['strategy'], chart['type'])}")
+    report.append(f"**Quyền nội tại**: {vn_authority(chart['authority'])}")
     report.append("")
     
     # Authority chi tiết
-    report.append(f"## 2. AUTHORITY: {chart['authority']}")
+    report.append(f"## 2. QUYỀN NỘI TẠI: {vn_authority(chart['authority'])}")
     if "Emotional" in chart['authority']:
         report.append("""
 Bạn có Solar Plexus định nghĩa. Bạn là người cảm xúc. KHÔNG BAO GIỜ quyết định trong khoảnh khắc.
@@ -225,13 +226,13 @@ Cảm nhận sự nhất quán theo thời gian và không gian.
     report.append("")
     
     # Definition
-    report.append(f"## 4. DEFINITION: {chart['definition']}")
+    report.append(f"## 4. ĐỊNH NGHĨA: {vn_definition(chart['definition'])}")
     if "Single" in chart['definition']:
         report.append("Tất cả trung tâm định nghĩa của bạn nối liền nhau. Bạn có năng lượng nhất quán, cảm giác toàn vẹn. Bạn tự xử lý, không cần người khác để cầu nối. Bạn có thể tự mình hoàn thành mọi việc.")
     elif "Split" in chart['definition']:
         report.append(f"Bạn có {chart['definition_groups']} nhóm năng lượng tách rời. Bạn cần người khác hoặc transit hành tinh để cầu nối. Chủ đề cuộc đời: Tìm kiếm sự kết nối. Bạn có thể cảm thấy thiếu gì đó. Học cách không phụ thuộc vào cầu nối, kiên nhẫn với sự tách rời.")
     else:
-        report.append("No Definition - Reflector - Bạn cởi mở hoàn toàn, lấy mẫu môi trường.")
+        report.append("Không định nghĩa (Reflector) — bạn cởi mở hoàn toàn, lấy mẫu môi trường.")
     report.append("")
     
     # Centers
@@ -239,9 +240,9 @@ Cảm nhận sự nhất quán theo thời gian và không gian.
     all_centers = ["Head", "Ajna", "Throat", "G", "Heart", "Spleen", "Sacral", "Solar Plexus", "Root"]
     for center in all_centers:
         if center in chart['defined_centers']:
-            report.append(f"**{center}: DEFINED (Có màu)** - {CENTER_ANALYSIS[center]['defined']}")
+            report.append(f"**{vn_center(center)}: ĐỊNH NGHĨA (Có màu)** - {CENTER_ANALYSIS[center]['defined']}")
         else:
-            report.append(f"**{center}: UNDEFINED/OPEN (Trắng)** - {CENTER_ANALYSIS[center]['undefined']}")
+            report.append(f"**{vn_center(center)}: MỞ (Trắng)** - {CENTER_ANALYSIS[center]['undefined']}")
     report.append("")
     
     # Channels
@@ -281,9 +282,9 @@ Cảm nhận sự nhất quán theo thời gian và không gian.
     # Tổng kết thực hành
     report.append("## 9. THỰC HÀNH - SỐNG ĐÚNG THIẾT KẾ")
     report.append(f"""
-1. **Sống đúng Strategy**: {chart['strategy']}
-2. **Ra quyết định bằng Authority**: {chart['authority']} - Không bằng đầu óc
-3. **Tôn trọng Type**: {chart['type']} - {TYPE_ANALYSIS.get(chart['type'],'')[:100]}...
+1. **Sống đúng chiến lược sống**: {vn_strategy(chart['strategy'], chart['type'])}
+2. **Ra quyết định bằng quyền nội tại**: {vn_authority(chart['authority'])} - Không bằng đầu óc
+3. **Tôn trọng loại năng lượng**: {vn_type(chart['type'], gloss=True)} - {TYPE_ANALYSIS.get(chart['type'],'')[:100]}...
 4. **Hiểu Profile {chart['profile']}**: Vai trò của bạn trong vở kịch cuộc đời
 5. **Chăm sóc trung tâm mở**: Đây là nơi bạn học trí tuệ, không phải nơi ra quyết định
 6. **Deconditioning**: Quá trình 7 năm để giải điều kiện hóa. Kiên nhẫn.

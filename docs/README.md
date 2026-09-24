@@ -8,9 +8,9 @@
 |---|---:|---|
 | `knowledge/` | 21 file (`00`–`20`) | Nội dung chuẩn để engine/MCP tham chiếu |
 | Wiki cá nhân trong `docs/` | 7 file, 989 dòng | Tài liệu nguồn đã tích hợp vào knowledge và tools |
-| `mcp/skills/` | 19 file Markdown | Hướng dẫn phân tích cho LLM/client; không phải MCP prompt runtime |
-| `mcp/server.py` | 30 tools, 11 resources | MCP entrypoint hiện tại |
-| `mcp/openapi_server.py` | 32 route decorator | REST/OpenAPI bridge |
+| `mcp/skills/` | 25 file Markdown (`01`–`18`, `20`–`26`) | Hướng dẫn phân tích cho LLM/client; không phải MCP prompt runtime |
+| `mcp/server.py` | 40 tools, 22 resources | MCP entrypoint hiện tại |
+| `mcp/openapi_server.py` | 38 route decorator | REST/OpenAPI bridge |
 
 Không dùng các con số trong README hoặc report v2.x để mô tả runtime hiện tại. Số liệu runtime được kiểm tra từ source và phản ánh trong `mcp/tools_manifest_latest.json`.
 
@@ -56,11 +56,22 @@ Các Wiki này có tổng 989 dòng và được giữ lại để truy nguyên 
 
 ## 4. Skill markdown
 
-`mcp/skills/` có 19 skill: `01`–`18` và `20`; số `19` được để trống theo lịch sử phiên bản. Đây là tài liệu hướng dẫn, không phải 19 MCP prompt đã đăng ký. `server.py` hiện không có decorator `@mcp.prompt()`; vì vậy manifest chuẩn ghi **0 MCP prompts**.
+`mcp/skills/` có 25 skill: `01`–`18` và `20`–`26`; số `19` được để trống theo lịch sử phiên bản. Đây là tài liệu hướng dẫn, không phải 25 MCP prompt đã đăng ký. `server.py` hiện không có decorator `@mcp.prompt()`; vì vậy manifest chuẩn ghi **0 MCP prompts**.
 
-Nhóm skill bao phủ phân tích toàn diện, nghề nghiệp, quan hệ, Gate, fear, love, Manifestor, Cross, consultation general, money, career/business, health, parenting, potential, relationship deep, decision, deconditioning, purpose và team.
+Sáu skill foundation mới (`21`–`26`) bổ sung Centers, Channels, Type/Strategy/Authority, Profile/Definition, phương pháp tính và ứng dụng thực tiễn. Nhóm skill còn lại bao phủ phân tích toàn diện, nghề nghiệp, quan hệ, Gate, fear, love, Manifestor, Cross, consultation general, money, career/business, health, parenting, potential, relationship deep, decision, deconditioning, purpose và team.
 
-## 5. Quy tắc cập nhật
+## 5. Report layer Admin/Coach
+
+`REPORTING_ARCHITECTURE.md` mô tả application layer mới trong `backend/reporting/`:
+
+- `contract.py`: `ReportRequest`, `ReportPlan`, `ReportSection`, `ReportDocument` và provenance.
+- `catalog.py`: tier `free_basic`/`deep_core`, 8 domain module và 2 report template (`sections`, `operating_manual`).
+- `orchestrator.py`: tính chart một lần, gọi analyzer hiện có trong `tools/`, chuẩn hóa output và tạo Markdown preview deterministic.
+- `language_vn.py` + `narrative.py`: lớp ngôn ngữ tiếng Việt đời sống và chuẩn 5 phần của template "Bản Thiết Kế Bản Thân — Cẩm Nang Vận Hành" (nội dung chuẩn: `NARRATIVE_STANDARD.md`).
+
+Layer này chưa bao gồm frontend, billing hoặc payment. Raw chart/analyzer output luôn là source of truth; LLM nếu được thêm sau này chỉ diễn giải structured output.
+
+## 6. Quy tắc cập nhật
 
 - Khi thêm knowledge mới, cập nhật bảng ở đây và trường `knowledge_base.files` trong manifest.
 - Khi thêm tool/resource, kiểm tra decorator thực tế trong `mcp/server.py` rồi cập nhật `mcp/tools_manifest_latest.json`.

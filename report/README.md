@@ -5,10 +5,14 @@ Các file trong thư mục này là snapshot/lịch sử theo từng giai đoạ
 ## Tài liệu vận hành hiện tại
 
 - `../README.md` — hướng dẫn repository v3.0.0.
-- `../docs/README.md` — catalog 21 knowledge files, 7 Wiki nguồn và 19 skill Markdown.
-- `../mcp/README.md` — MCP contract hiện tại: 30 tools, 11 resources, 0 MCP prompts.
+- `../docs/README.md` — catalog 21 knowledge files, 7 Wiki nguồn và 25 skill Markdown.
+- `../mcp/README.md` — MCP contract hiện tại: 40 tools, 22 resources, 0 MCP prompts.
 - `../mcp/tools_manifest_latest.json` — manifest máy đọc được đã chuẩn hóa theo decorator trong source.
 - `../requirements.txt` — dependency Python được ghim phiên bản.
+
+## Kế hoạch triển khai
+
+- `KE_HOACH_TRIEN_KHAI_FRONTEND_ADMIN.md` — kế hoạch Frontend/Admin (v1.2, 2026-09-24): quy ước giờ Việt Nam +07:00 cố định → UTC, hiện trạng & gap backend, quyết định (đã chốt giờ VN, pm2/VPS, template tự sinh), kiến trúc, mô hình dữ liệu, API v1, màn hình & nghiệm thu, lộ trình 5 giai đoạn ~9 tuần, triển khai pm2, tuân thủ dữ liệu cá nhân, kiểm thử, rủi ro.
 
 ## Các báo cáo lịch sử
 

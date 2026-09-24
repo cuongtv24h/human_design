@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* D10: auto-generated sample theme — replace with real branding later. */
+@theme {
+  --color-paper: #fbf8f1;
+  --color-ink: #232227;
+  --color-muted: #6b675e;
+  --color-line: #e7e1d4;
+  --color-brand-50: #eef3fa;
+  --color-brand-100: #d9e4f3;
+  --color-brand-500: #3565a8;
+  --color-brand-600: #2b5490;
+  --color-brand-700: #234474;
+  --color-gold-100: #f6ecd9;
+  --color-gold-500: #c8963e;
+  --font-sans: "Be Vietnam Pro", "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body { background: var(--color-paper); color: var(--color-ink); }
+body { -webkit-font-smoothing: antialiased; }
+
+/* Long-form report text (react-markdown output). */
+.prose-hd { line-height: 1.75; font-size: 0.975rem; color: var(--color-ink); }
+.prose-hd h1 { font-size: 1.6rem; font-weight: 700; margin: 0.2em 0 0.8em; color: var(--color-brand-700); }
+.prose-hd h2 { font-size: 1.25rem; font-weight: 700; margin: 2em 0 0.7em; padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--color-line); color: var(--color-brand-700); }
+.prose-hd h3 { font-size: 1.05rem; font-weight: 650; margin: 1.5em 0 0.5em; }
+.prose-hd p { margin: 0.7em 0; }
+.prose-hd ul, .prose-hd ol { margin: 0.6em 0; padding-left: 1.4em; }
+.prose-hd ul { list-style: disc; }
+.prose-hd ol { list-style: decimal; }
+.prose-hd li { margin: 0.25em 0; }
+.prose-hd strong { font-weight: 650; }
+.prose-hd blockquote { margin: 1em 0; padding: 0.6em 1em; border-left: 3px solid var(--color-gold-500);
+  background: var(--color-gold-100); border-radius: 0 8px 8px 0; }
+.prose-hd table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.9rem; }
+.prose-hd th, .prose-hd td { border: 1px solid var(--color-line); padding: 0.45em 0.65em; text-align: left; vertical-align: top; }
+.prose-hd th { background: var(--color-brand-50); font-weight: 600; }
+.prose-hd code { background: #f1ede4; padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.88em; }
+.prose-hd hr { border: 0; border-top: 1px solid var(--color-line); margin: 2em 0; }
+.prose-hd img { display: none; } /* BodyGraph is shown in its own tab */
