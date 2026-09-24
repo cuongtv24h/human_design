@@ -2,7 +2,7 @@
 
 Hệ thống tính toán và phân tích Human Design bằng tiếng Việt, dùng Swiss Ephemeris cho phần thiên văn và cung cấp cả MCP server lẫn REST/OpenAPI bridge.
 
-> **Trạng thái chuẩn hiện tại:** v3.0.0 · 30 MCP tools · 11 MCP resources · 19 skill markdown · 32 REST routes (2026-09-24)
+> **Trạng thái chuẩn hiện tại:** v3.0.0 · 36 MCP tools · 22 MCP resources · 25 skill markdown · 38 REST routes (2026-09-24)
 
 ## Tính năng
 
@@ -19,11 +19,11 @@ human_design/
 ├── requirements.txt             # dependency Python đã ghim phiên bản
 ├── tools/                       # calculator, analyzer, CLI, SVG, PDF và domain analyzers
 ├── mcp/
-│   ├── server.py                # MCP entrypoint hiện tại: 30 tools, 11 resources
-│   ├── openapi_server.py        # FastAPI bridge: 32 route decorator
+│   ├── server.py                # MCP entrypoint hiện tại: 36 tools, 22 resources
+│   ├── openapi_server.py        # FastAPI bridge: 38 route decorator
 │   ├── tools_manifest_latest.json
 │   ├── mcp_config.json
-│   └── skills/                  # 19 skill markdown; không phải MCP prompt decorator
+│   └── skills/                  # 25 skill markdown; không phải MCP prompt decorator
 ├── knowledge/                   # 21 tài liệu kiến thức chuẩn hóa, đánh số 00–20
 ├── docs/                        # Wiki nguồn và catalog tài liệu cá nhân
 └── report/                      # báo cáo lịch sử triển khai, giữ nguyên để tham chiếu
@@ -99,9 +99,10 @@ PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 
 MCP runtime hiện có:
 
-- **30 tools:** 8 core, 4 advanced, 2 general, 2 money, 2 potential và 12 domain v3.0.
-- **11 resources:** gates, centers, types, money channels, money gates, health, love, authorities, not-self, purpose và team.
-- **0 MCP prompts:** 19 skill là các file Markdown trong `mcp/skills/`, được LLM/client đọc hoặc dùng làm hướng dẫn riêng; chúng chưa được đăng ký bằng `@mcp.prompt()` trong `server.py`.
+- **36 tools:** 6 foundation, 8 core, 4 advanced, 2 general, 2 money, 2 potential và 12 domain v3.0.
+- **Foundation tools:** Centers, Channels, Type/Strategy/Authority, Profile/Definition, Calculation và Practical Application.
+- **22 resources:** 11 resource tóm tắt runtime và 11 resource đọc toàn văn các knowledge topic còn lại.
+- **0 MCP prompts:** 25 skill là các file Markdown trong `mcp/skills/`, được LLM/client đọc hoặc dùng làm hướng dẫn riêng; chúng chưa được đăng ký bằng `@mcp.prompt()` trong `server.py`.
 
 Manifest máy đọc được: `mcp/tools_manifest_latest.json`.
 
@@ -117,7 +118,7 @@ cd mcp
 - Swagger UI: `http://localhost:8000/docs`
 - OpenAPI: `http://localhost:8000/openapi.json`
 - Health check: `http://localhost:8000/health`
-- 30 route nghiệp vụ tương ứng với 30 tool và 2 route hệ thống (`/`, `/health`).
+- 36 route nghiệp vụ tương ứng với 36 tool và 2 route hệ thống (`/`, `/health`).
 
 Không hard-code `localhost` trong client chạy ở browser; khi deploy public, client phải gọi public base URL của API.
 

@@ -2,7 +2,7 @@
 
 MCP stdio server hiện tại của Human Design Analyzer. Server dùng `mcp/server.py`, nạp calculator/analyzer từ `tools/` và cung cấp dữ liệu qua tools + resources.
 
-> **Runtime chuẩn (2026-09-24):** 30 tools · 11 resources · 0 MCP prompts · 19 skill Markdown · MCP SDK `mcp==1.30.0`.
+> **Runtime chuẩn (2026-09-24):** 36 tools · 22 resources · 0 MCP prompts · 25 skill Markdown · MCP SDK `mcp==1.30.0`.
 
 ## Kiến trúc
 
@@ -11,8 +11,8 @@ LLM client (Claude Desktop / Cursor / Windsurf)
                  │ MCP stdio
                  ▼
           mcp/server.py
-          ├── 30 tools
-          ├── 11 resources
+          ├── 36 tools
+          ├── 22 resources
           └── import tools/hd_*.py
                  │
                  ▼
@@ -73,59 +73,68 @@ Smoke test logic trực tiếp, không mở transport:
 PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 ```
 
-## 30 tools
+## 36 tools
+
+### Foundation — 6
+
+1. `explain_calculation_method`
+2. `analyze_centers_deep`
+3. `analyze_channels_deep`
+4. `analyze_type_strategy_authority`
+5. `analyze_profile_definition`
+6. `analyze_practical_application`
 
 ### Core — 8
 
-1. `calculate_human_design_chart`
-2. `analyze_human_design_deep`
-3. `get_gate_info`
-4. `get_center_info`
-5. `get_channel_info`
-6. `get_profile_info`
-7. `compare_charts`
-8. `generate_full_report`
+7. `calculate_human_design_chart`
+8. `analyze_human_design_deep`
+9. `get_gate_info`
+10. `get_center_info`
+11. `get_channel_info`
+12. `get_profile_info`
+13. `compare_charts`
+14. `generate_full_report`
 
 ### Advanced — 4
 
-9. `analyze_fear_gates`
-10. `analyze_love_gates`
-11. `get_incarnation_cross_details`
-12. `analyze_manifestor_deep`
+15. `analyze_fear_gates`
+16. `analyze_love_gates`
+17. `get_incarnation_cross_details`
+18. `analyze_manifestor_deep`
 
 ### General — 2
 
-13. `analyze_consultation_general`
-14. `generate_consultation_report`
+19. `analyze_consultation_general`
+20. `generate_consultation_report`
 
 ### Money — 2
 
-15. `analyze_money_map`
-16. `generate_money_report`
+21. `analyze_money_map`
+22. `generate_money_report`
 
 ### Potential — 2
 
-17. `analyze_potential_blindspots`
-18. `generate_potential_report`
+23. `analyze_potential_blindspots`
+24. `generate_potential_report`
 
 ### v3.0 domains — 12
 
-19. `analyze_health`
-20. `generate_health_report`
-21. `analyze_relationship`
-22. `generate_relationship_report`
-23. `analyze_decision`
-24. `generate_decision_report`
-25. `analyze_deconditioning`
-26. `generate_deconditioning_report`
-27. `analyze_purpose`
-28. `generate_purpose_report`
-29. `analyze_team`
-30. `generate_team_report`
+25. `analyze_health`
+26. `generate_health_report`
+27. `analyze_relationship`
+28. `generate_relationship_report`
+29. `analyze_decision`
+30. `generate_decision_report`
+31. `analyze_deconditioning`
+32. `generate_deconditioning_report`
+33. `analyze_purpose`
+34. `generate_purpose_report`
+35. `analyze_team`
+36. `generate_team_report`
 
-Luồng phân tích chart nên bắt đầu bằng `calculate_human_design_chart`, sau đó dùng analyzer/domain tool phù hợp. Các tool nhận ngày/giờ local và timezone, rồi server chuyển sang UTC trước khi gọi calculator.
+Luồng phân tích chart nên bắt đầu bằng `calculate_human_design_chart`, sau đó dùng foundation analyzer hoặc domain tool phù hợp. Các tool nhận ngày/giờ local và timezone, rồi server chuyển sang UTC trước khi gọi calculator.
 
-## 11 resources
+## 22 resources
 
 | URI | Nội dung |
 |---|---|
@@ -140,20 +149,31 @@ Luồng phân tích chart nên bắt đầu bằng `calculate_human_design_chart
 | `human-design://knowledge/notself` | Not-Self và Signature |
 | `human-design://knowledge/purpose-quarters` | Quarters và Angles |
 | `human-design://knowledge/team-roles` | Team roles |
+| `human-design://knowledge/overview` | Tổng quan hệ thống |
+| `human-design://knowledge/mandala` | Mandala và 64 Gates đầy đủ |
+| `human-design://knowledge/channels` | 36 Channels |
+| `human-design://knowledge/profile-definition` | Profile, Definition và Cross |
+| `human-design://knowledge/calculation` | Phương pháp tính |
+| `human-design://knowledge/applications` | Ứng dụng thực tiễn |
+| `human-design://knowledge/incarnation-crosses` | 192 Incarnation Crosses |
+| `human-design://knowledge/fear-gates` | Fear Gates và cơ chế trí óc |
+| `human-design://knowledge/manifestor` | Manifestor và tham vấn |
+| `human-design://knowledge/general-consultation` | Tham vấn tổng quát 60 biến thể |
+| `human-design://knowledge/potential-blindspots` | Tiềm năng và điểm mù |
 
-Resource `channels`, `mandala/order`, `fear-gates`, `incarnation-crosses`, `manifestor`, `general-consultation` và `potential-blindspots` từng xuất hiện trong manifest lịch sử nhưng **không** có decorator resource trong server hiện tại; không liệt kê chúng là runtime resource.
+Tất cả 22 resource hiện đã có decorator trong `server.py`; 11 resource mới đọc trực tiếp toàn văn file knowledge.
 
 ## Skill Markdown
 
-Có 19 file tại `mcp/skills/`: `01`–`18` và `20`. Đây là prompt/template tài liệu để LLM tham khảo, không phải MCP prompt runtime. Manifest hiện tại vì vậy tách rõ:
+Có 25 file skill tại `mcp/skills/`: `01`–`18` và `20`–`26`. Sáu skill `21`–`26` là nhóm foundation mới. Đây là template tài liệu để LLM tham khảo, không phải MCP prompt runtime. Manifest hiện tại vì vậy tách rõ:
 
-- `resources`: 11 runtime resources.
+- `resources`: 22 runtime resources.
 - `prompts`: `[]`.
-- `skills_path`: `./skills/`, 19 Markdown files.
+- `skills_path`: `./skills/`, 25 Markdown skill files.
 
 ## REST/OpenAPI bridge
 
-`openapi_server.py` cung cấp 32 route decorator: 30 route nghiệp vụ, `/` và `/health`.
+`openapi_server.py` cung cấp 38 route decorator: 36 route nghiệp vụ, `/` và `/health`.
 
 ```bash
 cd /home/user/human_design/mcp

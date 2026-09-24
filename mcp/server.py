@@ -1,8 +1,8 @@
 """
 Human Design MCP Server v3.0 - Chuẩn Model Context Protocol
-30 tools (8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain) + 11 resources
+36 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain) + 22 resources
 
-Tích hợp 21 knowledge files, 7 Wiki nguồn và 19 skill Markdown. Skills không phải MCP prompts; server hiện có 0 @mcp.prompt decorators.
+Tích hợp 21 knowledge files, 7 Wiki nguồn và 25 skill Markdown. Skills không phải MCP prompts; server hiện có 0 @mcp.prompt decorators.
 v3.0: đầy đủ các domain Health, Relationship, Decision, Deconditioning, Purpose và Team; các wrapper dùng alias imports để tránh shadowing.
 """
 
@@ -13,6 +13,7 @@ from typing import Dict, Any
 import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tools'))
+KNOWLEDGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'knowledge'))
 
 from mcp.server.fastmcp import FastMCP, Context
 from hd_calculator import calculate_hd_chart, format_chart_text, GATE_MEANINGS, GATE_TO_CENTER, CHANNEL_TO_CENTERS, GATE_ORDER, CHANNELS
@@ -79,7 +80,7 @@ try:
 except:
     TEAM_AVAILABLE = False
 
-mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 30 tools (8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 v3.0: health/relationship/decision/deconditioning/purpose/team), Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
+mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 36 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain), 22 resources, Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
 
 def parse_birth_datetime(date_str: str, time_str: str, tz_str: str = "+07:00") -> datetime:
     dt_str = f"{date_str} {time_str}"
@@ -123,7 +124,38 @@ def chart_to_dict(chart: dict) -> dict:
         "d_earth_gate": chart["d_earth_gate"],
     }
 
-# ==================== 30 TOOLS ====================
+
+def _read_knowledge(filename: str) -> str:
+    """Return a canonical knowledge file through an MCP resource."""
+    path = os.path.join(KNOWLEDGE_DIR, filename)
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return handle.read()
+    except OSError as exc:
+        return f"Không thể đọc knowledge/{filename}: {exc}"
+
+
+def _chart_for_request(birth_date: str, birth_time: str, timezone_str: str) -> dict:
+    return calculate_hd_chart(parse_birth_datetime(birth_date, birth_time, timezone_str))
+
+
+def _authority_guidance(authority: str) -> str:
+    if "Emotional" in authority:
+        return "Chờ sóng cảm xúc lắng xuống; không quyết định trong khoảnh khắc."
+    if "Sacral" in authority:
+        return "Đặt câu hỏi có/không và lắng nghe phản hồi uh-huh/uh-uh của Sacral."
+    if "Splenic" in authority:
+        return "Lắng nghe trực giác tức thì, nhẹ và chỉ xuất hiện một lần."
+    if "Ego" in authority or "Heart" in authority:
+        return "Kiểm tra điều bạn thật sự sẵn sàng cam kết bằng ý chí, không để chứng minh giá trị."
+    if "Self-Projected" in authority:
+        return "Nói thành tiếng với người lắng nghe đáng tin để nghe rõ hướng đi của chính mình."
+    if "Mental" in authority or "Environment" in authority:
+        return "Dùng sounding board và môi trường đúng; không tìm người khác quyết định thay."
+    return "Reflector nên quan sát qua một chu kỳ Mặt Trăng khoảng 28–29 ngày."
+
+
+# ==================== 36 TOOLS ====================
 
 @mcp.tool()
 def calculate_human_design_chart(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "") -> Dict[str, Any]:
@@ -236,6 +268,158 @@ def generate_full_report(birth_date: str, birth_time: str, timezone: str = "+07:
         return f"# BÁO CÁO HUMAN DESIGN - {name}\n\n{text_chart}\n\n{deep}"
     except Exception as e:
         return f"Lỗi: {str(e)}"
+
+# Foundation deep-dive tools
+@mcp.tool()
+def explain_calculation_method() -> Dict[str, Any]:
+    """Giải thích pipeline tính chart, mapping Mandala và giới hạn kỹ thuật."""
+    return {
+        "knowledge_file": "06_phuong_phap_tinh_toan.md",
+        "pipeline": [
+            "Nhận ngày giờ local và timezone",
+            "Chuyển sang UTC",
+            "Tính vị trí 13 điểm thiên văn bằng Swiss Ephemeris",
+            "Tìm Design khi Mặt Trời lùi 88 độ trước thời điểm sinh",
+            "Map kinh độ Tropical sang Gate, Line, Color, Tone, Base",
+            "Suy ra Channels, Centers, Type, Authority, Profile, Definition và Cross",
+        ],
+        "ephemeris": "Swiss Ephemeris (pyswisseph)",
+        "zodiac": "Tropical",
+        "design_offset_degrees": 88,
+        "gate_mapping": {"start_longitude_degrees": 302.0, "degrees_per_gate": 5.625, "gate_count": 64},
+        "activation_points": 26,
+        "precision_note": "Độ chính xác phụ thuộc dữ liệu ngày giờ sinh và Swiss Ephemeris; đây không phải tư vấn thiên văn hay y tế.",
+    }
+
+@mcp.tool()
+def analyze_centers_deep(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "") -> Dict[str, Any]:
+    """Phân tích độc lập 9 Centers: trạng thái, cổng, kênh và bài học Not-Self/Wisdom."""
+    try:
+        chart = _chart_for_request(birth_date, birth_time, timezone)
+        defined = set(chart["defined_centers"])
+        activated = set(chart["all_activated_gates"])
+        centers = {}
+        center_names = ["Head", "Ajna", "Throat", "G", "Heart", "Spleen", "Sacral", "Solar Plexus", "Root"]
+        for center in center_names:
+            gates = sorted(g for g, value in GATE_TO_CENTER.items() if value == center)
+            channels = []
+            for channel in chart["defined_channels"]:
+                if center in (CHANNEL_TO_CENTERS.get(channel) or CHANNEL_TO_CENTERS.get((channel[1], channel[0])) or ()):
+                    channels.append(f"{channel[0]}-{channel[1]}")
+            info = CENTER_ANALYSIS.get(center, {})
+            centers[center] = {
+                "status": "defined" if center in defined else "open",
+                "gates": gates,
+                "activated_gates": sorted(set(gates).intersection(activated)),
+                "defined_channels": channels,
+                "defined_meaning": info.get("defined", ""),
+                "open_meaning": info.get("undefined", ""),
+            }
+        return {"name": name, "type": chart["type"], "authority": chart["authority"], "profile": chart["profile"], "defined_count": len(defined), "centers": centers}
+    except Exception as exc:
+        return {"error": str(exc)}
+
+@mcp.tool()
+def analyze_channels_deep(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "") -> Dict[str, Any]:
+    """Phân tích độc lập các Channels định nghĩa và các Gates đang kích hoạt."""
+    try:
+        chart = _chart_for_request(birth_date, birth_time, timezone)
+        channels = []
+        connected_gates = set()
+        for gate1, gate2 in chart["defined_channels"]:
+            connected_gates.update((gate1, gate2))
+            centers = CHANNEL_TO_CENTERS.get((gate1, gate2)) or CHANNEL_TO_CENTERS.get((gate2, gate1))
+            channels.append({
+                "channel": f"{gate1}-{gate2}",
+                "gates": [gate1, gate2],
+                "centers": centers,
+                "gate_meanings": [GATE_MEANINGS.get(gate1), GATE_MEANINGS.get(gate2)],
+            })
+        hanging_gates = sorted(set(chart["all_activated_gates"]) - connected_gates)
+        return {"name": name, "type": chart["type"], "profile": chart["profile"], "channel_count": len(channels), "defined_channels": channels, "hanging_activated_gates": hanging_gates, "knowledge_file": "03_36_kenh.md"}
+    except Exception as exc:
+        return {"error": str(exc)}
+
+@mcp.tool()
+def analyze_type_strategy_authority(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "") -> Dict[str, Any]:
+    """Phân tích riêng Type, Strategy và Authority với hướng dẫn thực hành."""
+    try:
+        chart = _chart_for_request(birth_date, birth_time, timezone)
+        return {
+            "name": name,
+            "type": chart["type"],
+            "type_analysis": TYPE_ANALYSIS.get(chart["type"], ""),
+            "strategy": chart["strategy"],
+            "authority": chart["authority"],
+            "authority_guidance": _authority_guidance(chart["authority"]),
+            "signature": {"Generator": "Satisfaction", "Manifesting Generator": "Satisfaction", "Projector": "Success", "Manifestor": "Peace", "Reflector": "Surprise"}.get(chart["type"], ""),
+            "not_self": {"Generator": "Frustration", "Manifesting Generator": "Frustration/Anger", "Projector": "Bitterness", "Manifestor": "Anger", "Reflector": "Disappointment"}.get(chart["type"], ""),
+            "knowledge_file": "04_5_loai_va_chien_luoc.md",
+        }
+    except Exception as exc:
+        return {"error": str(exc)}
+
+@mcp.tool()
+def analyze_profile_definition(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "") -> Dict[str, Any]:
+    """Phân tích riêng Profile, Definition và bốn trụ Cross."""
+    try:
+        chart = _chart_for_request(birth_date, birth_time, timezone)
+        definition = chart["definition"]
+        if "Single" in definition:
+            definition_guidance = "Các trung tâm định nghĩa nối liền; trải nghiệm thường có tính tự vận hành."
+        elif "Split" in definition:
+            definition_guidance = "Có các cụm năng lượng tách rời; không cần phụ thuộc vào người khác để trở nên toàn vẹn."
+        elif "Triple" in definition:
+            definition_guidance = "Ba cụm năng lượng cần không gian và thời gian để xử lý theo nhịp riêng."
+        elif "Quadruple" in definition:
+            definition_guidance = "Bốn cụm năng lượng; cần môi trường và nhịp tích hợp đa dạng."
+        else:
+            definition_guidance = "Reflector có định nghĩa mở và lấy mẫu từ môi trường."
+        return {
+            "name": name,
+            "profile": chart["profile"],
+            "profile_analysis": PROFILE_ANALYSIS.get(chart["profile"], ""),
+            "definition": definition,
+            "definition_groups": chart.get("definition_groups", 0),
+            "definition_guidance": definition_guidance,
+            "incarnation_cross": chart["incarnation_cross"],
+            "cross_type": chart["cross_type"],
+            "cross_gates": {"personality_sun": chart["p_sun_gate"], "personality_earth": chart["p_earth_gate"], "design_sun": chart["d_sun_gate"], "design_earth": chart["d_earth_gate"]},
+            "knowledge_file": "05_profile_cross_definition.md",
+        }
+    except Exception as exc:
+        return {"error": str(exc)}
+
+@mcp.tool()
+def analyze_practical_application(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", focus_area: str = "general") -> Dict[str, Any]:
+    """Chuyển chart thành kế hoạch ứng dụng thực tế, không thay thế domain analyzer chuyên biệt."""
+    try:
+        chart = _chart_for_request(birth_date, birth_time, timezone)
+        focus_guidance = {
+            "general": "Thử Strategy và Authority trước; sau đó quan sát Not-Self ở các trung tâm mở.",
+            "career": "Chọn môi trường tôn trọng Type, dùng Channels/centers defined như năng lực ổn định và không ép trung tâm mở.",
+            "relationship": "Quan sát aura, nhu cầu nghỉ ngơi và các trung tâm mở trước khi gán nhãn cho đối phương.",
+            "health": "Dùng nhịp năng lượng và tín hiệu cơ thể làm dữ liệu tự quan sát; triệu chứng cần được chuyên gia y tế đánh giá.",
+            "decision": _authority_guidance(chart["authority"]),
+        }
+        open_centers = [center for center in ["Head", "Ajna", "Throat", "G", "Heart", "Spleen", "Sacral", "Solar Plexus", "Root"] if center not in chart["defined_centers"]]
+        return {
+            "name": name,
+            "focus_area": focus_area,
+            "type": chart["type"],
+            "strategy": chart["strategy"],
+            "authority": chart["authority"],
+            "profile": chart["profile"],
+            "definition": chart["definition"],
+            "defined_centers": chart["defined_centers"],
+            "open_centers": open_centers,
+            "defined_channels": [f"{g1}-{g2}" for g1, g2 in chart["defined_channels"]],
+            "first_7_days": ["Ghi lại một quyết định theo Strategy/Authority mỗi ngày.", "Đánh dấu lúc xuất hiện Signature và Not-Self.", "Chọn một trung tâm mở để quan sát thay vì sửa chữa bản thân."],
+            "application_guidance": focus_guidance.get(focus_area, focus_guidance["general"]),
+            "knowledge_file": "07_ung_dung_thuc_tien.md",
+        }
+    except Exception as exc:
+        return {"error": str(exc)}
 
 # Advanced tools từ docs cá nhân
 @mcp.tool()
@@ -743,6 +927,52 @@ def get_team_res() -> str:
         return "\n".join([t + " (" + v["share"] + "): " + v["role"] + " - " + v["seat"] for t, v in TYPE_TEAM_ROLE.items()])
     except:
         return "Team: Generator 37% xây, MG 33% xây nhanh, Projector 20% dẫn, Manifestor 9% mở đường, Reflector 1% soi"
+
+# Full-file resources for the knowledge topics that were previously only
+# reachable through a specialized tool or a Markdown skill.
+@mcp.resource("human-design://knowledge/overview")
+def get_overview_knowledge_res() -> str:
+    return _read_knowledge("00_tong_quan_he_thong.md")
+
+@mcp.resource("human-design://knowledge/mandala")
+def get_mandala_knowledge_res() -> str:
+    return _read_knowledge("01_mandala_64_cong.md")
+
+@mcp.resource("human-design://knowledge/channels")
+def get_channels_knowledge_res() -> str:
+    return _read_knowledge("03_36_kenh.md")
+
+@mcp.resource("human-design://knowledge/profile-definition")
+def get_profile_definition_knowledge_res() -> str:
+    return _read_knowledge("05_profile_cross_definition.md")
+
+@mcp.resource("human-design://knowledge/calculation")
+def get_calculation_knowledge_res() -> str:
+    return _read_knowledge("06_phuong_phap_tinh_toan.md")
+
+@mcp.resource("human-design://knowledge/applications")
+def get_applications_knowledge_res() -> str:
+    return _read_knowledge("07_ung_dung_thuc_tien.md")
+
+@mcp.resource("human-design://knowledge/incarnation-crosses")
+def get_crosses_knowledge_res() -> str:
+    return _read_knowledge("08_192_incarnation_crosses_chi_tiet.md")
+
+@mcp.resource("human-design://knowledge/fear-gates")
+def get_fear_knowledge_res() -> str:
+    return _read_knowledge("09_tam_ly_so_hai_co_che_tri_oc.md")
+
+@mcp.resource("human-design://knowledge/manifestor")
+def get_manifestor_knowledge_res() -> str:
+    return _read_knowledge("11_chuyen_luan_manifestor_tham_van.md")
+
+@mcp.resource("human-design://knowledge/general-consultation")
+def get_general_consultation_knowledge_res() -> str:
+    return _read_knowledge("12_tham_van_tong_quat_60_bien_the.md")
+
+@mcp.resource("human-design://knowledge/potential-blindspots")
+def get_potential_knowledge_res() -> str:
+    return _read_knowledge("14_potential_blindspots.md")
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")

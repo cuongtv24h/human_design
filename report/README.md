@@ -5,8 +5,8 @@ Các file trong thư mục này là snapshot/lịch sử theo từng giai đoạ
 ## Tài liệu vận hành hiện tại
 
 - `../README.md` — hướng dẫn repository v3.0.0.
-- `../docs/README.md` — catalog 21 knowledge files, 7 Wiki nguồn và 19 skill Markdown.
-- `../mcp/README.md` — MCP contract hiện tại: 30 tools, 11 resources, 0 MCP prompts.
+- `../docs/README.md` — catalog 21 knowledge files, 7 Wiki nguồn và 25 skill Markdown.
+- `../mcp/README.md` — MCP contract hiện tại: 36 tools, 22 resources, 0 MCP prompts.
 - `../mcp/tools_manifest_latest.json` — manifest máy đọc được đã chuẩn hóa theo decorator trong source.
 - `../requirements.txt` — dependency Python được ghim phiên bản.
 

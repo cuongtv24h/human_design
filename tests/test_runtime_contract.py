@@ -45,11 +45,18 @@ def test_source_and_manifest_counts_match():
     openapi_counts = _decorator_counts(ROOT / "mcp" / "openapi_server.py")
     manifest = json.loads((ROOT / "mcp" / "tools_manifest_latest.json").read_text(encoding="utf-8"))
 
-    assert server_counts == {"tools": 30, "resources": 11, "prompts": 0, "routes": 0}
-    assert openapi_counts["routes"] == 32
+    assert server_counts == {"tools": 36, "resources": 22, "prompts": 0, "routes": 0}
+    assert openapi_counts["routes"] == 38
     assert len(manifest["tools"]) == server_counts["tools"]
     assert len(manifest["resources"]) == server_counts["resources"]
     assert manifest["prompts"] == []
+    tool_names = {tool["name"] for tool in manifest["tools"]}
+    resource_uris = {resource["uri"] for resource in manifest["resources"]}
+    assert {"explain_calculation_method", "analyze_centers_deep", "analyze_channels_deep", "analyze_type_strategy_authority", "analyze_profile_definition", "analyze_practical_application"} <= tool_names
+    assert {"human-design://knowledge/calculation", "human-design://knowledge/applications", "human-design://knowledge/channels"} <= resource_uris
+    skill_files = sorted(path.name for path in (ROOT / "mcp" / "skills").glob("*.md"))
+    assert manifest["skill_count"] == 25
+    assert manifest["skills"] == skill_files
 
 
 def test_openapi_app_imports():

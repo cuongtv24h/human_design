@@ -30,6 +30,12 @@ from server import (
     get_center_info as mcp_get_center_info,
     get_channel_info as mcp_get_channel_info,
     get_profile_info as mcp_get_profile_info,
+    explain_calculation_method as mcp_explain_calculation_method,
+    analyze_centers_deep as mcp_analyze_centers_deep,
+    analyze_channels_deep as mcp_analyze_channels_deep,
+    analyze_type_strategy_authority as mcp_analyze_type_strategy_authority,
+    analyze_profile_definition as mcp_analyze_profile_definition,
+    analyze_practical_application as mcp_analyze_practical_application,
 )
 
 # Import advanced tools
@@ -137,9 +143,9 @@ app = FastAPI(
     FastAPI bridge cho Human Design Analyzer, dùng Swiss Ephemeris và cùng calculator với MCP stdio server.
 
     ### Phạm vi:
-    - 30 route nghiệp vụ tương ứng với 30 MCP tools: core, advanced, general, money, potential và 6 domain v3.0.
-    - Tính BodyGraph Personality + Design 88°, tra cứu 64 Gates, 9 Centers, 36 Channels, Profile và Cross.
-    - Phân tích Money, Health, Potential, Relationship, Decision, Deconditioning, Purpose và Team.
+    - 36 route nghiệp vụ tương ứng với 36 MCP tools: foundation, core, advanced, general, money, potential và 6 domain v3.0.
+    - Tính BodyGraph Personality + Design 88°, tra cứu và phân tích 64 Gates, 9 Centers, 36 Channels, Profile và Cross.
+    - Phân tích Foundation, Money, Health, Potential, Relationship, Decision, Deconditioning, Purpose và Team.
     - OpenAPI spec tại `/openapi.json` để tích hợp REST client hoặc Custom GPT Actions.
 
     ### Dữ liệu và giới hạn:
@@ -216,12 +222,12 @@ class CompareRequest(BaseModel):
 @app.get("/", tags=["Root"])
 def root():
     return {
-        "message": "Human Design Analyzer API v3.0.0 - 30 tools + 2 system routes",
+        "message": "Human Design Analyzer API v3.0.0 - 36 tools + 2 system routes",
         "version": "3.0.0",
         "docs": "/docs",
         "openapi": "/openapi.json",
         "chatgpt_integration": "Dùng /openapi.json để tạo Custom GPT Action",
-        "total_tools": 30,
+        "total_tools": 36,
         "endpoints": [
             "/calculate-chart",
             "/analyze-deep",
@@ -229,6 +235,12 @@ def root():
             "/center-info",
             "/channel-info",
             "/profile-info",
+            "/calculation-method",
+            "/analyze-centers",
+            "/analyze-channels",
+            "/analyze-type-strategy-authority",
+            "/analyze-profile-definition",
+            "/analyze-practical-application",
             "/compare-charts",
             "/generate-report",
             "/analyze-fear-gates",
@@ -255,7 +267,7 @@ def root():
             "/generate-team-report"
         ],
         "coverage": "100% dân số - 5 Types x 12 Profiles = 60 biến thể + Full Money Map 6 Channels x 14 Gates + Potential & Blind Spots 11 Perspectives + v3.0 6 domains (Health/Relationship/Decision/Deconditioning/Purpose/Team)",
-        "specialized_skills": "19 Markdown skills: 01-18 + 20 (không phải MCP prompts; 19 reserved)",
+        "specialized_skills": "25 Markdown skills: 01-18 + 20-26 (không phải MCP prompts; 19 reserved)",
         "user_interests": "7 nhu cầu cốt lõi: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior"
     }
 
@@ -370,6 +382,46 @@ def profile_info(profile: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/calculation-method", tags=["Foundation"], summary="Giải thích phương pháp tính chart")
+def calculation_method_api():
+    """Giải thích pipeline Swiss Ephemeris, 88° Design và Gate mapping."""
+    return mcp_explain_calculation_method()
+
+@app.post("/analyze-centers", tags=["Foundation"], summary="Phân tích chuyên sâu 9 Centers")
+def centers_deep_api(req: ChartRequest):
+    result = mcp_analyze_centers_deep(req.birth_date, req.birth_time, req.timezone, req.name)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/analyze-channels", tags=["Foundation"], summary="Phân tích chuyên sâu Channels")
+def channels_deep_api(req: ChartRequest):
+    result = mcp_analyze_channels_deep(req.birth_date, req.birth_time, req.timezone, req.name)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/analyze-type-strategy-authority", tags=["Foundation"], summary="Phân tích Type, Strategy và Authority")
+def type_strategy_authority_api(req: ChartRequest):
+    result = mcp_analyze_type_strategy_authority(req.birth_date, req.birth_time, req.timezone, req.name)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/analyze-profile-definition", tags=["Foundation"], summary="Phân tích Profile và Definition")
+def profile_definition_api(req: ChartRequest):
+    result = mcp_analyze_profile_definition(req.birth_date, req.birth_time, req.timezone, req.name)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+@app.post("/analyze-practical-application", tags=["Foundation"], summary="Chuyển chart thành kế hoạch ứng dụng thực tế")
+def practical_application_api(req: ChartRequest, focus_area: str = Query("general", description="general, career, relationship, health hoặc decision")):
+    result = mcp_analyze_practical_application(req.birth_date, req.birth_time, req.timezone, req.name, focus_area)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 @app.post("/compare-charts", tags=["Relationship"], summary="So sánh 2 bản đồ (Composite)")
 def compare_charts_api(req: CompareRequest):
@@ -828,7 +880,7 @@ def team_report_api(req: ChartRequest):
 # Health check
 @app.get("/health", tags=["System"])
 def health():
-    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 30, "api_routes": 32, "coverage": "100% - 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "19 Markdown skills (01-18 + 20; 19 reserved), 0 MCP prompts"}
+    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 36, "api_routes": 38, "coverage": "Foundation + 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "25 Markdown skills (01-18, 20-26; 19 reserved), 0 MCP prompts"}
 
 if __name__ == "__main__":
     import uvicorn

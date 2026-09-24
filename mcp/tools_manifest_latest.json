@@ -1,7 +1,7 @@
 {
   "name": "human-design-analyzer",
   "version": "3.0.0",
-  "description": "Human Design Analyzer v3.0.0 - 30 MCP tools, 11 MCP resources, 0 MCP prompts, 19 Markdown skills và 21 knowledge files. Entry point: mcp/server.py; REST bridge: mcp/openapi_server.py.",
+  "description": "Human Design Analyzer v3.0.0 - 36 MCP tools, 22 MCP resources, 0 MCP prompts, 25 Markdown skills và 21 knowledge files. Entry point: mcp/server.py; REST bridge: mcp/openapi_server.py.",
   "author": "Agent Mode + Personal Research",
   "license": "MIT",
   "mcp_version": "1.30.0",
@@ -11,6 +11,156 @@
     "command": "python mcp/server.py"
   },
   "tools": [
+    {
+      "name": "explain_calculation_method",
+      "description": "Giải thích pipeline Swiss Ephemeris, 88° Design và Gate mapping.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "analyze_centers_deep",
+      "description": "Phân tích chuyên sâu 9 Centers, trạng thái defined/open, Gates và Channels.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string"
+          },
+          "birth_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time"
+        ]
+      }
+    },
+    {
+      "name": "analyze_channels_deep",
+      "description": "Phân tích Channels định nghĩa và Gates kích hoạt còn treo.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string"
+          },
+          "birth_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time"
+        ]
+      }
+    },
+    {
+      "name": "analyze_type_strategy_authority",
+      "description": "Phân tích riêng Type, Strategy và Authority với hướng dẫn thực hành.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string"
+          },
+          "birth_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time"
+        ]
+      }
+    },
+    {
+      "name": "analyze_profile_definition",
+      "description": "Phân tích Profile, Definition và bốn trụ Incarnation Cross.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string"
+          },
+          "birth_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time"
+        ]
+      }
+    },
+    {
+      "name": "analyze_practical_application",
+      "description": "Chuyển chart thành kế hoạch ứng dụng thực tế theo focus area.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string"
+          },
+          "birth_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string"
+          },
+          "focus_area": {
+            "type": "string",
+            "enum": [
+              "general",
+              "career",
+              "relationship",
+              "health",
+              "decision"
+            ],
+            "default": "general"
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time"
+        ]
+      }
+    },
     {
       "name": "calculate_human_design_chart",
       "description": "TOOL CỐT LÕI - Tính toán bản đồ Human Design chính xác từ ngày giờ sinh. Swiss Ephemeris NASA JPL DE431",
@@ -989,6 +1139,61 @@
       "uri": "human-design://knowledge/team-roles",
       "name": "Team Roles",
       "description": "MỚI v3.0 - Vai trò 5 Types trong hệ thống + ghế ngồi"
+    },
+    {
+      "uri": "human-design://knowledge/overview",
+      "name": "System Overview",
+      "description": "Tổng quan hệ thống Human Design"
+    },
+    {
+      "uri": "human-design://knowledge/mandala",
+      "name": "Mandala 64 Gates",
+      "description": "Thứ tự Mandala và 64 Gates đầy đủ"
+    },
+    {
+      "uri": "human-design://knowledge/channels",
+      "name": "All 36 Channels",
+      "description": "36 Channels và các mạch năng lượng"
+    },
+    {
+      "uri": "human-design://knowledge/profile-definition",
+      "name": "Profiles and Definition",
+      "description": "12 Profiles, Definition và Cross framework"
+    },
+    {
+      "uri": "human-design://knowledge/calculation",
+      "name": "Calculation Method",
+      "description": "Phương pháp tính bằng Swiss Ephemeris"
+    },
+    {
+      "uri": "human-design://knowledge/applications",
+      "name": "Practical Applications",
+      "description": "Ứng dụng thực tiễn"
+    },
+    {
+      "uri": "human-design://knowledge/incarnation-crosses",
+      "name": "192 Crosses",
+      "description": "192 Incarnation Crosses chi tiết"
+    },
+    {
+      "uri": "human-design://knowledge/fear-gates",
+      "name": "19 Fear Gates",
+      "description": "Tâm lý sợ hãi và cơ chế trí óc"
+    },
+    {
+      "uri": "human-design://knowledge/manifestor",
+      "name": "Manifestor Deep",
+      "description": "Chuyên luận Manifestor và tham vấn"
+    },
+    {
+      "uri": "human-design://knowledge/general-consultation",
+      "name": "General Consultation 60 variants",
+      "description": "Tham vấn tổng quát 5 Types × 12 Profiles"
+    },
+    {
+      "uri": "human-design://knowledge/potential-blindspots",
+      "name": "Potential and Blind Spots",
+      "description": "Tiềm năng, điểm mù và lựa chọn hành vi"
     }
   ],
   "prompts": [],
@@ -1039,7 +1244,36 @@
     "1.0.0": "8 tools core",
     "2.2.0": "Thêm 2 tools money chuyên dụng: analyze_money_map (Full Money Map 60 biến thể - 5 Types Money Strategy + 12 Profiles Money Style + Heart Defined/Undefined + 6 Money Channels + 14 Money Gates + Definition + Authority + Pricing/Business/Investment) + generate_money_report - Thêm 4 skills chuyên dụng: 10_money_wealth, 11_career_business, 12_health_wellbeing, 13_parenting_child - Đề xuất full bộ 12 skills chuyên dụng trong PROPOSAL_SPECIALIZED_SKILLS_v2.2.md",
     "2.3.0": "Thêm 2 tools potential chuyên dụng: analyze_potential_blindspots (Tiềm năng & Điểm mù - Điểm mạnh Defined Centers/Channels, Điểm mù Open Centers Not-Self vs Wisdom, Hanging Gates, Fear Gates, 11 Perspectives Type+Profile+9 Centers, Lựa chọn hành vi Strategy+Authority) + generate_potential_report - Đáp ứng ý kiến thực tế về điểm mù, điểm mạnh/yếu, quan sát đa góc nhìn, lựa chọn hành vi cải thiện bản thân - Thêm 1 skill 14_potential_blindspots - Tổng 18 tools, 14 skills, 15 knowledge - 7 nhu cầu thực tế: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior",
-    "3.0.0": "Option C Full: thêm 12 tools cho Health, Relationship, Decision, Deconditioning, Purpose và Team; tổng 30 tools, 21 knowledge files và 19 Markdown skills.",
-    "3.0.0-docs": "Chuẩn hóa manifest theo decorator runtime: 11 resources thực tế, 0 MCP prompts; 19 skills được lưu dưới dạng Markdown."
-  }
+    "3.0.0": "v3.0 runtime hiện tại: 36 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain), 21 knowledge files và 25 Markdown skills.",
+    "3.0.0-docs": "Chuẩn hóa manifest theo decorator runtime: 22 resources thực tế, 0 MCP prompts; 25 skills được lưu dưới dạng Markdown.",
+    "3.0.0-foundation": "Bổ sung 6 foundation tools, 11 full-file knowledge resources và 6 skill Markdown (21–26) cho Centers, Channels, Type/Strategy/Authority, Profile/Definition, Calculation và Practical Application."
+  },
+  "skill_count": 25,
+  "skills": [
+    "01_full_analysis.md",
+    "02_career_guidance.md",
+    "03_relationship_composite.md",
+    "04_gate_deep_dive.md",
+    "05_fear_psychology.md",
+    "06_love_dynamics.md",
+    "07_manifestor_consultation.md",
+    "08_incarnation_cross.md",
+    "09_general_consultation.md",
+    "10_money_wealth.md",
+    "11_career_business.md",
+    "12_health_wellbeing.md",
+    "13_parenting_child.md",
+    "14_potential_blindspots.md",
+    "15_relationship_intimacy_deep.md",
+    "16_decision_authority.md",
+    "17_deconditioning_notsel.md",
+    "18_purpose_mission_practical.md",
+    "20_team_leadership_dynamics.md",
+    "21_centers_deep_dive.md",
+    "22_channels_deep_dive.md",
+    "23_type_strategy_authority.md",
+    "24_profile_definition.md",
+    "25_calculation_method.md",
+    "26_practical_application.md"
+  ]
 }
