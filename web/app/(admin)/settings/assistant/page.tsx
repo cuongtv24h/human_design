@@ -53,6 +53,8 @@ function SessionRow({ session }: { session: ChatAdminSession }) {
                   <div className="mt-1 text-[11px] text-muted">
                     {m.sources.length > 0 && <>Nguồn: {m.sources.join(" · ")} · </>}
                     {formatTokens(m.prompt_tokens + m.completion_tokens)} token · {formatUsd(m.cost_usd)}
+                    {m.rating === 1 && <> · <span className="text-green-700">👍 hữu ích</span></>}
+                    {m.rating === -1 && <> · <span className="text-red-700">👎 chưa tốt</span></>}
                   </div>
                 </>
               )}
@@ -87,6 +89,7 @@ export default function AssistantAdminPage() {
     { label: "Tin nhắn AI", value: `${t.messages}` },
     { label: "Token vào / ra", value: `${formatTokens(t.prompt_tokens)} / ${formatTokens(t.completion_tokens)}` },
     { label: "Chi phí ước tính", value: formatUsd(t.cost_usd) },
+    { label: "Đánh giá 👍 / 👎", value: `${t.likes} / ${t.dislikes}` },
   ];
 
   return (

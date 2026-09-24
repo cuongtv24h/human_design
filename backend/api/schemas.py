@@ -452,6 +452,8 @@ class ChatSendIn(BaseModel):
     session_id: str | None = Field(default=None, max_length=36)
     model_index: int = Field(default=0, ge=0, le=2)
     message: str = Field(min_length=1, max_length=2000)
+    context_client_id: int | None = Field(default=None, ge=1)
+    context_report_id: str | None = Field(default=None, max_length=36)
 
     @field_validator("message")
     @classmethod
@@ -483,7 +485,12 @@ class ChatMessageOut(BaseModel):
     completion_tokens: int = 0
     cost_usd: float | None = None
     latency_ms: int = 0
+    rating: int | None = None
     created_at: datetime
+
+
+class ChatRateIn(BaseModel):
+    rating: int = Field(ge=-1, le=1)  # 1 = 👍, -1 = 👎, 0 = gỡ đánh giá
 
 
 class ChatSendOut(BaseModel):
@@ -519,6 +526,8 @@ class ChatAdminStatsOut(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     cost_usd: float
+    likes: int = 0
+    dislikes: int = 0
     by_user: list[ChatUserStat]
 
 

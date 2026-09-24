@@ -1,5 +1,6 @@
 // Thin fetch wrapper: same-origin cookie session + CSRF header + RFC 9457 errors.
 import { getSessionToken, isEmbedded, setSessionToken } from "./session";
+import type { ChatMessage } from "./types";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public errors?: { field: string; message: string }[]) {
@@ -55,6 +56,76 @@ export const fileUrl = (reportId: string, kind: "markdown" | "infographic.html" 
   const token = getSessionToken();
   return `${BASE}/reports/${reportId}/${kind}?download=${download}${token ? `&access_token=${encodeURIComponent(token)}` : ""}`;
 };
+
+export interface ChatStreamHandlers {
+  onMeta?: (meta: { session_id: string; provider: string; model: string }) => void;
+  onToken?: (text: string) => void;
+  onTool?: (info: { phase: string; tool: string; source?: string }) => void;
+  onDone?: (message: ChatMessage) => void;
+}
+
+/** POST SSE stream (trợ lý chat): đọc từng event meta/token/tool/done, ném ApiError khi lỗi. */
+export async function postChatStream(path: string, body: unknown, h: ChatStreamHandlers, signal?: AbortSignal): Promise<void> {
+  const headers: Record<string, string> = { Accept: "text/event-stream", "X-HD-Request": "1", "Content-Type": "application/json" };
+  const token = getSessionToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (isEmbedded()) headers["X-HD-Embedded"] = "1";
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { method: "POST", headers, credentials: "same-origin", body: JSON.stringify(body), signal });
+  } catch (e) {
+    if ((e as Error).name === "AbortError") return;
+    throw new ApiError(0, "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.");
+  }
+  if (!res.ok || !res.body) {
+    const text = await res.text().catch(() => "");
+    let detail = `Lỗi máy chủ (${res.status}).`;
+    try {
+      const data = text ? JSON.parse(text) : null;
+      if (data && typeof data.detail === "string") detail = data.detail;
+    } catch { /* giữ nguyên */ }
+    if (res.status === 401 && token) setSessionToken(null);
+    throw new ApiError(res.status, detail);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  const pump = async (): Promise<void> => {
+    const { done, value } = await reader.read();
+    if (done) return;
+    buf += decoder.decode(value, { stream: true });
+    let idx: number;
+    while ((idx = buf.indexOf("\n\n")) >= 0) {
+      const block = buf.slice(0, idx);
+      buf = buf.slice(idx + 2);
+      let name = "";
+      let data: any = null;
+      for (const line of block.split("\n")) {
+        if (line.startsWith("event:")) name = line.slice(6).trim();
+        else if (line.startsWith("data:")) {
+          try {
+            data = JSON.parse(line.slice(5).trim());
+          } catch { data = null; }
+        }
+      }
+      if (name === "meta") h.onMeta?.(data);
+      else if (name === "token") h.onToken?.(data?.text ?? "");
+      else if (name === "tool") h.onTool?.(data);
+      else if (name === "done") {
+        h.onDone?.(data?.message);
+        return;
+      } else if (name === "error") {
+        throw new ApiError(503, data?.message || "AI đang bận, thử lại sau.");
+      }
+    }
+    return pump();
+  };
+  try {
+    await pump();
+  } finally {
+    reader.releaseLock();
+  }
+}
 
 export function qs(params: Record<string, string | number | undefined | null>): string {
   const search = new URLSearchParams();

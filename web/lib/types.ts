@@ -240,6 +240,7 @@ export interface ChatMessage {
   completion_tokens: number;
   cost_usd: number | null;
   latency_ms: number;
+  rating: number | null;
   created_at: string;
 }
 
@@ -262,6 +263,8 @@ export interface ChatAdminStats {
   prompt_tokens: number;
   completion_tokens: number;
   cost_usd: number;
+  likes: number;
+  dislikes: number;
   by_user: ChatUserStat[];
 }
 

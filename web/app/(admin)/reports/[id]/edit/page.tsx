@@ -226,6 +226,23 @@ export default function EditReportPage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, []);
 
+  // Nhận câu trả lời từ widget Trợ lý AI ("Đưa vào báo cáo"): chèn vào mục đang sửa.
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+  useEffect(() => {
+    const onInsert = (e: Event) => {
+      const detail = (e as CustomEvent<{ reportId: string; text: string }>).detail;
+      if (!detail || detail.reportId !== id || !detail.text) return;
+      const sid = selectedRef.current;
+      if (!sid) return;
+      setDrafts((d) => ({ ...d, [sid]: (d[sid] ? `${d[sid]}\n\n` : "") + detail.text }));
+      setNotice("Đã chèn câu trả lời của trợ lý vào mục đang sửa — nhớ Lưu (Ctrl+S).");
+      textareaRef.current?.focus();
+    };
+    window.addEventListener("hd:assistant-insert", onInsert);
+    return () => window.removeEventListener("hd:assistant-insert", onInsert);
+  }, [id]);
+
   // Live, non-blocking facts check.
   const debounced = useDebounced(text, 700);
   const facts = useQuery({

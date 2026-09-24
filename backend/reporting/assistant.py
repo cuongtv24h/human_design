@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping
 
-from .llm_client import LLMConfig, LLMError, LLMUsage, Transport
+from .llm_client import LLMConfig, LLMError, LLMUsage, Transport, stream_chat_completion
 
 MAX_STEPS = 6
 
@@ -115,7 +115,87 @@ def parse_agent_step(text: str) -> tuple[str, Any]:
     raise ValueError("thiếu 'answer' hoặc 'tool'")
 
 
-def run_agent_turn(
+class _AnswerDetector:
+    """Nhận ra ``{"answer": "..."}`` ngay khi token đầu về, giải mã dần để stream.
+
+    Khi model gọi tool (``{"tool": ...}``) hoặc quá 500 ký tự chưa rõ dạng thì
+    chuyển sang tích lũy im lặng — caller sẽ parse toàn văn sau.
+    """
+
+    def __init__(self) -> None:
+        import re as _re
+
+        self._re = _re
+        self.buf = ""
+        self.mode = "seek"  # seek | answer | tool | done
+        self.text = ""
+        self._hold = ""
+
+    def feed(self, chunk: str) -> str:
+        """Nhận thêm token thô, trả về đoạn plaintext mới giải mã (nếu có)."""
+        if self.mode in ("tool", "done"):
+            return ""
+        self.buf += chunk
+        if self.mode == "seek":
+            found_answer = self._re.search(r'"answer"\s*:\s*"', self.buf)
+            found_tool = self._re.search(r'"tool"\s*:', self.buf)
+            if found_tool and (not found_answer or found_tool.start() < found_answer.start()):
+                self.mode = "tool"
+                return ""
+            if found_answer:
+                self.mode = "answer"
+                self._hold = self.buf[found_answer.end():]
+                self.buf = ""
+                return self._drain()
+            if len(self.buf) > 500:
+                self.mode = "tool"
+            return ""
+        self._hold += self.buf
+        self.buf = ""
+        return self._drain()
+
+    def _drain(self) -> str:
+        text = self._hold
+        end = -1
+        i = 0
+        while i < len(text):
+            if text[i] == "\\":
+                i += 2
+                continue
+            if text[i] == '"':
+                end = i
+                break
+            i += 1
+        if end == -1:
+            cut = len(text)
+            trailing = self._re.search(r"(\\+)$", text)
+            if trailing and len(trailing.group(1)) % 2 == 1:
+                cut = len(text) - 1
+            partial_unicode = self._re.search(r"\\u[0-9a-fA-F]{0,3}$", text[:cut])
+            if partial_unicode:
+                cut = partial_unicode.start()
+            safe, self._hold = text[:cut], text[cut:]
+        else:
+            safe, self._hold = text[:end], ""
+            self.mode = "done"
+        if not safe:
+            return ""
+        try:
+            import json as _json
+
+            piece = _json.loads('"' + safe + '"')
+        except ValueError:
+            self._hold = safe + self._hold  # đợi thêm token rồi thử lại
+            return ""
+        self.text += piece
+        return piece
+
+    @property
+    def completed(self) -> bool:
+        return self.mode == "done"
+
+
+def agent_turn_events(
     user_message: str,
     history: list[dict[str, str]],
     configs: list[LLMConfig],
@@ -123,8 +203,12 @@ def run_agent_turn(
     transport: Transport | None = None,
     on_llm_attempt: AttemptCallback | None = None,
     max_steps: int = MAX_STEPS,
-) -> AgentResult:
-    """Chạy một lượt chat: ReAct tối đa ``max_steps`` bước suy luận + gọi tool."""
+):
+    """Chạy một lượt chat, yield từng sự kiện để stream về UI.
+
+    Sự kiện: ``("tool_start", name)``, ``("tool_done", {"tool", "source"})``,
+    ``("token", text)``, ``("result", AgentResult)``. Hết provider thì raise LLMError.
+    """
     messages: list[dict[str, str]] = [{"role": "system", "content": ASSISTANT_SYSTEM}]
     messages += history[-12:]
     messages.append({"role": "user", "content": user_message})
@@ -135,13 +219,24 @@ def run_agent_turn(
 
     for _ in range(max_steps):
         alive = [c for i, c in enumerate(configs) if i not in dead] or list(configs)
-        step_usage: LLMUsage | None = None
-        raw = ""
+        raw_parts: list[str] = []
+        step_usage = LLMUsage()
+        detector = _AnswerDetector()
         last_error = ""
         for config in alive:
+            detector = _AnswerDetector()
+            raw_parts = []
+            step_usage = LLMUsage()
             started = time.perf_counter()
             try:
-                raw, step_usage = _chat_json(messages, config, transport, payload_extra)
+                for kind, data in stream_chat_completion(messages, config, transport, payload_extra):
+                    if kind == "usage":
+                        step_usage = data
+                    else:
+                        raw_parts.append(data)
+                        piece = detector.feed(data)
+                        if piece:
+                            yield ("token", piece)
             except LLMError as exc:
                 dead.add(configs.index(config))
                 last_error = str(exc)
@@ -155,15 +250,18 @@ def run_agent_turn(
             break
         else:
             raise LLMError(f"Tất cả nhà cung cấp AI đều lỗi — {last_error or 'không rõ nguyên nhân'}")
-        assert step_usage is not None
         result.prompt_tokens += step_usage.prompt_tokens
         result.completion_tokens += step_usage.completion_tokens
         result.steps += 1
 
+        if detector.completed:  # câu trả lời đã stream trực tiếp từng token
+            result.answer = detector.text
+            yield ("result", result)
+            return
+        raw = "".join(raw_parts)
         try:
             kind, payload = parse_agent_step(raw)
         except (LLMError, ValueError):
-            # Một cơ hội sửa định dạng, rồi lấy luôn text thô làm câu trả lời.
             messages.append({"role": "assistant", "content": raw})
             messages.append({"role": "user",
                              "content": "Phản hồi trên không đúng định dạng. Chỉ trả về MỘT object "
@@ -171,59 +269,46 @@ def run_agent_turn(
             continue
         if kind == "answer":
             result.answer = payload
-            return result
+            for i in range(0, len(payload), 60):  # model không stream thì giả lập từng cụm
+                yield ("token", payload[i:i + 60])
+            yield ("result", result)
+            return
         name, args = payload
         result.tools_used.append(name)
+        yield ("tool_start", name)
         try:
             tool_text, source = execute_tool(name, args)
         except Exception as exc:  # noqa: BLE001 - tool lỗi thì báo cho LLM tự xử lý
             tool_text, source = f"Lỗi công cụ {name}: {exc}", ""
         if source and source not in result.sources:
             result.sources.append(source)
+        yield ("tool_done", {"tool": name, "source": source})
         messages.append({"role": "assistant", "content": raw})
         messages.append({"role": "user", "content": f"[Kết quả {name}]\n{tool_text[:4000]}"})
 
     result.answer = ("Mình đã tra cứu nhiều bước mà chưa chốt được câu trả lời. "
                      "Bạn thử hỏi cụ thể hơn (ví dụ kèm tên khách hàng hoặc ngày giờ sinh) nhé.")
-    return result
+    yield ("result", result)
 
 
-def _chat_json(
-    messages: list[dict[str, str]],
-    config: LLMConfig,
-    transport: Transport | None,
-    extra: Mapping[str, Any],
-) -> tuple[str, LLMUsage]:
-    """Một lần gọi chat thuần (không brief báo cáo), trả về text thô + usage."""
-    import json as _json
-    import urllib.error
-    import urllib.request
-
-    payload: dict[str, Any] = {"model": config.model, "temperature": config.temperature,
-                               "messages": messages, **extra}
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {config.api_key}"}
-    url = f"{config.base_url}/chat/completions"
-    if transport is not None:
-        response = transport(url, headers, payload, config.timeout)
-    else:
-        request = urllib.request.Request(url, data=_json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-                                         headers=headers, method="POST")
-        try:
-            with urllib.request.urlopen(request, timeout=config.timeout) as opened:  # noqa: S310
-                response = _json.loads(opened.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            detail = exc.read().decode("utf-8", "replace")[:300]
-            raise LLMError(f"LLM HTTP {exc.code}: {detail}") from exc
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
-            raise LLMError(f"Không kết nối được LLM: {exc}") from exc
-        except _json.JSONDecodeError as exc:
-            raise LLMError("LLM trả về dữ liệu không phải JSON") from exc
-    try:
-        content = response["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise LLMError("Phản hồi LLM thiếu choices[0].message.content") from exc
-    return content or "", LLMUsage.from_response(response, config.model)
+def run_agent_turn(
+    user_message: str,
+    history: list[dict[str, str]],
+    configs: list[LLMConfig],
+    execute_tool: ToolExecutor,
+    transport: Transport | None = None,
+    on_llm_attempt: AttemptCallback | None = None,
+    max_steps: int = MAX_STEPS,
+) -> AgentResult:
+    """Chạy một lượt chat (không stream): gom sự kiện tới ``result`` cuối cùng."""
+    final: AgentResult | None = None
+    for kind, payload in agent_turn_events(user_message, history, configs, execute_tool,
+                                           transport, on_llm_attempt, max_steps):
+        if kind == "result":
+            final = payload
+    assert final is not None
+    return final
 
 
 __all__ = ["ASSISTANT_SYSTEM", "MAX_STEPS", "TOOL_NAMES", "AgentResult", "ToolExecutor",
-           "parse_agent_step", "run_agent_turn"]
+           "agent_turn_events", "parse_agent_step", "run_agent_turn"]

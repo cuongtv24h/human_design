@@ -226,5 +226,86 @@ def ping_llm(config: LLMConfig, transport: Transport | None = None) -> str:
         raise LLMError("Phản hồi LLM thiếu choices[0].message.content") from exc
 
 
+class _StreamOptionsRejected(Exception):
+    """The provider refused ``stream_options`` — retry without it."""
+
+
+def _http_sse(url: str, headers: Mapping[str, str], payload: dict[str, Any], timeout: float,
+              fallback_model: str):
+    """Yield ``("delta", text)`` / ``("usage", LLMUsage)`` from a real SSE stream."""
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers=dict(headers),
+        method="POST",
+    )
+    try:
+        response = urllib.request.urlopen(request, timeout=timeout)  # noqa: S310
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:300]
+        if exc.code == 400 and "stream_options" in payload and "stream" in detail.lower():
+            raise _StreamOptionsRejected(detail) from exc
+        raise LLMError(f"LLM HTTP {exc.code}: {detail}") from exc
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        raise LLMError(f"Không kết nối được LLM: {exc}") from exc
+    usage = LLMUsage()
+    try:
+        with response:
+            for raw_line in response:
+                line = raw_line.decode("utf-8", "replace").strip()
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    break
+                try:
+                    obj = json.loads(data)
+                except json.JSONDecodeError:
+                    continue
+                for choice in obj.get("choices") or []:
+                    delta = choice.get("delta") or {}
+                    if delta.get("content"):
+                        yield ("delta", str(delta["content"]))
+                if obj.get("usage"):
+                    usage = LLMUsage.from_response(obj, fallback_model)
+    except (TimeoutError, OSError) as exc:
+        raise LLMError(f"Đứt kết nối khi stream LLM: {exc}") from exc
+    yield ("usage", usage)
+
+
+def stream_chat_completion(
+    messages: list[dict[str, str]],
+    config: LLMConfig,
+    transport: Transport | None = None,
+    extra: Mapping[str, Any] | None = None,
+):
+    """Yield ``("delta", text)`` chunks then a final ``("usage", LLMUsage)``.
+
+    With an injected dict ``transport`` (tests) the full reply is emulated as
+    small chunks; otherwise a real ``stream: true`` SSE request is used.
+    """
+    payload: dict[str, Any] = {"model": config.model, "temperature": config.temperature,
+                               "messages": messages, **(extra or {})}
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {config.api_key}"}
+    url = f"{config.base_url}/chat/completions"
+    if transport is not None:
+        response = transport(url, headers, payload, config.timeout)
+        try:
+            content = response["choices"][0]["message"]["content"] or ""
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMError("Phản hồi LLM thiếu choices[0].message.content") from exc
+        for i in range(0, len(content), 24):
+            yield ("delta", content[i:i + 24])
+        yield ("usage", LLMUsage.from_response(response, config.model))
+        return
+    payload["stream"] = True
+    payload["stream_options"] = {"include_usage": True}
+    try:
+        yield from _http_sse(url, headers, payload, config.timeout, config.model)
+    except _StreamOptionsRejected:
+        payload.pop("stream_options", None)
+        yield from _http_sse(url, headers, payload, config.timeout, config.model)
+
+
 __all__ = ["LLMConfig", "LLMError", "LLMUsage", "Transport", "call_llm", "call_llm_with_usage",
-           "display_provider", "estimate_cost", "parse_llm_json", "ping_llm"]
+           "display_provider", "estimate_cost", "parse_llm_json", "ping_llm", "stream_chat_completion"]
