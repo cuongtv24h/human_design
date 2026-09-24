@@ -224,7 +224,7 @@ Trên VPS, chạy **một lần duy nhất** bằng user `hd` để tạo lệnh
 ```bash
 sudo -iu hd
 cd /srv/human_design
-git config --global alias.up '!f() { sh deploy/deploy.sh "${1:-$(git rev-parse --abbrev-ref HEAD)}"; }; f'
+git config --global alias.up '!f() { bash deploy/deploy.sh "${1:-$(git rev-parse --abbrev-ref HEAD)}"; }; f'
 ```
 
 Từ đó về sau, mỗi lần cập nhật chỉ cần **đúng 1 lệnh**:
