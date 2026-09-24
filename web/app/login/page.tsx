@@ -6,6 +6,7 @@ import { Suspense, useState, type FormEvent } from "react";
 import { Logo } from "@/components/Logo";
 import { Button, Card, ErrorBox, Field, Input } from "@/components/ui";
 import { api } from "@/lib/api";
+import { setSessionToken } from "@/lib/session";
 import type { User } from "@/lib/types";
 
 function LoginForm() {
@@ -22,7 +23,8 @@ function LoginForm() {
     setLoading(true);
     setError(null);
     try {
-      const user = await api.post<User>("/auth/login", { email, password });
+      const { session_token, ...user } = await api.post<User & { session_token?: string }>("/auth/login", { email, password });
+      setSessionToken(session_token);
       queryClient.setQueryData(["me"], user);
       const next = params.get("next");
       router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");

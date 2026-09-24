@@ -1,4 +1,5 @@
 // Thin fetch wrapper: same-origin cookie session + CSRF header + RFC 9457 errors.
+import { getSessionToken, isEmbedded, setSessionToken } from "./session";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public errors?: { field: string; message: string }[]) {
@@ -11,6 +12,9 @@ const BASE = "/api/v1";
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (method !== "GET") headers["X-HD-Request"] = "1";
+  const token = getSessionToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (isEmbedded()) headers["X-HD-Embedded"] = "1";
   if (body !== undefined) headers["Content-Type"] = "application/json";
   let res: Response;
   try {
@@ -31,6 +35,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   } catch {
     data = null;
   }
+  if (res.status === 401 && token) setSessionToken(null);
   if (!res.ok) {
     const detail = (data && typeof data.detail === "string" && data.detail) || `Lỗi máy chủ (${res.status}).`;
     throw new ApiError(res.status, detail, data?.errors);
@@ -46,8 +51,10 @@ export const api = {
   del: (path: string) => request<void>("DELETE", path),
 };
 
-export const fileUrl = (reportId: string, kind: "markdown" | "infographic.html" | "bodygraph.svg" | "pdf" | "docx", download = false) =>
-  `${BASE}/reports/${reportId}/${kind}?download=${download}`;
+export const fileUrl = (reportId: string, kind: "markdown" | "infographic.html" | "bodygraph.svg" | "pdf" | "docx", download = false) => {
+  const token = getSessionToken();
+  return `${BASE}/reports/${reportId}/${kind}?download=${download}${token ? `&access_token=${encodeURIComponent(token)}` : ""}`;
+};
 
 export function qs(params: Record<string, string | number | undefined | null>): string {
   const search = new URLSearchParams();

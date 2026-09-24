@@ -20,8 +20,23 @@ def _aware(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
 
 
+def session_token(request: Request) -> str:
+    """Session token from the httpOnly cookie (normal) or — for embedded previews where the
+    browser blocks third-party cookies — ``Authorization: Bearer`` / ``?access_token=`` (GET only,
+    used by <img>/<iframe>/download links)."""
+    token = request.cookies.get(SESSION_COOKIE, "")
+    if token:
+        return token
+    auth = request.headers.get("authorization", "")
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip()
+    if request.method in {"GET", "HEAD"}:
+        return request.query_params.get("access_token", "")
+    return ""
+
+
 def current_user(request: Request, db: Session = Depends(get_db)) -> User:
-    token = request.cookies.get(SESSION_COOKIE)
+    token = session_token(request)
     if not token:
         raise HTTPException(status_code=401, detail="Bạn cần đăng nhập.")
     session = db.get(UserSession, hash_token(token))

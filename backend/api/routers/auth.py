@@ -10,9 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..deps import client_ip, current_user, get_db
+from ..deps import client_ip, current_user, get_db, session_token
 from ..models import User, UserSession
-from ..schemas import LoginIn, UserOut
+from ..schemas import LoginIn, LoginOut, UserOut
 from ..security import SESSION_COOKIE, hash_token, new_session_token, verify_password
 from ..services import audit
 
@@ -38,7 +38,7 @@ def user_out(user: User) -> UserOut:
     return out
 
 
-@router.post("/login", response_model=UserOut)
+@router.post("/login", response_model=LoginOut, response_model_exclude_none=True)
 def login(payload: LoginIn, request: Request, response: Response, db: Session = Depends(get_db)) -> UserOut:
     email = payload.email.strip().lower()
     ip = client_ip(request)
@@ -63,7 +63,10 @@ def login(payload: LoginIn, request: Request, response: Response, db: Session = 
     audit(db, user, "auth.login", "user", user.id, ip=ip)
     db.commit()
     _cookie(response, settings, token, settings.session_hours * 3600)
-    return user_out(user)
+    out = LoginOut(**user_out(user).model_dump())
+    if request.headers.get("x-hd-embedded") == "1":
+        out.session_token = token
+    return out
 
 
 def _cookie(response: Response, settings, value: str, max_age: int) -> None:
@@ -76,7 +79,7 @@ def _cookie(response: Response, settings, value: str, max_age: int) -> None:
 
 @router.post("/logout", status_code=204)
 def logout(request: Request, response: Response, db: Session = Depends(get_db)) -> Response:
-    token = request.cookies.get(SESSION_COOKIE)
+    token = session_token(request)
     if token:
         session = db.get(UserSession, hash_token(token))
         if session is not None:

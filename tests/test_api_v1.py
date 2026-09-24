@@ -287,3 +287,28 @@ def test_partitioned_session_cookie(tmp_path):
     response = TestClient(app).post("/api/v1/auth/login", json={"email": "p@demo.vn", "password": "12345678"}, headers=H)
     cookie = response.headers["set-cookie"]
     assert response.status_code == 200 and "SameSite=none" in cookie and "Secure" in cookie and cookie.endswith("Partitioned")
+
+
+def test_embedded_preview_token_fallback(app):
+    """Cross-site iframe previews may drop cookies: Bearer header / GET ?access_token= still work."""
+    anon = TestClient(app)
+    normal = anon.post("/api/v1/auth/login", json={"email": "admin@example.com", "password": PASSWORD}, headers=H)
+    assert "session_token" not in normal.json()  # top-level admin: cookie only
+
+    embedded = TestClient(app).post("/api/v1/auth/login", json={"email": "admin@example.com", "password": PASSWORD},
+                                    headers={**H, "X-HD-Embedded": "1"})
+    token = embedded.json()["session_token"]
+    no_cookie = TestClient(app)  # simulates the browser discarding the cookie
+    assert no_cookie.get("/api/v1/auth/me").status_code == 401
+    bearer = {"Authorization": f"Bearer {token}"}
+    assert no_cookie.get("/api/v1/auth/me", headers=bearer).json()["email"] == "admin@example.com"
+    person = no_cookie.post("/api/v1/clients", json=CLIENT, headers={**H, **bearer})
+    assert person.status_code == 201
+    rid = no_cookie.post("/api/v1/reports", json={"client_id": person.json()["id"], "tier": "free_basic",
+                                                  "template": "sections"}, headers={**H, **bearer}).json()["id"]
+    svg = no_cookie.get(f"/api/v1/reports/{rid}/bodygraph.svg?access_token={token}")
+    assert svg.status_code == 200 and svg.headers["content-type"].startswith("image/svg")
+    # Query token is never accepted for state-changing requests.
+    assert no_cookie.post(f"/api/v1/reports/{rid}/archive?access_token={token}", headers=H).status_code == 401
+    assert no_cookie.post("/api/v1/auth/logout", headers={**H, **bearer}).status_code == 204
+    assert no_cookie.get("/api/v1/auth/me", headers=bearer).status_code == 401

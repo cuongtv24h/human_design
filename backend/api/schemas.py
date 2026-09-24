@@ -35,6 +35,11 @@ class UserOut(BaseModel):
     org_name: str = ""
 
 
+class LoginOut(UserOut):
+    # Only for embedded previews (request header X-HD-Embedded: 1) where cookies are blocked.
+    session_token: str | None = None
+
+
 class UserCreate(BaseModel):
     email: str = Field(min_length=3, max_length=320)
     full_name: str = Field(default="", max_length=200)

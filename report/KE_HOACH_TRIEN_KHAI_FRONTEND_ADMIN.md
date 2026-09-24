@@ -317,7 +317,7 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P2-6 cấu hình LLM | ✅ | `GET/PUT /settings/llm`, `POST /settings/llm/test` (chỉ admin); khóa mã hóa Fernet bằng `HD_SECRET_KEY`, chỉ hiện `••••1234`, không vào nhật ký; cấu hình trong hệ thống ưu tiên hơn `HD_LLM_*`; trang `/settings/llm` |
 | P3-1 share link | ✅ | Bảng `share_links` (migration `0002`): token chỉ hiện một lần (lưu SHA-256), định dạng được phép, hết hạn 1–365 ngày, thu hồi, đếm lượt xem; nhật ký xem/tải |
 | P3-2 trang `/r/[token]` | ✅ | SSR, mobile-first, `noindex`, `no-referrer`: thông tin + chỉ số + Infographic + đọc toàn bộ báo cáo + nút tải; không lộ cảnh báo nội bộ/giờ UTC. Link hết hạn/thu hồi → thông báo thân thiện (mã HTTP 410 ở API; trang Next trả 200) |
-| P3-3 gửi email | ⏳ | Chưa làm (cần SMTP) |
+| P3-3 gửi email | ✖ bỏ | Theo quyết định của chủ dự án (24/9): không gửi email; chuyên viên tự gửi link qua Zalo/Messenger |
 | P2-4 “AI biên tập phần này” | ✅ | Diff theo dòng (LCS), “Dùng bản này” / “Bỏ đề xuất”; proxy Next `proxyTimeout` 180 s |
 
 ### P0 — Nền móng backend (tuần 1–2)
@@ -368,7 +368,7 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | --- | --- | --- | --- |
 | P3-1 | Share link: tạo/thu hồi/hết hạn, định dạng được phép, đếm lượt xem | BE | 1,5d |
 | P3-2 | Trang `/r/[token]` SSR, mobile-first, theme tự sinh, `noindex` | FE | 2d |
-| P3-3 | Gửi email kèm link (SMTP) + mẫu email tiếng Việt | BE | 1d |
+| P3-3 | ~~Gửi email kèm link (SMTP)~~ — **bỏ** theo quyết định chủ dự án | — | 0 |
 
 > Màn **Thương hiệu** (logo/màu tổ chức áp vào Infographic/PDF/DOCX) chuyển vào **backlog sau go-live** theo D10.
 > Kiến trúc đã sẵn: mọi renderer đọc `organizations.theme`, nên thay template mẫu bằng bộ nhận diện thật chỉ là cập nhật cấu hình.

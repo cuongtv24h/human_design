@@ -9,6 +9,7 @@ import { Logo } from "@/components/Logo";
 import { Spinner, cx } from "@/components/ui";
 import { api, ApiError } from "@/lib/api";
 import { useMe } from "@/lib/auth";
+import { setSessionToken } from "@/lib/session";
 
 const NAV = [
   { href: "/", label: "Tổng quan", icon: LayoutDashboard, exact: true },
@@ -49,6 +50,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   async function logout() {
     await api.post("/auth/logout").catch(() => undefined);
+    setSessionToken(null);
     queryClient.clear();
     router.replace("/login");
   }

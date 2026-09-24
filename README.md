@@ -154,7 +154,7 @@ cd web && npm install && npm run dev        # http://localhost:3000
 - **AI / LLM** (admin, `/settings/llm`): nhập base URL, mô hình, khóa API (mã hóa khi lưu) và bấm “Kiểm tra kết nối”; nếu không lưu khóa, hệ thống dùng `HD_LLM_API_KEY`.
 - **`HD_SECRET_KEY`** ký link và mã hóa khóa AI. Production nên đặt trong `.env` (chuỗi ngẫu nhiên dài, ví dụ `python -c "import secrets;print(secrets.token_urlsafe(48))"`); nếu bỏ trống, hệ thống tự tạo `var/secret_key`. Đổi khóa này làm link cũ mất hiệu lực và phải nhập lại khóa AI.
 - Nâng cấp CSDL: `.venv/bin/alembic upgrade head` (migration `0002`: bảng `share_links`, cột `organizations.llm_settings`).
-- Preview nhúng trong iframe khác site: đặt `COOKIE_SAMESITE=none` (cookie `Secure; Partitioned`). Production cùng domain giữ mặc định `lax`.
+- Preview nhúng trong iframe khác site: đặt `COOKIE_SAMESITE=none` (cookie `Secure; Partitioned`). Nếu trình duyệt vẫn chặn cookie trong iframe (Safari, Chrome ẩn danh…), trang admin tự nhận biết đang bị nhúng và giữ phiên trong `sessionStorage` của tab (gửi `Authorization: Bearer`). Chạy trực tiếp trên domain riêng thì chỉ dùng cookie httpOnly; production giữ mặc định `lax`.
 - Chế độ nội dung LLM cần `HD_LLM_API_KEY`; hiện chạy nền bằng FastAPI background task (worker arq/Redis thuộc P2).
 
 ## Kiểm tra
