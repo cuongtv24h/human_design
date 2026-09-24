@@ -1,0 +1,253 @@
+{
+  "name": "human-design-analyzer",
+  "version": "1.0.0",
+  "description": "Human Design Analysis System - Tính toán và phân tích chuyên sâu với Swiss Ephemeris",
+  "author": "Agent Mode",
+  "license": "MIT",
+  "mcp_version": "1.0",
+  "server": {
+    "file": "server.py",
+    "transport": "stdio",
+    "command": "python server.py"
+  },
+  "tools": [
+    {
+      "name": "calculate_human_design_chart",
+      "description": "TOOL CỐT LÕI - Tính toán bản đồ Human Design chính xác từ ngày giờ sinh. Sử dụng Swiss Ephemeris NASA JPL DE431, độ chính xác <1 arc second. Tính cả Personality và Design (88° Sun trước sinh).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string",
+            "description": "Ngày sinh YYYY-MM-DD (ví dụ: 1990-05-15)",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "birth_time": {
+            "type": "string",
+            "description": "Giờ sinh HH:MM hoặc HH:MM:SS (24h, ví dụ: 08:30) - CẦN CHÍNH XÁC",
+            "pattern": "^\\d{2}:\\d{2}(:\\d{2})?$"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Múi giờ dạng +07:00, -05:00. Mặc định +07:00 cho VN",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string",
+            "description": "Tên người (tùy chọn)"
+          },
+          "birth_location": {
+            "type": "string",
+            "description": "Nơi sinh (tùy chọn, ví dụ: Hanoi, Vietnam)"
+          }
+        },
+        "required": ["birth_date", "birth_time"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string", "description": "Loại năng lượng: Generator, MG, Projector, Manifestor, Reflector"},
+          "strategy": {"type": "string"},
+          "authority": {"type": "string"},
+          "profile": {"type": "string"},
+          "definition": {"type": "string"},
+          "incarnation_cross": {"type": "string"},
+          "defined_centers": {"type": "array", "items": {"type": "string"}},
+          "defined_channels": {"type": "array"},
+          "all_activated_gates": {"type": "array", "items": {"type": "integer"}},
+          "personality_gates": {"type": "object"},
+          "design_gates": {"type": "object"}
+        }
+      }
+    },
+    {
+      "name": "analyze_human_design_deep",
+      "description": "Phân tích chuyên sâu Human Design bằng tiếng Việt. Tạo báo cáo chi tiết Type, Strategy, Authority, Centers, Channels, Profile.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {"type": "string", "description": "Ngày sinh YYYY-MM-DD"},
+          "birth_time": {"type": "string", "description": "Giờ sinh HH:MM"},
+          "timezone": {"type": "string", "default": "+07:00"},
+          "name": {"type": "string"},
+          "focus_area": {
+            "type": "string",
+            "enum": ["full", "type", "authority", "centers", "channels", "profile", "career", "relationship", "health"],
+            "default": "full",
+            "description": "Khu vực tập trung phân tích"
+          }
+        },
+        "required": ["birth_date", "birth_time"]
+      }
+    },
+    {
+      "name": "get_gate_info",
+      "description": "Tra cứu thông tin chi tiết 1 cổng (Gate) 1-64: ý nghĩa, trung tâm, kênh, vị trí Mandala",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "gate_number": {"type": "integer", "minimum": 1, "maximum": 64, "description": "Số cổng 1-64"}
+        },
+        "required": ["gate_number"]
+      }
+    },
+    {
+      "name": "get_center_info",
+      "description": "Tra cứu thông tin 1 trung tâm năng lượng: chức năng, cổng, kênh, defined/undefined",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "center_name": {
+            "type": "string",
+            "enum": ["Head", "Ajna", "Throat", "G", "Heart", "Spleen", "Sacral", "Solar Plexus", "Root"],
+            "description": "Tên trung tâm"
+          }
+        },
+        "required": ["center_name"]
+      }
+    },
+    {
+      "name": "get_channel_info",
+      "description": "Tra cứu thông tin 1 kênh (Channel): trung tâm, mạch, loại",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "gate1": {"type": "integer", "minimum": 1, "maximum": 64},
+          "gate2": {"type": "integer", "minimum": 1, "maximum": 64}
+        },
+        "required": ["gate1", "gate2"]
+      }
+    },
+    {
+      "name": "get_profile_info",
+      "description": "Tra cứu ý nghĩa Profile (1/3, 2/4, 5/1, v.v.)",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "string",
+            "enum": ["1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6", "4/1", "5/1", "5/2", "6/2", "6/3"],
+            "description": "Profile"
+          }
+        },
+        "required": ["profile"]
+      }
+    },
+    {
+      "name": "compare_charts",
+      "description": "So sánh 2 bản đồ Human Design (Composite) để phân tích mối quan hệ: electromagnetic, dominance, common gates",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "person1_date": {"type": "string", "description": "Ngày sinh người 1 YYYY-MM-DD"},
+          "person1_time": {"type": "string", "description": "Giờ sinh người 1 HH:MM"},
+          "person1_name": {"type": "string", "default": "Person 1"},
+          "person2_date": {"type": "string", "description": "Ngày sinh người 2 YYYY-MM-DD"},
+          "person2_time": {"type": "string", "description": "Giờ sinh người 2 HH:MM"},
+          "person2_name": {"type": "string", "default": "Person 2"},
+          "timezone": {"type": "string", "default": "+07:00"}
+        },
+        "required": ["person1_date", "person1_time", "person2_date", "person2_time"]
+      }
+    },
+    {
+      "name": "generate_full_report",
+      "description": "Tạo báo cáo Human Design đầy đủ, sẵn sàng xuất file (markdown/json)",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {"type": "string"},
+          "birth_time": {"type": "string"},
+          "timezone": {"type": "string", "default": "+07:00"},
+          "name": {"type": "string"},
+          "birth_location": {"type": "string"},
+          "format": {"type": "string", "enum": ["markdown", "text", "json"], "default": "markdown"}
+        },
+        "required": ["birth_date", "birth_time"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "human-design://knowledge/gates",
+      "name": "All 64 Gates",
+      "description": "Toàn bộ 64 cổng với ý nghĩa"
+    },
+    {
+      "uri": "human-design://knowledge/centers",
+      "name": "All 9 Centers",
+      "description": "Toàn bộ 9 trung tâm"
+    },
+    {
+      "uri": "human-design://knowledge/channels",
+      "name": "All 36 Channels",
+      "description": "Toàn bộ 36 kênh"
+    },
+    {
+      "uri": "human-design://knowledge/types",
+      "name": "5 Types",
+      "description": "5 loại năng lượng"
+    },
+    {
+      "uri": "human-design://mandala/order",
+      "name": "Mandala Order",
+      "description": "Thứ tự 64 cổng trên vòng tròn"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "analyze_human_design_full",
+      "description": "Skill: Phân tích Human Design toàn diện cho 1 người",
+      "arguments": [
+        {"name": "name", "description": "Tên người", "required": true},
+        {"name": "birth_date", "description": "Ngày sinh YYYY-MM-DD", "required": true},
+        {"name": "birth_time", "description": "Giờ sinh HH:MM", "required": true},
+        {"name": "timezone", "description": "Múi giờ", "required": false}
+      ]
+    },
+    {
+      "name": "analyze_career_path",
+      "description": "Skill: Phân tích nghề nghiệp phù hợp theo Human Design",
+      "arguments": [
+        {"name": "name", "required": true},
+        {"name": "birth_date", "required": true},
+        {"name": "birth_time", "required": true},
+        {"name": "timezone", "required": false}
+      ]
+    },
+    {
+      "name": "analyze_relationship",
+      "description": "Skill: Phân tích mối quan hệ Composite",
+      "arguments": [
+        {"name": "person1_name", "required": true},
+        {"name": "person1_date", "required": true},
+        {"name": "person1_time", "required": true},
+        {"name": "person2_name", "required": true},
+        {"name": "person2_date", "required": true},
+        {"name": "person2_time", "required": true},
+        {"name": "timezone", "required": false}
+      ]
+    },
+    {
+      "name": "explain_gate",
+      "description": "Skill: Giải thích chi tiết 1 cổng",
+      "arguments": [
+        {"name": "gate_number", "description": "Số cổng 1-64", "required": true}
+      ]
+    }
+  ],
+  "knowledge_base": {
+    "path": "../knowledge/",
+    "files": [
+      "00_tong_quan_he_thong.md",
+      "01_mandala_64_cong.md",
+      "02_9_trung_tam.md",
+      "03_36_kenh.md",
+      "04_5_loai_va_chien_luoc.md",
+      "05_profile_cross_definition.md",
+      "06_phuong_phap_tinh_toan.md",
+      "07_ung_dung_thuc_tien.md"
+    ]
+  },
+  "skills_path": "./skills/"
+}
