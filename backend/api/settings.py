@@ -44,6 +44,11 @@ class Settings:
     auto_create_tables: bool = True
     environment: str = "development"
     artifact_dir: str = str(ROOT / "var" / "artifacts")
+    # Signs download/share links and encrypts stored LLM keys. Empty => var/secret_key (auto).
+    secret_key: str = ""
+    secret_key_file: str = str(ROOT / "var" / "secret_key")
+    # Signed direct-download links (plan P0-10, D5).
+    download_link_seconds: int = 300
 
     @property
     def cookie_partitioned(self) -> bool:
@@ -69,4 +74,6 @@ class Settings:
             auto_create_tables=_bool(os.environ.get("AUTO_CREATE_TABLES"), environment != "production"),
             environment=environment,
             artifact_dir=os.environ.get("ARTIFACT_DIR") or cls.artifact_dir,
+            secret_key=os.environ.get("HD_SECRET_KEY", ""),
+            secret_key_file=os.environ.get("HD_SECRET_KEY_FILE") or cls.secret_key_file,
         )

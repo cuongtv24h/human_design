@@ -21,6 +21,8 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String(200))
     # D10: auto-generated default theme for now; real branding replaces it later.
     theme: Mapped[dict] = mapped_column(JSONType, default=dict)
+    # P2-6: {base_url, model, temperature, timeout, api_key_enc (Fernet), updated_by, updated_at}
+    llm_settings: Mapped[dict] = mapped_column(JSONType, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -111,6 +113,27 @@ class ReportRevision(Base):
     document: Mapped[dict] = mapped_column(JSONType)
     warnings: Mapped[list] = mapped_column(JSONType, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ShareLink(Base):
+    """Client-facing link /r/{token} (plan P3-1). Only the SHA-256 of the token is stored."""
+
+    __tablename__ = "share_links"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    report_id: Mapped[str] = mapped_column(ForeignKey("reports.id", ondelete="CASCADE"), index=True)
+    org_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_by: Mapped[int] = mapped_column(Integer)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    label: Mapped[str] = mapped_column(String(120), default="")
+    formats: Mapped[list] = mapped_column(JSONType, default=list)  # downloadable: pdf | docx | markdown
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    view_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    report: Mapped[Report] = relationship()
 
 
 class AuditLog(Base):

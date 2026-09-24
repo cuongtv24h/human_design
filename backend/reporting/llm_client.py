@@ -135,4 +135,22 @@ def call_llm(
     return parse_llm_json(content or "")
 
 
-__all__ = ["LLMConfig", "LLMError", "Transport", "call_llm", "parse_llm_json"]
+def ping_llm(config: LLMConfig, transport: Transport | None = None) -> str:
+    """Tiny request to verify key / URL / model ("Kiểm tra kết nối"). Returns the reply text."""
+    payload: dict[str, Any] = {
+        "model": config.model,
+        "max_tokens": 5,
+        "temperature": 0,
+        "messages": [{"role": "user", "content": "Trả lời đúng một từ: OK"}],
+    }
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {config.api_key}"}
+    response = (transport or _http_transport)(
+        f"{config.base_url}/chat/completions", headers, payload, min(config.timeout, 30.0)
+    )
+    try:
+        return str(response["choices"][0]["message"]["content"] or "").strip()
+    except (KeyError, IndexError, TypeError) as exc:
+        raise LLMError("Phản hồi LLM thiếu choices[0].message.content") from exc
+
+
+__all__ = ["LLMConfig", "LLMError", "Transport", "call_llm", "parse_llm_json", "ping_llm"]

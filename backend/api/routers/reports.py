@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import unicodedata
-from urllib.parse import quote
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, Response
 from pydantic import ValidationError
@@ -11,17 +10,19 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.reporting.contract import ContentMode, ReportRequest
-from backend.reporting.export import _slug, bodygraph_svg
-from backend.reporting.infographic import render_infographic_html
+from backend.reporting.export import bodygraph_svg
 from backend.reporting.orchestrator import ReportOrchestrator
-from backend.reporting.render_common import MissingFontError
 
 from ..deps import client_ip, current_user, get_db
 from ..models import Client, Report, User
-from ..schemas import CatalogSection, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList
+from ..files import file_response
+from ..schemas import (
+    CatalogSection, DownloadLinkIn, DownloadLinkOut, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList,
+)
+from ..security import sign_token
 from ..services import (
-    ARTIFACT_FORMATS, audit, chart_summary, render_artifact, report_theme, warm_artifacts, create_report, get_client_or_404, get_report_or_404, load_document,
-    report_detail, report_summary, run_llm_generation, visible_reports,
+    ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404, report_detail,
+    org_llm_config, report_summary, run_llm_generation, visible_reports, warm_artifacts,
 )
 
 from hd_time import display_birth  # noqa: E402
@@ -73,7 +74,8 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
     if payload.content_mode is ContentMode.LLM:
         # TODO(P2): move to arq/Redis worker (hd-worker) — BackgroundTasks for the MVP.
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
-                            state.settings.artifact_dir)
+                            state.settings.artifact_dir, "generate",
+                            org_llm_config(db, user.org_id, state.secret_key))
     else:
         background.add_task(warm_artifacts, state.db.session_factory, state.settings.artifact_dir, report.id)
     return report_detail(report)
@@ -115,54 +117,48 @@ def archive(report_id: str, request: Request, user: User = Depends(current_user)
     return report_detail(report)
 
 
-def _ascii(value: str) -> str:
-    """"Nguyễn Văn Đức" → "Nguyen Van Duc" for the legacy filename= parameter."""
-    value = value.replace("đ", "d").replace("Đ", "D")
-    return unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+def _export(db: Session, request: Request, user: User, report_id: str, fmt: str, download: bool | None) -> Response:
+    report = get_report_or_404(db, user, report_id)
+    response = file_response(db, request.app.state.settings.artifact_dir, report, fmt, download)
+    if "content-disposition" in response.headers:
+        audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format=fmt)
+        db.commit()
+    return response
 
 
-def _download(report: Report, body: str | bytes, media_type: str, suffix: str, download: bool) -> Response:
-    headers = {"Cache-Control": "private, no-store"}
-    if download:
-        name = f"{_slug(report.client.full_name)}_{report.id[:8]}{suffix}"
-        ascii_name = _ascii(name) or f"bao-cao{suffix}"
-        headers["Content-Disposition"] = f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(name)}"
-    return Response(content=body, media_type=media_type, headers=headers)
+@router.post("/{report_id}/links", response_model=DownloadLinkOut)
+def download_link(report_id: str, payload: DownloadLinkIn, request: Request, user: User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> DownloadLinkOut:
+    """Short-lived signed URL (plan P0-10, default 5 minutes) — works without a session cookie,
+    e.g. to open on a phone or paste into Zalo for the client right now."""
+    report = get_report_or_404(db, user, report_id)
+    if not report.document:
+        raise HTTPException(status_code=409, detail="Báo cáo chưa có nội dung.")
+    state = request.app.state
+    token, expires = sign_token(state.secret_key, "download",
+                                {"r": report.id, "f": payload.format, "v": report.version, "u": user.id},
+                                state.settings.download_link_seconds)
+    audit(db, user, "report.link", "report", report.id, ip=client_ip(request), format=payload.format)
+    db.commit()
+    return DownloadLinkOut(url=f"/api/v1/files/{token}", expires_at=datetime.fromtimestamp(expires, timezone.utc))
 
 
 @router.get("/{report_id}/markdown")
 def markdown(report_id: str, request: Request, download: bool = True, user: User = Depends(current_user),
              db: Session = Depends(get_db)) -> Response:
-    report = get_report_or_404(db, user, report_id)
-    body = load_document(report).to_markdown()
-    if download:
-        audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format="markdown")
-        db.commit()
-    return _download(report, body, "text/markdown; charset=utf-8", ".md", download)
+    return _export(db, request, user, report_id, "markdown", download)
 
 
 @router.get("/{report_id}/infographic.html")
 def infographic(report_id: str, request: Request, download: bool = False, user: User = Depends(current_user),
                 db: Session = Depends(get_db)) -> Response:
-    report = get_report_or_404(db, user, report_id)
-    body = render_infographic_html(load_document(report))
-    if download:
-        audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format="infographic")
-        db.commit()
-    response = _download(report, body, "text/html; charset=utf-8", "_infographic.html", download)
-    response.headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:"
-    return response
+    return _export(db, request, user, report_id, "infographic", download)
 
 
 @router.get("/{report_id}/bodygraph.svg")
 def bodygraph(report_id: str, request: Request, download: bool = False, user: User = Depends(current_user),
               db: Session = Depends(get_db)) -> Response:
-    report = get_report_or_404(db, user, report_id)
-    body = bodygraph_svg(load_document(report))
-    if download:
-        audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format="bodygraph_svg")
-        db.commit()
-    return _download(report, body, "image/svg+xml", "_bodygraph.svg", download)
+    return _export(db, request, user, report_id, "bodygraph_svg", download)
 
 
 @router.get("/{report_id}/{fmt}")
@@ -171,12 +167,4 @@ def document_file(report_id: str, fmt: str, request: Request, download: bool = T
     """PDF / DOCX built from the same ReportDocument as every other view."""
     if fmt not in ARTIFACT_FORMATS:
         raise HTTPException(status_code=404, detail="Định dạng không được hỗ trợ.")
-    report = get_report_or_404(db, user, report_id)
-    try:
-        data = render_artifact(request.app.state.settings.artifact_dir, report, fmt, report_theme(db, report))
-    except MissingFontError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
-    audit(db, user, "report.export", "report", report.id, ip=client_ip(request), format=fmt)
-    db.commit()
-    media_type, suffix = ARTIFACT_FORMATS[fmt]
-    return _download(report, data, media_type, suffix, download)
+    return _export(db, request, user, report_id, fmt, download)

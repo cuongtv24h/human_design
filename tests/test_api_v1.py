@@ -32,7 +32,7 @@ CLIENT = {
 @pytest.fixture()
 def app(tmp_path):
     application = create_app(Settings(database_url=f"sqlite:///{tmp_path / 'api.sqlite3'}",
-                                      artifact_dir=str(tmp_path / "artifacts")))
+                                      artifact_dir=str(tmp_path / "artifacts"), secret_key="test-secret"))
     ensure_admin(application.state.db, "admin@example.com", PASSWORD, "Quản trị")
     return application
 
@@ -250,11 +250,13 @@ def test_llm_section_proposal(app, monkeypatch):
 
     seen = {}
 
-    def fake_edit(document, section_id):
+    def fake_edit(document, section_id, llm_config):
         seen["section"] = section_id
+        seen["model"] = llm_config.model
         return "Bản AI viết lại, vẫn nhắc Projector.\n"
 
     monkeypatch.setattr(editor_router, "llm_edit_section", fake_edit)
+    monkeypatch.setenv("HD_LLM_API_KEY", "sk-env-test")
     proposal = client.post(f"/api/v1/reports/{rid}/sections/summary/llm", headers=H).json()
     assert seen["section"] == "summary"
     assert proposal["draft"].startswith("Bản AI viết lại")
@@ -279,6 +281,7 @@ def test_cookie_options_for_embedded_preview():
 
 def test_partitioned_session_cookie(tmp_path):
     app = create_app(Settings(database_url=f"sqlite:///{tmp_path}/c.db", artifact_dir=str(tmp_path / "a"),
+                              secret_key_file=str(tmp_path / "secret_key"),
                               cookie_samesite="none"))
     ensure_admin(app.state.db, "p@demo.vn", "12345678")
     response = TestClient(app).post("/api/v1/auth/login", json={"email": "p@demo.vn", "password": "12345678"}, headers=H)

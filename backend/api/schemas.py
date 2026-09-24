@@ -295,3 +295,104 @@ class LlmSectionOut(BaseModel):
 
 class RegenerateIn(BaseModel):
     content_mode: ContentMode | None = None
+
+
+# --- signed download links (P0-10) ------------------------------------------
+
+class DownloadLinkIn(BaseModel):
+    format: Literal["pdf", "docx", "markdown", "infographic", "bodygraph_svg"]
+
+
+class DownloadLinkOut(BaseModel):
+    url: str
+    expires_at: datetime
+
+
+# --- LLM settings (P2-6) ------------------------------------------------------
+
+class LlmSettingsOut(BaseModel):
+    base_url: str
+    model: str
+    temperature: float
+    timeout: float
+    key_source: Literal["database", "environment", "none"]
+    key_hint: str
+    key_unreadable: bool = False  # stored with another HD_SECRET_KEY
+    updated_by: str = ""
+    updated_at: datetime | None = None
+
+
+class LlmSettingsIn(BaseModel):
+    base_url: str = Field(min_length=8, max_length=300)
+    model: str = Field(min_length=1, max_length=120)
+    temperature: float = Field(ge=0, le=2)
+    timeout: float = Field(ge=10, le=600)
+    # None = keep the stored key; "" = delete it (fall back to the environment).
+    api_key: str | None = Field(default=None, max_length=500)
+
+    @field_validator("base_url")
+    @classmethod
+    def _url(cls, value: str) -> str:
+        value = value.strip().rstrip("/")
+        if not value.startswith(("https://", "http://")):
+            raise ValueError("phải bắt đầu bằng https:// hoặc http://")
+        return value
+
+    @field_validator("model")
+    @classmethod
+    def _model(cls, value: str) -> str:
+        return value.strip()
+
+
+class LlmTestOut(BaseModel):
+    ok: bool
+    latency_ms: int
+    model: str
+    detail: str
+
+
+# --- share links (P3) ---------------------------------------------------------
+
+ShareFormat = Literal["pdf", "docx", "markdown"]
+
+
+class ShareCreate(BaseModel):
+    formats: list[ShareFormat] = Field(default_factory=lambda: ["pdf"], max_length=3)
+    expires_days: int = Field(default=30, ge=1, le=365)
+    label: str = Field(default="", max_length=120)
+
+
+class ShareOut(BaseModel):
+    id: int
+    report_id: str
+    label: str
+    formats: list[str]
+    expires_at: datetime
+    revoked_at: datetime | None
+    view_count: int
+    last_viewed_at: datetime | None
+    created_at: datetime
+    status: Literal["active", "expired", "revoked"]
+
+
+class ShareCreated(BaseModel):
+    share: ShareOut
+    # Shown exactly once — only its hash is stored.
+    url: str
+
+
+class PublicSection(BaseModel):
+    id: str
+    title: str
+    content_markdown: str
+
+
+class PublicReportOut(BaseModel):
+    client_name: str
+    subject_display: str
+    title: str
+    generated_at: datetime
+    summary: "ChartSummary"
+    formats: list[str]
+    sections: list[PublicSection]
+    org_name: str

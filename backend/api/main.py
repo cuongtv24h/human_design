@@ -6,6 +6,7 @@ Run (dev):  .venv/bin/uvicorn backend.api.main:app --host 0.0.0.0 --port 8001
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -14,13 +15,13 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .db import Database
-from .routers import auth, catalog, clients, dashboard, editor, reports, users
-from .security import CSRF_HEADER
+from .routers import admin_settings, auth, catalog, clients, dashboard, editor, public, reports, shares, users
+from .security import CSRF_HEADER, resolve_secret_key
 from .settings import Settings
 
 API_PREFIX = "/api/v1"
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
-_TITLES = {400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 409: "Conflict",
+_TITLES = {400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 409: "Conflict", 410: "Gone",
            422: "Unprocessable Content", 429: "Too Many Requests", 500: "Internal Server Error"}
 
 log = logging.getLogger("hd.api")
@@ -42,6 +43,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="Human Design Admin API", version="1.0.0",
                   docs_url=f"{API_PREFIX}/docs", openapi_url=f"{API_PREFIX}/openapi.json", redoc_url=None)
     app.state.settings = settings
+    app.state.secret_key = resolve_secret_key(settings.secret_key, Path(settings.secret_key_file))
+    app.state.llm_transport = None  # tests inject a fake OpenAI-compatible transport
     app.state.db = Database(settings.database_url)
     if settings.auto_create_tables:
         app.state.db.create_all()
@@ -77,7 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health() -> dict:
         return {"status": "ok", "environment": settings.environment}
 
-    for module in (auth, catalog, clients, editor, reports, dashboard, users):
+    for module in (auth, catalog, clients, editor, shares, reports, dashboard, users, admin_settings, public):
         app.include_router(module.router, prefix=API_PREFIX)
     return app
 

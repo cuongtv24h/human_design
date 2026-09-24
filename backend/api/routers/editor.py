@@ -10,7 +10,7 @@ from backend.reporting.contract import ContentMode, ReportDocument, ReportReques
 from backend.reporting.language_vn import (
     AUTHORITY_VN, CENTER_VN, DEFINITION_VN, NOT_SELF_SIGNATURE, STRATEGY_VN, TYPE_VN,
 )
-from backend.reporting.llm_client import LLMConfig, LLMError
+from backend.reporting.llm_client import LLMError
 from backend.reporting.llm_editor import missing_facts, strip_internal_times
 from backend.reporting.orchestrator import ReportOrchestrator
 from backend.reporting.service import generate_report, llm_edit_section
@@ -22,7 +22,8 @@ from ..schemas import (
     ReportDetailOut, RevisionOut, SectionSaveOut, SectionUpdate,
 )
 from ..services import (
-    audit, get_report_or_404, load_document, report_detail, report_summary, run_llm_generation, store_document,
+    audit, get_report_or_404, load_document, org_llm_config, report_detail, report_summary, run_llm_generation,
+    store_document,
     warm_artifacts,
 )
 
@@ -85,7 +86,8 @@ def _baseline(report: Report, section_id: str) -> str:
 
 
 @router.get("/{report_id}/editor", response_model=EditorOut)
-def editor(report_id: str, user: User = Depends(current_user), db: Session = Depends(get_db)) -> EditorOut:
+def editor(report_id: str, request: Request, user: User = Depends(current_user),
+           db: Session = Depends(get_db)) -> EditorOut:
     report = get_report_or_404(db, user, report_id)
     document = load_document(report)
     client = report.client
@@ -93,7 +95,7 @@ def editor(report_id: str, user: User = Depends(current_user), db: Session = Dep
         report=report_summary(report),
         subject_display=display_birth(client.birth_date, client.birth_time, client.timezone),
         sections=[_editor_section(s) for s in sorted(document.sections, key=lambda i: i.order) if s.status == "included"],
-        llm_available=LLMConfig.from_env() is not None,
+        llm_available=org_llm_config(db, user.org_id, request.app.state.secret_key) is not None,
         glossary=glossary(),
     )
 
@@ -140,7 +142,10 @@ def llm_section(report_id: str, section_id: str, request: Request, user: User = 
     report, document = _editable(db, user, report_id)
     _section(document, section_id)
     try:
-        draft = llm_edit_section(document, section_id)
+        config = org_llm_config(db, user.org_id, request.app.state.secret_key)
+        if config is None:
+            raise LLMError("chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
+        draft = llm_edit_section(document, section_id, llm_config=config)
     except LLMError as exc:
         raise HTTPException(status_code=503, detail=f"AI chưa biên tập được phần này: {exc}") from exc
     audit(db, user, "report.llm_section", "report", report.id, ip=client_ip(request), section=section_id)
@@ -195,7 +200,8 @@ def regenerate(report_id: str, payload: RegenerateIn, request: Request, backgrou
         report.status, report.error = "generating", ""
         db.commit()
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
-                            state.settings.artifact_dir, "regenerate")
+                            state.settings.artifact_dir, "regenerate",
+                            org_llm_config(db, user.org_id, state.secret_key))
     else:
         store_document(db, report, generate_report(request_model), author=user.email, change_type="regenerate")
         db.commit()

@@ -19,9 +19,11 @@ from backend.reporting.render_common import Theme
 from backend.reporting.render_docx import render_docx
 from backend.reporting.render_pdf import render_pdf
 from backend.reporting.language_vn import TYPE_VN, vn_authority, vn_definition, vn_strategy
+from backend.reporting.llm_client import LLMConfig
 from backend.reporting.service import generate_report
 
 from .models import AuditLog, Client, Organization, Report, ReportRevision, User
+from .security import decrypt_value
 from .schemas import ChartSummary, ClientOut, ReportDetailOut, ReportSummaryOut, SectionOut
 
 from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via backend.reporting)
@@ -30,9 +32,10 @@ log = logging.getLogger("hd.api")
 
 
 def audit(db: Session, user: User | None, action: str, entity: str = "", entity_id: Any = "",
-          ip: str = "", **meta: Any) -> None:
+          ip: str = "", org_id: int | None = None, **meta: Any) -> None:
+    """``user=None`` for public events (share page views, signed links) — pass ``org_id``."""
     db.add(AuditLog(
-        org_id=user.org_id if user else None,
+        org_id=user.org_id if user else org_id,
         actor_id=user.id if user else None,
         action=action, entity=entity, entity_id=str(entity_id or ""), meta=meta, ip=ip,
     ))
@@ -184,8 +187,45 @@ def create_report(db: Session, user: User, client: Client, *, tier: str, templat
     return report
 
 
+# --- LLM configuration (P2-6) --------------------------------------------------
+
+def env_llm_defaults() -> LLMConfig:
+    """Non-secret defaults from HD_LLM_* env vars (key left empty)."""
+    config = LLMConfig.from_env({**os.environ, "HD_LLM_API_KEY": "-"})
+    return LLMConfig(api_key="", base_url=config.base_url, model=config.model, timeout=config.timeout,
+                     temperature=config.temperature)
+
+
+def stored_llm_key(org: Organization | None, secret: str) -> tuple[str, bool]:
+    """``(key, unreadable)`` from the organization's encrypted settings."""
+    encrypted = ((org.llm_settings or {}) if org else {}).get("api_key_enc") or ""
+    if not encrypted:
+        return "", False
+    key = decrypt_value(secret, encrypted)
+    return (key or "", key is None)
+
+
+def org_llm_config(db: Session, org_id: int, secret: str) -> LLMConfig | None:
+    """Effective LLM config: admin settings (DB, key encrypted) first, then HD_LLM_* env. None = AI off."""
+    org = db.get(Organization, org_id)
+    stored = (org.llm_settings or {}) if org else {}
+    defaults = env_llm_defaults()
+    env = LLMConfig.from_env()
+    key = stored_llm_key(org, secret)[0] or (env.api_key if env else "")
+    if not key:
+        return None
+    return LLMConfig(
+        api_key=key,
+        base_url=(stored.get("base_url") or defaults.base_url).rstrip("/"),
+        model=stored.get("model") or defaults.model,
+        timeout=float(stored.get("timeout") or defaults.timeout),
+        temperature=float(stored["temperature"]) if stored.get("temperature") is not None else defaults.temperature,
+    )
+
+
 def run_llm_generation(session_factory: sessionmaker, report_id: str, author: str,
-                       artifact_dir: str | None = None, change_type: str = "generate") -> None:
+                       artifact_dir: str | None = None, change_type: str = "generate",
+                       llm_config: LLMConfig | None = None) -> None:
     """Background job for content_mode=llm (30–120 s). Falls back to template inside service."""
     db = session_factory()
     try:
@@ -193,7 +233,7 @@ def run_llm_generation(session_factory: sessionmaker, report_id: str, author: st
         if report is None:
             return
         try:
-            document = generate_report(ReportRequest.model_validate(report.request))
+            document = generate_report(ReportRequest.model_validate(report.request), llm_config=llm_config)
             store_document(db, report, document, author=author, change_type=change_type)
         except Exception as exc:  # noqa: BLE001 - surface any failure to the UI
             log.exception("report generation failed: %s", report_id)
