@@ -22,7 +22,7 @@ ReportDocument
 Markdown/HTML/PDF renderer
 ```
 
-`backend/reporting/contract.py` là schema chuẩn. `backend/reporting/orchestrator.py` là entry point điều phối. `backend/reporting/catalog.py` là product catalog của tier và domain.
+`backend/reporting/contract.py` là schema chuẩn. `backend/reporting/orchestrator.py` là entry point điều phối. `backend/reporting/catalog.py` là product catalog của tier và domain. `tools/hd_language.py` là lớp thuật ngữ tiếng Việt chuẩn dùng chung cho mọi nơi hiển thị.
 
 ## Contract chính
 
@@ -67,7 +67,9 @@ chart được phân tích, template chọn *cách viết*.
 | `operating_manual` | 5 phần tự sự (`part1_identity` ... `part5_field_application`) | "Cẩm nang vận hành" bằng tiếng Việt đời sống, chuẩn `docs/NARRATIVE_STANDARD.md` |
 
 Template `operating_manual` render qua `backend/reporting/narrative.py` trên lớp ngôn
-ngữ `backend/reporting/language_vn.py`; deterministic, không LLM. Domain add-on vẫn
+ngữ `backend/reporting/language_vn.py` + `tools/hd_language.py`; deterministic, không
+LLM. Thuật ngữ chuẩn (Type, Strategy, Authority, Definition, Centers, Signature/Not-Self)
+lấy từ `tools/hd_language.py` — cùng bộ từ dùng cho mọi nơi hiển thị. Domain add-on vẫn
 được gắn sau 5 phần chuẩn trong cùng `ReportDocument`.
 
 ```python

@@ -24,10 +24,16 @@ from .language_vn import (
     CROSS_TYPE_LANGUAGE,
     DEFINITION_FALLBACK,
     DEFINITION_LANGUAGE,
+    NOT_SELF_SIGNATURE,
     PROFILE_STORIES,
     TYPE_LANGUAGE,
     resolve_authority,
     seven_day_log,
+    vn_authority,
+    vn_center,
+    vn_definition,
+    vn_strategy,
+    vn_type,
 )
 
 PART_IDS: tuple[str, ...] = tuple(spec.id for spec in NARRATIVE_SECTIONS)
@@ -62,7 +68,11 @@ def _part1_identity(chart: dict[str, Any], name: str) -> tuple[str, dict[str, An
         "",
         "> *Thử ngay:* trong 7 ngày tới, mỗi tối chỉ cần hỏi một câu — *hôm nay đèn nào sáng nhiều hơn?*",
         "",
-        f"_Thuật ngữ: Type = {chart.get('type', '')}._",
+        (
+            f"_Thuật ngữ: Loại năng lượng = {vn_type(chart.get('type', ''), gloss=True)} · "
+            f"Dấu hiệu sống đúng = {NOT_SELF_SIGNATURE.get(chart.get('type', ''), ('', ''))[1]} · "
+            f"Khi sống sai thiết kế = {NOT_SELF_SIGNATURE.get(chart.get('type', ''), ('', ''))[0]}._"
+        ),
     ]
     return "\n".join(lines), {
         "type": chart.get("type"),
@@ -96,7 +106,8 @@ def _part2_decision_compass(chart: dict[str, Any], name: str) -> tuple[str, dict
         f"- *Trước lời mời hợp tác:* {a['scenario_business']}",
         f"- *Trước quyết định mua sắm hoặc mối quan hệ:* {a['scenario_purchase']}",
         "",
-        f"_Thuật ngữ: Strategy = {chart.get('strategy', '').split(' - ')[0]} · Authority = {authority_raw}._",
+        f"_Thuật ngữ: Chiến lược sống = {vn_strategy(chart.get('strategy', ''), chart.get('type'))} · "
+        f"Quyền nội tại = {vn_authority(authority_raw)}._",
     ]
     return "\n".join(lines), {
         "strategy": chart.get("strategy"),
@@ -144,8 +155,8 @@ def _part3_burden_release(chart: dict[str, Any], name: str) -> tuple[str, dict[s
 
     lines += [
         "",
-        f"_Thuật ngữ: Defined Centers = {', '.join(defined) or 'không có'} · "
-        f"Open Centers = {', '.join(open_centers) or 'không có'}._",
+        f"_Thuật ngữ: Trung tâm định nghĩa = {', '.join(vn_center(c) for c in defined) or 'không có'} · "
+        f"Trung tâm mở = {', '.join(vn_center(c) for c in open_centers) or 'không có'}._",
     ]
     return "\n".join(lines), {
         "defined_centers": defined,
@@ -193,8 +204,8 @@ def _part4_role_profile(chart: dict[str, Any], name: str) -> tuple[str, dict[str
         ]
     lines += [
         "",
-        f"_Thuật ngữ: Profile = {profile} · Definition = {definition} · "
-        f"Cross gates = {chart.get('p_sun_gate')}/{chart.get('p_earth_gate')} "
+        f"_Thuật ngữ: Nhân cách (Profile) = {profile} · Định nghĩa = {vn_definition(definition)} · "
+        f"Cổng chữ thập = {chart.get('p_sun_gate')}/{chart.get('p_earth_gate')} "
         f"(Personality) · {chart.get('d_sun_gate')}/{chart.get('d_earth_gate')} (Design)._",
     ]
     return "\n".join(lines), {

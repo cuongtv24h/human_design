@@ -62,8 +62,10 @@ def test_operating_manual_renders_five_parts_in_order():
     # Type life name leads, raw calculator strings never appear verbatim.
     assert language_vn.TYPE_LANGUAGE[document.chart["type"]]["life_name"] in markdown
     assert document.chart["strategy"] not in markdown
-    # 30% technical retention: terms stay in the "Thuật ngữ:" line.
-    assert "Wait for the Invitation" in markdown
+    # Shared terminology layer: polished Vietnamese terms in the "Thuật ngữ:" lines,
+    # not the raw bilingual calculator strings.
+    assert language_vn.vn_strategy(document.chart["strategy"], document.chart["type"]) in markdown
+    assert language_vn.vn_authority(document.chart["authority"]) in markdown
     assert "Thuật ngữ:" in markdown
 
 

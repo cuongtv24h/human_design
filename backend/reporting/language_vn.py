@@ -8,11 +8,52 @@ Nguyên tắc:
 - Renderer báo cáo LUÔN dẫn ngôn ngữ đời sống trước; thuật ngữ kỹ thuật chỉ
   xuất hiện ở dòng "Thuật ngữ:" cuối phần (tỷ lệ 70/30).
 - Không bao giờ in chuỗi thô kiểu "Wait to Respond - Chờ để Đáp Ứng".
+- Thuật ngữ chuẩn hiển thị ở MỌI nơi (dòng Thuật ngữ, BodyGraph, MCP...) lấy
+  từ lớp dùng chung ``tools/hd_language.py`` (``hd_language``); file này chỉ
+  thêm phần kể chuyện đời sống bên trên các thuật ngữ đó.
 - Nội dung ở đây là dữ liệu (không phải logic tính toán): chart vẫn do
   ``tools/hd_calculator.py`` sinh ra; lớp này chỉ phụ trách cách kể.
 """
 
 from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+_TOOLS_DIR = str(Path(__file__).resolve().parents[2] / "tools")
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
+
+# Lớp thuật ngữ chuẩn dùng chung (mọi nơi hiển thị).
+from hd_language import (  # noqa: E402
+    AUTHORITY_VN,
+    CENTER_VN,
+    DEFINITION_VN,
+    NOT_SELF_SIGNATURE,
+    STRATEGY_VN,
+    TYPE_VN,
+    UI,
+    vn_authority,
+    vn_center,
+    vn_definition,
+    vn_strategy,
+    vn_type,
+)
+
+__all__ = [
+    "AUTHORITY_VN",
+    "CENTER_VN",
+    "DEFINITION_VN",
+    "NOT_SELF_SIGNATURE",
+    "STRATEGY_VN",
+    "TYPE_VN",
+    "UI",
+    "vn_authority",
+    "vn_center",
+    "vn_definition",
+    "vn_strategy",
+    "vn_type",
+]
 
 # ---------------------------------------------------------------------------
 # TYPE (5) — Phần 1: "Bạn thực sự là ai?"

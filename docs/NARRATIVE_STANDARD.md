@@ -45,7 +45,10 @@ Mọi báo cáo `operating_manual` render đúng 5 phần theo đúng thứ tự
 2. **Ngôn ngữ đời sống đi trước, thuật ngữ đi sau.** Mỗi thuật ngữ kỹ thuật phải có
    cụm "đời sống" đi kèm. **Chống mẫu (anti-pattern):** in nguyên chuỗi song ngữ máy
    của calculator như `Wait to Respond and Inform - Chờ Đáp Ứng rồi Thông Báo` vào thân
-   bài. Chuỗi song ngữ chỉ được xuất hiện trong *dòng "Thuật ngữ:" cuối mỗi phần*.
+   bài **hoặc** dòng thuật ngữ. Chuỗi song ngữ máy không được xuất hiện ở bất kỳ đâu;
+   dòng "Thuật ngữ:" cuối mỗi phần dùng **thuật ngữ chuẩn đã trau chuốt** từ
+   `tools/hd_language.py` (ví dụ: `Chiến lược sống = Chờ lời mời`,
+   `Quyền nội tại = Quyền Cảm xúc — Đám rối Thái Dương`).
 3. **Tỉ lệ 70/30:** ~70% hành vi thực tế (làm gì, khi nào, nói câu gì, hỏi câu nào);
    ~30% khái niệm kỹ thuật (Type, Authority, Center, Profile, Cross, Definition) giữ
    nguyên để người đọc tra cứu.
@@ -64,9 +67,19 @@ Mọi báo cáo `operating_manual` render đúng 5 phần theo đúng thứ tự
    authority, profile, definition, centers, cross, quarters).
 7. **Mỗi phần kết bằng dòng:** `_Thuật ngữ: <các từ khóa kỹ thuật của phần đó>._`
 
-## 4. Lớp ngôn ngữ (`backend/reporting/language_vn.py`)
+## 4. Lớp ngôn ngữ (`tools/hd_language.py` + `backend/reporting/language_vn.py`)
 
-Lớp dữ liệu thuần (không phụ thuộc report) giữ toàn bộ văn bản tiếng Việt tự nhiên:
+Hai tầng, cùng một hướng: **tầng thuật ngữ dùng chung** và **tầng kể chuyện báo cáo**.
+
+**Tầng 1 — `tools/hd_language.py` (thuật ngữ chuẩn, dùng cho MỌI nơi hiển thị):**
+BodyGraph, báo cáo PDF, MCP/REST đều lấy thuật ngữ từ đây qua `vn_strategy`,
+`vn_authority`, `vn_definition`, `vn_type`, `vn_center`; dữ liệu gồm `STRATEGY_VN`,
+`AUTHORITY_VN`, `DEFINITION_VN`, `TYPE_VN`, `NOT_SELF_SIGNATURE`, `CENTER_VN`
+(tên trung tâm theo `knowledge/02_9_trung_tam.md`) và nhãn giao diện `UI`.
+Quy tắc: không bao giờ hiển thị chuỗi thô kiểu "Chờ Đáp Ứng rồi Thông Báo".
+
+**Tầng 2 — `backend/reporting/language_vn.py` (ngữ liệu kể chuyện của báo cáo),**
+re-export toàn bộ tầng 1 và thêm dữ liệu thuần (không phụ thuộc report):
 
 | Hằng số | Phạm vi | Chìa khóa |
 | --- | --- | --- |
@@ -79,7 +92,8 @@ Lớp dữ liệu thuần (không phụ thuộc report) giữ toàn bộ văn b�
 | `seven_day_log(authority, open_center_count)` | 3 việc nhỏ 7 ngày | cá nhân hóa theo authority + số trạm mở |
 
 **Quy tắc mở rộng:** khi calculator thêm giá trị mới (authority mới, cross mới, ...),
-phải bổ sung entry đủ trường trong `language_vn` **trước** khi render; renderer
+phải bổ sung entry đủ trường — bắt đầu từ `tools/hd_language.py` cho thuật ngữ chuẩn,
+sau đó mới đến entry kể chuyện trong `language_vn` — **trước** khi render; renderer
 `narrative.py` chỉ ghép entry vào khung, không chứa câu tiếng Việt cố định ngoài khung
 giao tiếp chung. Bản ánh xạ 192 Incarnation Cross sang tiếng Việt là phạm vi *lớp
 sâu* — v1 giữ cross dạng kỹ thuật kèm ghi chú tham chiếu.
@@ -92,14 +106,15 @@ sâu* — v1 giữ cross dạng kỹ thuật kèm ghi chú tham chiếu.
   `sections` — template cũ không đổi hành vi). Domain add-on (ví dụ `money`) vẫn gắn
   sau 5 phần chuẩn trong cùng một `ReportDocument`.
 - Xác minh: `PYTHONPATH=tools:mcp .venv/bin/pytest -q` (gồm
-  `tests/test_narrative_report.py`): thứ tự 5 phần, đúng 3 bước authority, ẩn dụ
-  bọt biển hiện diện cho mọi trạm mở, chuỗi song ngữ máy không lọt vào thân bài,
-  thuật ngữ giữ trong dòng "Thuật ngữ:", tính deterministic, domain gắn sau 5 phần.
+  `tests/test_hd_language.py` và `tests/test_narrative_report.py`): thứ tự 5 phần,
+  đúng 3 bước authority, ẩn dụ bọt biển hiện diện cho mọi trạm mở, chuỗi song ngữ máy
+  không lọt vào báo cáo (kể cả dòng thuật ngữ), thuật ngữ chuẩn tiếng Việt hiện ở
+  dòng "Thuật ngữ:", tính deterministic, domain gắn sau 5 phần.
 
 ## 6. Tiêu chí chấp nhận khi thay đổi nội dung
 
 - [ ] Người mới đọc hiểu không cần tra từ điển (đọc thử 1 lần, không dừng lại).
-- [ ] Không chuỗi `" - " song ngữ` của calculator nào trong thân bài (chỉ ở dòng thuật ngữ).
+- [ ] Không chuỗi `" - " song ngữ` của calculator nào trong toàn bộ báo cáo (chỉ thuật ngữ chuẩn tiếng Việt ở dòng thuật ngữ).
 - [ ] Tỉ lệ 70/30 được giữ: đếm ước lượng câu hành vi / câu khái niệm.
 - [ ] 5 phần, đúng tiêu đề, đúng thứ tự; test `test_narrative_report.py` xanh.
 - [ ] Disclaimer y tế/pháp lý/tài chính vẫn nằm ở cuối Part 5.
