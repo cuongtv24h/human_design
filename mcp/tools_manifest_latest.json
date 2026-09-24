@@ -1,7 +1,7 @@
 {
   "name": "human-design-analyzer",
   "version": "3.0.0",
-  "description": "Human Design Analyzer v3.0.0 - 39 MCP tools, 22 MCP resources, 0 MCP prompts, 25 Markdown skills và 21 knowledge files. Entry point: mcp/server.py; REST bridge: mcp/openapi_server.py.",
+  "description": "Human Design Analyzer v3.0.0 - 40 MCP tools, 22 MCP resources, 0 MCP prompts, 25 Markdown skills và 21 knowledge files. Entry point: mcp/server.py; REST bridge: mcp/openapi_server.py.",
   "author": "Agent Mode + Personal Research",
   "license": "MIT",
   "mcp_version": "1.30.0",
@@ -1252,6 +1252,51 @@
           "drafts_json"
         ]
       }
+    },
+    {
+      "name": "generate_hd_infographic",
+      "description": "MỚI v3.1 - Báo cáo tư vấn dạng Infographic HTML tự chứa (CSS + BodyGraph SVG nội tuyến, không JS): trực quan, ít chữ, tập trung điểm chính của profile; in A4 được",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "birth_date": {
+            "type": "string"
+          },
+          "birth_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "+07:00"
+          },
+          "name": {
+            "type": "string"
+          },
+          "birth_location": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "free_basic",
+              "deep_core"
+            ],
+            "default": "free_basic"
+          },
+          "include_bodygraph": {
+            "type": "boolean",
+            "default": true
+          },
+          "return_html": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "birth_date",
+          "birth_time"
+        ]
+      }
     }
   ],
   "resources": [
@@ -1417,7 +1462,8 @@
     "3.0.0": "v3.0 runtime hiện tại: 36 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain), 21 knowledge files và 25 Markdown skills.",
     "3.0.0-docs": "Chuẩn hóa manifest theo decorator runtime: 22 resources thực tế, 0 MCP prompts; 25 skills được lưu dưới dạng Markdown.",
     "3.0.0-foundation": "Bổ sung 6 foundation tools, 11 full-file knowledge resources và 6 skill Markdown (21–26) cho Centers, Channels, Type/Strategy/Authority, Profile/Definition, Calculation và Practical Application.",
-    "3.1.0-reports": "Report layer ra MCP/REST: 3 tools (generate_hd_report, build_hd_report_brief, apply_hd_report_draft) + 4 routes /reports/*; content_mode llm chạy thật qua client OpenAI-compatible (HD_LLM_API_KEY), fallback template."
+    "3.1.0-reports": "Report layer ra MCP/REST: 3 tools (generate_hd_report, build_hd_report_brief, apply_hd_report_draft) + 4 routes /reports/*; content_mode llm chạy thật qua client OpenAI-compatible (HD_LLM_API_KEY), fallback template.",
+    "3.1.0-infographic": "Thêm định dạng Infographic HTML: tool generate_hd_infographic + routes POST/GET /reports/infographic.html; export_report(include_infographic=True)."
   },
   "skill_count": 25,
   "skills": [

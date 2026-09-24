@@ -84,6 +84,24 @@ luôn nhận được báo cáo hợp lệ.
 | MCP (`mcp/server.py`) | `generate_hd_report` | `build_hd_report_brief` | `apply_hd_report_draft` | trong `files` khi `save_files=true` |
 | REST (`mcp/openapi_server.py`) | `POST /reports/generate` | `POST /reports/llm-brief` | `POST /reports/apply-draft` | `POST /reports/bodygraph.svg` |
 
+### Định dạng Infographic HTML
+
+`backend/reporting/infographic.py::render_infographic_html(document)` dựng báo
+cáo tư vấn **một trang trực quan**: dải tiêu đề theo màu Type, 4 ô chìa khóa
+(Type · Strategy · Authority · Profile), BodyGraph + 9 trung tâm (có màu/mở kèm
+một câu hỏi tự soi), la bàn quyết định 3 bước, tín hiệu Signature ⇄ Not-Self,
+Profile trong/ngoài + Definition, (deep_core) Kênh + Chữ thập, và 3 việc làm
+ngay. Quy tắc: mỗi ô tối đa một câu ngắn lấy từ `language_vn` (hàm `short()`),
+thuật ngữ song ngữ, không JS/CDN (mở offline, in A4 qua `@media print`), mọi
+input người dùng được escape. Deterministic — dựng từ `chart`, không phụ thuộc
+`content_mode`.
+
+| Cửa | Cách gọi |
+| --- | --- |
+| Python | `export_report(document, out_dir, include_infographic=True)` |
+| MCP | `generate_hd_infographic(..., tier, include_bodygraph, return_html)` |
+| REST | `POST /reports/infographic.html` (body `ReportRequest`) · `GET /reports/infographic.html?birth_date=…&birth_time=…&tier=…` |
+
 Luồng "AI host tự biên tập" (brief → apply) không cần API key: chính
 Claude/ChatGPT đang gọi MCP/Actions đóng vai biên tập viên; `apply_draft` tính
 lại chart deterministic từ cùng input nên không cần lưu state giữa hai lần gọi.

@@ -41,10 +41,12 @@ def export_report(
     document: ReportDocument,
     out_dir: str | Path,
     include_bodygraph: bool = True,
+    include_infographic: bool = False,
 ) -> dict[str, Path]:
-    """Write the report markdown (and BodyGraph SVG) into ``out_dir``.
+    """Write the report markdown (and BodyGraph SVG / infographic) into ``out_dir``.
 
-    Returns the written paths keyed by ``markdown`` and ``bodygraph_svg``.
+    Returns the written paths keyed by ``markdown``, ``bodygraph_svg`` and
+    ``infographic_html`` (the last two only when requested).
     """
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -56,6 +58,14 @@ def export_report(
         svg_path.write_text(bodygraph_svg(document), encoding="utf-8")
         paths["bodygraph_svg"] = svg_path
         bodygraph_ref = svg_path.name
+    if include_infographic:
+        from .infographic import render_infographic_html  # noqa: PLC0415
+
+        html_path = out / f"{slug}_infographic.html"
+        html_path.write_text(
+            render_infographic_html(document, include_bodygraph=include_bodygraph), encoding="utf-8"
+        )
+        paths["infographic_html"] = html_path
     md_path = out / f"{slug}.md"
     md_path.write_text(document.to_markdown(bodygraph_path=bodygraph_ref), encoding="utf-8")
     paths["markdown"] = md_path

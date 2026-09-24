@@ -2,7 +2,7 @@
 
 Hệ thống tính toán và phân tích Human Design bằng tiếng Việt, dùng Swiss Ephemeris cho phần thiên văn và cung cấp cả MCP server lẫn REST/OpenAPI bridge.
 
-> **Trạng thái chuẩn hiện tại:** v3.0.0 · 39 MCP tools · 22 MCP resources · 25 skill markdown · 42 REST routes (2026-09-24)
+> **Trạng thái chuẩn hiện tại:** v3.0.0 · 40 MCP tools · 22 MCP resources · 25 skill markdown · 44 REST routes (2026-09-24)
 
 ## Tính năng
 
@@ -20,8 +20,8 @@ human_design/
 ├── tools/                       # calculator, analyzer, CLI, SVG, PDF và domain analyzers
 ├── backend/reporting/           # Report Contract, catalog và Admin/Coach orchestrator
 ├── mcp/
-│   ├── server.py                # MCP entrypoint hiện tại: 39 tools, 22 resources
-│   ├── openapi_server.py        # FastAPI bridge: 42 route decorator
+│   ├── server.py                # MCP entrypoint hiện tại: 40 tools, 22 resources
+│   ├── openapi_server.py        # FastAPI bridge: 44 route decorator
 │   ├── tools_manifest_latest.json
 │   ├── mcp_config.json
 │   └── skills/                  # 25 skill markdown; không phải MCP prompt decorator
@@ -104,8 +104,9 @@ PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 
 MCP runtime hiện có:
 
-- **39 tools:** 6 foundation, 8 core, 4 advanced, 2 general, 2 money, 2 potential, 12 domain v3.0 và 3 report tools (`generate_hd_report`, `build_hd_report_brief`, `apply_hd_report_draft`).
+- **39 tools:** 6 foundation, 8 core, 4 advanced, 2 general, 2 money, 2 potential, 12 domain v3.0 và 4 report tools (`generate_hd_report`, `build_hd_report_brief`, `apply_hd_report_draft`, `generate_hd_infographic`).
 - **Báo cáo chuẩn:** thông tin người được phân tích + BodyGraph tự sinh + nội dung `content_mode` = `template` (mặc định) hoặc `llm` (cần `HD_LLM_API_KEY`, tự fallback về template). Chi tiết: `docs/REPORTING_ARCHITECTURE.md`.
+- **Định dạng xuất:** Markdown, PDF (`tools/hd_report_pdf.py`) và **Infographic HTML** tự chứa — trực quan, ít chữ, tập trung điểm chính (`generate_hd_infographic`, `GET /reports/infographic.html`).
 - **Foundation tools:** Centers, Channels, Type/Strategy/Authority, Profile/Definition, Calculation và Practical Application.
 - **22 resources:** 11 resource tóm tắt runtime và 11 resource đọc toàn văn các knowledge topic còn lại.
 - **0 MCP prompts:** 25 skill là các file Markdown trong `mcp/skills/`, được LLM/client đọc hoặc dùng làm hướng dẫn riêng; chúng chưa được đăng ký bằng `@mcp.prompt()` trong `server.py`.

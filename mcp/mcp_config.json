@@ -4,7 +4,7 @@
       "command": "/home/user/human_design/.venv/bin/python",
       "args": ["/home/user/human_design/mcp/server.py"],
       "env": {},
-      "description": "Human Design Analyzer v3.0 - 39 tools, 22 resources",
+      "description": "Human Design Analyzer v3.0 - 40 tools, 22 resources",
       "autoApprove": [
         "calculate_human_design_chart",
         "get_gate_info",

@@ -1,6 +1,6 @@
 """
 Human Design MCP Server v3.0 - Chuẩn Model Context Protocol
-39 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 3 report) + 22 resources
+40 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 4 report) + 22 resources
 
 Tích hợp 21 knowledge files, 7 Wiki nguồn và 25 skill Markdown. Skills không phải MCP prompts; server hiện có 0 @mcp.prompt decorators.
 v3.0: đầy đủ các domain Health, Relationship, Decision, Deconditioning, Purpose và Team; các wrapper dùng alias imports để tránh shadowing.
@@ -80,7 +80,7 @@ try:
 except:
     TEAM_AVAILABLE = False
 
-mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 39 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 3 report), 22 resources, Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
+mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 40 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 4 report), 22 resources, Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
 
 def parse_birth_datetime(date_str: str, time_str: str, tz_str: str = "+07:00") -> datetime:
     dt_str = f"{date_str} {time_str}"
@@ -933,6 +933,35 @@ def apply_hd_report_draft(birth_date: str, birth_time: str, drafts_json: str, ti
         from backend.reporting.service import apply_draft
         request = _report_request(birth_date, birth_time, timezone, name, birth_location, tier, template, "llm", domains)
         return _report_result(apply_draft(request, drafts_json, editor_model=editor_model), save_files)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def generate_hd_infographic(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "",
+                            tier: str = "free_basic", include_bodygraph: bool = True, return_html: bool = False) -> Dict[str, Any]:
+    """Báo cáo tư vấn dạng Infographic HTML — trực quan, ít chữ, tập trung điểm chính của profile.
+
+    Một file .html tự chứa (CSS + BodyGraph SVG nội tuyến, không JS/CDN): mở offline, gửi được, in A4 được.
+    tier: free_basic (điểm chính) | deep_core (thêm Kênh + Chữ thập). Ghi vào output/reports/<slug>_infographic.html.
+    return_html=True để nhận luôn nội dung HTML trong kết quả (file ~130 KB).
+    """
+    try:
+        from backend.reporting.infographic import render_infographic_html
+        from backend.reporting.orchestrator import ReportOrchestrator
+        from backend.reporting.export import _slug
+        request = _report_request(birth_date, birth_time, timezone, name, birth_location, tier, "sections", "template", "")
+        document = ReportOrchestrator().run(request)
+        html_doc = render_infographic_html(document, include_bodygraph=include_bodygraph)
+        os.makedirs(REPORT_OUTPUT_DIR, exist_ok=True)
+        path = os.path.join(REPORT_OUTPUT_DIR, f"{_slug(document.title or name)}_infographic.html")
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(html_doc)
+        result: Dict[str, Any] = {"file": path, "bytes": len(html_doc.encode("utf-8")), "tier": document.tier.value,
+                                  "type": document.chart.get("type"), "profile": document.chart.get("profile")}
+        if return_html:
+            result["html"] = html_doc
+        return result
     except Exception as e:
         return {"error": str(e)}
 

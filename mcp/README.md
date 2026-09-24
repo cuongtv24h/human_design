@@ -2,7 +2,7 @@
 
 MCP stdio server hiện tại của Human Design Analyzer. Server dùng `mcp/server.py`, nạp calculator/analyzer từ `tools/` và cung cấp dữ liệu qua tools + resources.
 
-> **Runtime chuẩn (2026-09-24):** 39 tools · 22 resources · 0 MCP prompts · 25 skill Markdown · MCP SDK `mcp==1.30.0`.
+> **Runtime chuẩn (2026-09-24):** 40 tools · 22 resources · 0 MCP prompts · 25 skill Markdown · MCP SDK `mcp==1.30.0`.
 
 ## Kiến trúc
 
@@ -11,7 +11,7 @@ LLM client (Claude Desktop / Cursor / Windsurf)
                  │ MCP stdio
                  ▼
           mcp/server.py
-          ├── 39 tools
+          ├── 40 tools
           ├── 22 resources
           └── import tools/hd_*.py
                  │
@@ -73,7 +73,7 @@ Smoke test logic trực tiếp, không mở transport:
 PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 ```
 
-## 39 tools
+## 40 tools
 
 ### Foundation — 6
 
@@ -132,11 +132,12 @@ PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 35. `analyze_team`
 36. `generate_team_report`
 
-### Report — 3 (chuẩn báo cáo: thông tin + BodyGraph + template/LLM)
+### Report — 4 (chuẩn báo cáo: thông tin + BodyGraph + template/LLM; Infographic)
 
 37. `generate_hd_report` — báo cáo hoàn chỉnh; `content_mode="template"` (mặc định) hoặc `"llm"`; `save_files` ghi `.md` + `_bodygraph.svg` vào `output/reports/`
 38. `build_hd_report_brief` — brief biên tập (persona chuyên gia HD + nhà tư vấn tâm lý, quy tắc, dữ liệu nguồn, thuật ngữ chuẩn) để **chính AI host** tự biên tập, không cần API key
 39. `apply_hd_report_draft` — ghép bản biên tập `{section_id: markdown}`, kiểm tra giữ nguyên sự kiện kỹ thuật (mất → `warnings`)
+40. `generate_hd_infographic` — Infographic HTML tự chứa (CSS + BodyGraph nội tuyến, không JS/CDN): trực quan, ít chữ, điểm chính; ghi `output/reports/<slug>_infographic.html`
 
 Chế độ LLM có hai cách chạy:
 
@@ -184,7 +185,7 @@ Có 25 file skill tại `mcp/skills/`: `01`–`18` và `20`–`26`. Sáu skill `
 
 ## REST/OpenAPI bridge
 
-`openapi_server.py` cung cấp 42 route decorator: 40 route nghiệp vụ, `/` và `/health`. Report routes: `POST /reports/generate` (`?include_bodygraph_svg=true` để kèm SVG), `POST /reports/llm-brief`, `POST /reports/apply-draft`, `POST /reports/bodygraph.svg` — body là `ReportRequest` (`subject`, `tier`, `template`, `content_mode`, `domains`...).
+`openapi_server.py` cung cấp 44 route decorator: 42 route nghiệp vụ, `/` và `/health`. Report routes: `POST /reports/generate` (`?include_bodygraph_svg=true` để kèm SVG), `POST /reports/llm-brief`, `POST /reports/apply-draft`, `POST /reports/bodygraph.svg`, `POST|GET /reports/infographic.html` (GET nhận query `birth_date`, `birth_time`, `timezone`, `name`, `birth_location`, `tier` — mở thẳng trên trình duyệt) — body là `ReportRequest` (`subject`, `tier`, `template`, `content_mode`, `domains`...).
 
 ```bash
 cd /home/user/human_design/mcp

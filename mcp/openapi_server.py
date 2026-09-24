@@ -885,9 +885,11 @@ if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
 from fastapi import Response  # noqa: E402
+from fastapi.responses import HTMLResponse  # noqa: E402
 
 from backend.reporting.contract import ReportRequest as _ReportRequest  # noqa: E402
 from backend.reporting.export import bodygraph_svg as _bodygraph_svg  # noqa: E402
+from backend.reporting.infographic import render_infographic_html as _render_infographic  # noqa: E402
 from backend.reporting.llm_editor import build_llm_brief as _build_llm_brief  # noqa: E402
 from backend.reporting.orchestrator import ReportOrchestrator as _ReportOrchestrator  # noqa: E402
 from backend.reporting.service import (  # noqa: E402
@@ -942,10 +944,41 @@ def reports_bodygraph(req: _ReportRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.post("/reports/infographic.html", tags=["Reports"], summary="Infographic HTML tư vấn — trực quan, ít chữ, điểm chính")
+def reports_infographic(req: _ReportRequest):
+    try:
+        document = _ReportOrchestrator().run(req)
+        return HTMLResponse(_render_infographic(document, include_bodygraph=req.include_bodygraph))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/reports/infographic.html", tags=["Reports"], summary="Infographic HTML qua link trình duyệt (query params)")
+def reports_infographic_get(
+    birth_date: str = Query(..., description="YYYY-MM-DD"),
+    birth_time: str = Query(..., description="HH:MM"),
+    timezone: str = Query("+07:00"),
+    name: str = Query(""),
+    birth_location: str = Query(""),
+    tier: str = Query("free_basic", description="free_basic | deep_core"),
+    include_bodygraph: bool = Query(True),
+):
+    try:
+        req = _ReportRequest.model_validate({
+            "subject": {"name": name, "birth_date": birth_date, "birth_time": birth_time,
+                        "timezone": timezone, "birth_location": birth_location},
+            "tier": tier,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    document = _ReportOrchestrator().run(req)
+    return HTMLResponse(_render_infographic(document, include_bodygraph=include_bodygraph))
+
+
 # Health check
 @app.get("/health", tags=["System"])
 def health():
-    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 39, "api_routes": 42, "coverage": "Foundation + 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "25 Markdown skills (01-18, 20-26; 19 reserved), 0 MCP prompts"}
+    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 40, "api_routes": 44, "coverage": "Foundation + 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "25 Markdown skills (01-18, 20-26; 19 reserved), 0 MCP prompts"}
 
 if __name__ == "__main__":
     import uvicorn

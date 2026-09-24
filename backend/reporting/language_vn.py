@@ -246,7 +246,7 @@ CENTER_LANGUAGE: dict[str, dict[str, str]] = {
         "defined_life": "Ý tưởng của bạn có khả năng 'chuyển thể': từ mơ hồ thành kế hoạch, từ kế hoạch thành hình rõ mà người khác nhìn thấy được. Đây là tài năng hiếm — nhiều người có ý tưởng, nhưng ít người khiến ý tưởng 'hiện hình'.",
         "open_life": "Đầu tư duy của bạn là chiếc bọt biển của niềm tin: dễ nhuộm màu bởi suy nghĩ của người khác, rồi sống trong một 'thế giới quan' chưa chắc là của mình.",
         "open_question": "Niềm tin này là của tôi, hay tôi mượn từ người mà tôi tin?",
-        "not_self_life": "Sับสน, phân vân: hai ý tưởng ngược nhau cùng 'đúng' trong đầu.",
+        "not_self_life": "Rối trí, phân vân: hai ý tưởng ngược nhau cùng 'đúng' trong đầu.",
     },
     "Throat": {
         "life_name": "Trạm phát ngôn — nơi lời nói thành sự thật",
