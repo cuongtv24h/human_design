@@ -11,7 +11,7 @@ import { CopyField, SharePanel } from "@/components/SharePanel";
 import { absoluteUrl } from "@/lib/clipboard";
 import { Badge, Button, Card, ErrorBox, PageHeader, Spinner, StatusBadge, cx } from "@/components/ui";
 import { api, fileUrl } from "@/lib/api";
-import { formatTimestamp, MODE_LABEL, TEMPLATE_LABEL, TIER_LABEL } from "@/lib/format";
+import { formatTimestamp, formatUsd, MODE_LABEL, TEMPLATE_LABEL, TIER_LABEL } from "@/lib/format";
 import type { DownloadLink, ReportDetail } from "@/lib/types";
 
 const TABS = [
@@ -103,6 +103,7 @@ export default function ReportPage() {
             <StatusBadge status={r.status} />
             <span>{TIER_LABEL[r.tier]} · {TEMPLATE_LABEL[r.template]}</span>
             <Badge tone={r.content_mode === "llm" ? "gold" : "brand"}>{MODE_LABEL[r.content_mode]}</Badge>
+            {r.llm_provider && <span>· Viết bởi {r.llm_provider}{r.llm_cost_usd !== null && r.llm_cost_usd !== undefined ? ` (${formatUsd(r.llm_cost_usd)})` : ""}</span>}
             <span>· Tạo {formatTimestamp(r.created_at)} · v{r.version}</span>
           </span>
         }

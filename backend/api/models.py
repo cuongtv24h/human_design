@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base, JSONType
@@ -21,7 +21,9 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String(200))
     # D10: auto-generated default theme for now; real branding replaces it later.
     theme: Mapped[dict] = mapped_column(JSONType, default=dict)
-    # P2-6: {base_url, model, temperature, timeout, api_key_enc (Fernet), updated_by, updated_at}
+    # P2-6, multi-provider: {providers: [{name, base_url, model, temperature, timeout,
+    #   api_key_enc (Fernet), enabled, input_price, output_price}], updated_by, updated_at}.
+    # Legacy flat keys (base_url/model/api_key_enc/...) are still read as one provider.
     llm_settings: Mapped[dict] = mapped_column(JSONType, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -142,7 +144,6 @@ class ShareLink(Base):
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     org_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
     actor_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -151,4 +152,31 @@ class AuditLog(Base):
     entity_id: Mapped[str] = mapped_column(String(40), default="")
     meta: Mapped[dict] = mapped_column(JSONType, default=dict)
     ip: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class LLMUsage(Base):
+    """One LLM API attempt (every step of the fallback chain, success or not).
+
+    Prices are snapshots (USD per 1M tokens) copied from the provider settings
+    at call time, so later price edits never rewrite history.
+    """
+
+    __tablename__ = "llm_usage"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id"), index=True)
+    report_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    purpose: Mapped[str] = mapped_column(String(20), default="report")  # report | section | test
+    provider: Mapped[str] = mapped_column(String(120), default="")
+    base_url: Mapped[str] = mapped_column(String(300), default="")
+    model: Mapped[str] = mapped_column(String(120), default="")
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    input_price: Mapped[float] = mapped_column(Float, default=0.0)
+    output_price: Mapped[float] = mapped_column(Float, default=0.0)
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ok: Mapped[bool] = mapped_column(Boolean, default=True)
+    error: Mapped[str] = mapped_column(String(500), default="")
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

@@ -6,7 +6,7 @@ import hashlib
 import logging
 import os
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -20,10 +20,10 @@ from backend.reporting.render_common import Theme
 from backend.reporting.render_docx import render_docx
 from backend.reporting.render_pdf import render_pdf
 from backend.reporting.language_vn import TYPE_VN, vn_authority, vn_definition, vn_strategy
-from backend.reporting.llm_client import LLMConfig
-from backend.reporting.service import generate_report
+from backend.reporting.llm_client import LLMConfig, LLMUsage as TokenUsage, display_provider, estimate_cost
+from backend.reporting.service import AttemptCallback, generate_report
 
-from .models import AuditLog, Client, Organization, Report, ReportRevision, User
+from .models import AuditLog, Client, LLMUsage, Organization, Report, ReportRevision, User
 from .security import decrypt_value
 from .schemas import ChartSummary, ClientOut, ReportDetailOut, ReportSummaryOut, SectionOut
 
@@ -135,6 +135,7 @@ def report_detail(report: Report) -> ReportDetailOut:
     return ReportDetailOut(
         **base, subject_display=subject_display, summary=chart_summary(document.chart),
         sections=sections, warnings=list(document.warnings), markdown=document.to_markdown(),
+        llm_provider=document.provenance.llm_provider, llm_cost_usd=document.provenance.llm_cost_usd,
     )
 
 
@@ -188,40 +189,161 @@ def create_report(db: Session, user: User, client: Client, *, tier: str, templat
     return report
 
 
-# --- LLM configuration (P2-6) --------------------------------------------------
+# --- LLM configuration: fallback chain of providers (P2-6) ------------------------
+
+MAX_LLM_PROVIDERS = 3
+
 
 def env_llm_defaults() -> LLMConfig:
     """Non-secret defaults from HD_LLM_* env vars (key left empty)."""
     config = LLMConfig.from_env({**os.environ, "HD_LLM_API_KEY": "-"})
+    assert config is not None  # "-" key guarantees a config
     return LLMConfig(api_key="", base_url=config.base_url, model=config.model, timeout=config.timeout,
                      temperature=config.temperature)
 
 
-def stored_llm_key(org: Organization | None, secret: str) -> tuple[str, bool]:
-    """``(key, unreadable)`` from the organization's encrypted settings."""
-    encrypted = ((org.llm_settings or {}) if org else {}).get("api_key_enc") or ""
+def stored_providers(org: Organization | None) -> list[dict[str, Any]]:
+    """Provider dicts from the DB: the ``providers`` list, else legacy flat keys as one entry."""
+    stored = (org.llm_settings or {}) if org else {}
+    providers = stored.get("providers")
+    if isinstance(providers, list) and providers:
+        return [p for p in providers if isinstance(p, dict)]
+    if not any(k in stored for k in ("base_url", "model", "api_key_enc")):
+        return []
+    return [{
+        "name": "Chính",
+        "base_url": stored.get("base_url") or "",
+        "model": stored.get("model") or "",
+        "temperature": stored.get("temperature"),
+        "timeout": stored.get("timeout"),
+        "api_key_enc": stored.get("api_key_enc") or "",
+        "enabled": True,
+        "input_price": 0.0,
+        "output_price": 0.0,
+    }]
+
+
+def decrypt_provider_key(entry: dict[str, Any], secret: str) -> tuple[str, bool]:
+    """``(key, unreadable)`` for one stored provider entry."""
+    encrypted = entry.get("api_key_enc") or ""
     if not encrypted:
         return "", False
     key = decrypt_value(secret, encrypted)
     return (key or "", key is None)
 
 
-def org_llm_config(db: Session, org_id: int, secret: str) -> LLMConfig | None:
-    """Effective LLM config: admin settings (DB, key encrypted) first, then HD_LLM_* env. None = AI off."""
-    org = db.get(Organization, org_id)
-    stored = (org.llm_settings or {}) if org else {}
-    defaults = env_llm_defaults()
-    env = LLMConfig.from_env()
-    key = stored_llm_key(org, secret)[0] or (env.api_key if env else "")
-    if not key:
-        return None
+def _num(value: Any, default: float) -> float:
+    try:
+        return float(value) if value is not None else default
+    except (TypeError, ValueError):
+        return default
+
+
+def provider_config(entry: dict[str, Any], key: str, defaults: LLMConfig) -> LLMConfig:
     return LLMConfig(
         api_key=key,
-        base_url=(stored.get("base_url") or defaults.base_url).rstrip("/"),
-        model=stored.get("model") or defaults.model,
-        timeout=float(stored.get("timeout") or defaults.timeout),
-        temperature=float(stored["temperature"]) if stored.get("temperature") is not None else defaults.temperature,
+        base_url=(entry.get("base_url") or defaults.base_url).rstrip("/"),
+        model=(entry.get("model") or defaults.model).strip(),
+        timeout=_num(entry.get("timeout"), defaults.timeout),
+        temperature=_num(entry.get("temperature"), defaults.temperature),
+        name=(entry.get("name") or "").strip(),
+        input_price=max(0.0, _num(entry.get("input_price"), 0.0)),
+        output_price=max(0.0, _num(entry.get("output_price"), 0.0)),
     )
+
+
+def org_llm_configs(db: Session, org_id: int, secret: str) -> list[LLMConfig]:
+    """Enabled providers with a readable key, in fallback order.
+
+    Explicit DB providers win completely: the ``HD_LLM_*`` env fallback applies
+    only when the organization has no usable stored provider.
+    """
+    org = db.get(Organization, org_id)
+    defaults = env_llm_defaults()
+    configs = []
+    for entry in stored_providers(org):
+        if entry.get("enabled", True) is False:
+            continue
+        key = decrypt_provider_key(entry, secret)[0]
+        if not key:
+            continue  # missing, or encrypted with another server secret
+        configs.append(provider_config(entry, key, defaults))
+    if configs:
+        return configs
+    env = LLMConfig.from_env()
+    return [env] if env is not None else []
+
+
+def org_llm_config(db: Session, org_id: int, secret: str) -> LLMConfig | None:
+    """First provider of the fallback chain (``None`` = AI off)."""
+    configs = org_llm_configs(db, org_id, secret)
+    return configs[0] if configs else None
+
+
+# --- LLM usage + cost tracking -------------------------------------------------
+
+def collect_attempts(entries: list[dict[str, Any]]) -> AttemptCallback:
+    def _collect(config: LLMConfig, ok: bool, usage: TokenUsage | None, error: str, latency_ms: int) -> None:
+        entries.append({"config": config, "ok": ok, "usage": usage, "error": error, "latency_ms": latency_ms})
+
+    return _collect
+
+
+def save_llm_usages(db: Session, org_id: int, report_id: str | None, purpose: str,
+                    entries: list[dict[str, Any]]) -> None:
+    """Persist one ``llm_usage`` row per collected attempt (success or failure)."""
+    for entry in entries:
+        config = entry["config"]
+        usage: TokenUsage | None = entry["usage"]
+        cost = estimate_cost(usage, config.input_price, config.output_price) if usage is not None else None
+        db.add(LLMUsage(
+            org_id=org_id, report_id=report_id, purpose=purpose,
+            provider=display_provider(config), base_url=config.base_url, model=config.model,
+            prompt_tokens=usage.prompt_tokens if usage else 0,
+            completion_tokens=usage.completion_tokens if usage else 0,
+            input_price=config.input_price, output_price=config.output_price,
+            cost_usd=cost, ok=entry["ok"], error=entry["error"][:500], latency_ms=entry["latency_ms"],
+        ))
+
+
+def _naive_utc(value: datetime) -> datetime:
+    return value if value.tzinfo is None else value.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def llm_usage_stats(db: Session, org_id: int, days: int) -> dict[str, Any]:
+    """Totals + per-provider breakdown + recent attempts for the last ``days`` days."""
+    days = min(max(int(days), 1), 365)
+    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
+    rows = db.scalars(select(LLMUsage).where(LLMUsage.org_id == org_id)
+                      .order_by(LLMUsage.created_at.desc()).limit(5000)).all()
+    rows = [r for r in rows if _naive_utc(r.created_at) >= cutoff]
+
+    def blank() -> dict[str, Any]:
+        return {"requests": 0, "errors": 0, "prompt_tokens": 0, "completion_tokens": 0,
+                "cost_usd": 0.0, "unpriced_requests": 0}
+
+    totals = blank()
+    by_provider: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows:
+        for agg in (totals, by_provider.setdefault((row.provider, row.model), blank())):
+            agg["requests"] += 1
+            if not row.ok:
+                agg["errors"] += 1
+            agg["prompt_tokens"] += row.prompt_tokens or 0
+            agg["completion_tokens"] += row.completion_tokens or 0
+            if row.cost_usd is None:
+                agg["unpriced_requests"] += 1
+            else:
+                agg["cost_usd"] += row.cost_usd
+    providers = [{"provider": provider, "model": model, **agg}
+                 for (provider, model), agg in sorted(by_provider.items(), key=lambda kv: -kv[1]["requests"])]
+    recent = [{
+        "id": r.id, "created_at": r.created_at, "report_id": r.report_id, "purpose": r.purpose,
+        "provider": r.provider, "model": r.model, "prompt_tokens": r.prompt_tokens,
+        "completion_tokens": r.completion_tokens, "cost_usd": r.cost_usd, "ok": r.ok,
+        "error": r.error, "latency_ms": r.latency_ms,
+    } for r in rows[:100]]
+    return {"days": days, "totals": totals, "by_provider": providers, "recent": recent}
 
 
 class Heartbeat:
@@ -254,13 +376,16 @@ class Heartbeat:
 def run_llm_generation(session_factory: sessionmaker, report_id: str, author: str,
                        artifact_dir: str | None = None, change_type: str = "generate",
                        llm_config: LLMConfig | None = None, heartbeat_seconds: float = 15.0,
-                       claimed: bool = False) -> None:
+                       claimed: bool = False, llm_configs: list[LLMConfig] | None = None) -> None:
     """Background job for content_mode=llm (30-120 s). Falls back to template inside service.
 
     No DB session is held during the LLM call; a heartbeat thread proves the job is alive so
     ``jobs.recover_stale_reports`` can resume it if the process dies (restart / deploy / crash).
     ``claimed=True`` when the recovery sweep already counted this attempt.
+    Every provider attempt is logged to ``llm_usage`` (tokens + cost).
     """
+    if llm_configs is None and llm_config is not None:
+        llm_configs = [llm_config]
     with session_factory() as db:
         report = db.get(Report, report_id)
         if report is None or report.status != "generating":
@@ -271,11 +396,13 @@ def run_llm_generation(session_factory: sessionmaker, report_id: str, author: st
         request = ReportRequest.model_validate(report.request)
         db.commit()
 
+    attempts: list[dict[str, Any]] = []
     document: ReportDocument | None = None
     error = ""
     with Heartbeat(session_factory, report_id, heartbeat_seconds):
         try:
-            document = generate_report(request, llm_config=llm_config)
+            document = generate_report(request, llm_configs=llm_configs or None,
+                                       on_llm_attempt=collect_attempts(attempts))
         except Exception as exc:  # noqa: BLE001 - surface any failure to the UI
             log.exception("report generation failed: %s", report_id)
             error = str(exc)[:1000] or exc.__class__.__name__
@@ -283,7 +410,12 @@ def run_llm_generation(session_factory: sessionmaker, report_id: str, author: st
     ready = False
     with session_factory() as db:
         report = db.get(Report, report_id)
-        if report is None or report.status != "generating":
+        if report is None:
+            return
+        if attempts:
+            save_llm_usages(db, report.org_id, report_id, "report", attempts)
+        if report.status != "generating":
+            db.commit()
             return  # archived / superseded meanwhile
         if document is not None:
             store_document(db, report, document, author=author, change_type=change_type)

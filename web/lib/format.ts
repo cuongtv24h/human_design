@@ -56,6 +56,22 @@ export function formatTimestamp(iso: string | null | undefined): string {
   return Number.isNaN(date.getTime()) ? iso : dtf.format(date);
 }
 
+/** USD cost: null/undefined (unknown price) -> "—". */
+export function formatUsd(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  if (value === 0) return "$0";
+  if (value < 0.01) return `$${value.toFixed(4)}`;
+  if (value < 100) return `$${value.toFixed(2)}`;
+  return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
+export function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 10_000) return `${(n / 1000).toFixed(1)}K`;
+  if (n >= 1000) return `${(n / 1000).toFixed(2)}K`;
+  return `${n}`;
+}
+
 export const STATUS_LABEL: Record<string, string> = {
   generating: "Đang tạo",
   ready: "Hoàn tất",

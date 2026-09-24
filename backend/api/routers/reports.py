@@ -22,7 +22,7 @@ from ..schemas import (
 from ..security import sign_token
 from ..services import (
     ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404, report_detail,
-    org_llm_config, report_summary, run_llm_generation, visible_reports, warm_artifacts,
+    org_llm_configs, report_summary, run_llm_generation, visible_reports, warm_artifacts,
 )
 
 from hd_time import display_birth  # noqa: E402
@@ -75,7 +75,8 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
         # Background task + heartbeat; interrupted jobs are resumed by backend/api/jobs.py.
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
                             state.settings.artifact_dir, "generate",
-                            org_llm_config(db, user.org_id, state.secret_key), state.settings.job_heartbeat_seconds)
+                            llm_configs=org_llm_configs(db, user.org_id, state.secret_key),
+                            heartbeat_seconds=state.settings.job_heartbeat_seconds)
     else:
         background.add_task(warm_artifacts, state.db.session_factory, state.settings.artifact_dir, report.id)
     return report_detail(report)

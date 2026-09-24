@@ -67,17 +67,22 @@ bởi LLM.
 `backend/reporting/service.py::generate_report(request)` là entry point duy nhất
 cho mọi cửa. Ở `content_mode="llm"` nó build brief → gọi LLM qua
 `backend/reporting/llm_client.py` (OpenAI-compatible, chỉ stdlib) → merge +
-validate. **Thiếu key / lỗi mạng / JSON hỏng → fallback template**, ghi
-`provenance.editor = "template (llm fallback)"` và một cảnh báo — người dùng
-luôn nhận được báo cáo hợp lệ.
+validate. Chế độ LLM thử lần lượt từng nhà cung cấp trong chuỗi (chính → dự
+phòng 1 → dự phòng 2, cấu hình ở Admin `/settings/llm`); chỉ khi **tất cả đều
+lỗi mới fallback template**, ghi `provenance.editor = "template (llm fallback)"`
+và một cảnh báo liệt kê từng lỗi — người dùng luôn nhận được báo cáo hợp lệ.
+Khi thành công, `provenance` ghi lại `llm_provider` ("tên · model") và chi phí
+ước tính `llm_cost_usd`. Mỗi lần thử (kể cả lỗi) được log vào bảng `llm_usage`
+để thống kê token/chi phí.
 
 | Biến môi trường | Mặc định | Ý nghĩa |
 | --- | --- | --- |
-| `HD_LLM_API_KEY` (fallback `OPENAI_API_KEY`) | — | Bắt buộc để bật LLM |
+| `HD_LLM_API_KEY` (fallback `OPENAI_API_KEY`) | — | Bắt buộc để bật LLM khi chưa lưu provider nào trong Admin |
 | `HD_LLM_BASE_URL` | `https://api.openai.com/v1` | Endpoint OpenAI-compatible bất kỳ |
 | `HD_LLM_MODEL` | `gpt-4o-mini` | Model biên tập |
 | `HD_LLM_TIMEOUT` | `120` | Giây |
 | `HD_LLM_TEMPERATURE` | `0.6` | Độ mềm văn phong |
+| `HD_LLM_INPUT_PRICE` / `HD_LLM_OUTPUT_PRICE` | `0` | USD / 1M token để tính chi phí (0 = chưa biết) |
 
 | Cửa | Tạo báo cáo | Brief cho AI host | Ghép bản biên tập | BodyGraph |
 | --- | --- | --- | --- | --- |

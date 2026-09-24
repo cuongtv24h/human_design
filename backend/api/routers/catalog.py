@@ -9,8 +9,8 @@ from backend.reporting.catalog import CORE_SECTIONS, FREE_BASIC_SECTION_SPECS, N
 
 from ..deps import current_user, get_db
 from ..models import User
-from ..schemas import CatalogOption, CatalogOut, CatalogSection
-from ..services import org_llm_config
+from ..schemas import CatalogLlmProvider, CatalogOption, CatalogOut, CatalogSection
+from ..services import org_llm_configs
 
 from hd_time import VN_UTC_OFFSET, zone_label  # noqa: E402
 
@@ -52,6 +52,7 @@ def _sections(specs) -> list[CatalogSection]:
 
 @router.get("/catalog", response_model=CatalogOut)
 def catalog(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> CatalogOut:
+    chain = org_llm_configs(db, user.org_id, request.app.state.secret_key)
     return CatalogOut(
         tiers=TIERS, templates=TEMPLATES, content_modes=CONTENT_MODES, domains=DOMAINS,
         sections_by_tier={
@@ -59,7 +60,9 @@ def catalog(request: Request, user: User = Depends(current_user), db: Session = 
             "deep_core": _sections(CORE_SECTIONS),
             "operating_manual": _sections(NARRATIVE_SECTIONS),
         },
-        llm_available=org_llm_config(db, user.org_id, request.app.state.secret_key) is not None,
+        llm_available=bool(chain),
+        llm_providers=[CatalogLlmProvider(name=c.name or f"Nhà cung cấp {i + 1}", model=c.model)
+                       for i, c in enumerate(chain)],
         timezone_default=VN_UTC_OFFSET,
         timezone_label=zone_label(VN_UTC_OFFSET),
     )

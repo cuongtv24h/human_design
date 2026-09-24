@@ -224,6 +224,10 @@ class ReportProvenance(BaseModel):
     source_tools: list[str] = Field(default_factory=list)
     knowledge_refs: list[str] = Field(default_factory=list)
     editor: str = "template"
+    # Which provider of the fallback chain wrote the content ("<name> · <model>"); "" for template.
+    llm_provider: str = ""
+    # Estimated USD cost of the successful LLM call (None when the price is unknown).
+    llm_cost_usd: float | None = None
 
 
 class ReportDocument(BaseModel):

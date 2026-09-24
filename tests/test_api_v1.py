@@ -250,9 +250,9 @@ def test_llm_section_proposal(app, monkeypatch):
 
     seen = {}
 
-    def fake_edit(document, section_id, llm_config):
+    def fake_edit(document, section_id, llm_configs, **kwargs):
         seen["section"] = section_id
-        seen["model"] = llm_config.model
+        seen["model"] = llm_configs[0].model
         return "Bản AI viết lại, vẫn nhắc Projector.\n"
 
     monkeypatch.setattr(editor_router, "llm_edit_section", fake_edit)

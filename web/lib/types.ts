@@ -22,6 +22,7 @@ export interface Catalog {
   domains: CatalogOption[];
   sections_by_tier: Record<string, CatalogSection[]>;
   llm_available: boolean;
+  llm_providers: { name: string; model: string }[];
   timezone_default: string;
   timezone_label: string;
 }
@@ -91,6 +92,8 @@ export interface ReportDetail extends ReportSummary {
   sections: Section[];
   warnings: string[];
   markdown: string;
+  llm_provider: string;
+  llm_cost_usd: number | null;
 }
 
 export interface Preview {
@@ -151,18 +154,68 @@ export interface Share {
 export interface ShareCreated { share: Share; url: string }
 export interface DownloadLink { url: string; expires_at: string }
 
-export interface LlmSettings {
+export interface LlmProvider {
+  index: number;
+  name: string;
   base_url: string;
   model: string;
   temperature: number;
   timeout: number;
-  key_source: "database" | "environment" | "none";
+  enabled: boolean;
+  has_key: boolean;
   key_hint: string;
   key_unreadable: boolean;
+  input_price: number;
+  output_price: number;
+}
+export interface LlmSettings {
+  providers: LlmProvider[];
+  key_source: "database" | "environment" | "none";
   updated_by: string;
   updated_at: string | null;
 }
-export interface LlmTest { ok: boolean; latency_ms: number; model: string; detail: string }
+export interface LlmTestItem {
+  index: number;
+  name: string;
+  model: string;
+  ok: boolean;
+  latency_ms: number;
+  detail: string;
+}
+export interface LlmTest { results: LlmTestItem[] }
+
+export interface LlmUsageTotals {
+  requests: number;
+  errors: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  cost_usd: number;
+  unpriced_requests: number;
+}
+export interface LlmProviderStat extends LlmUsageTotals {
+  provider: string;
+  model: string;
+}
+export interface LlmUsageRow {
+  id: number;
+  created_at: string;
+  report_id: string | null;
+  purpose: string;
+  provider: string;
+  model: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  cost_usd: number | null;
+  ok: boolean;
+  error: string;
+  latency_ms: number;
+}
+export interface LlmUsage {
+  days: number;
+  totals: LlmUsageTotals;
+  by_provider: LlmProviderStat[];
+  recent: LlmUsageRow[];
+}
 
 export interface PublicReport {
   client_name: string;

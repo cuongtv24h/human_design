@@ -1,23 +1,31 @@
 """Service entry point cho mọi "cửa" (MCP, REST, Admin): một hàm tạo báo cáo.
 
 ``generate_report`` chạy orchestrator, và nếu ``content_mode="llm"`` thì
-build brief → gọi LLM → merge + validate. Mọi lỗi LLM (thiếu key, mạng, JSON
-hỏng) đều **fallback về template** kèm cảnh báo — người dùng luôn nhận được
+build brief → gọi LLM → merge + validate. Chế độ LLM thử lần lượt từng nhà
+cung cấp trong chuỗi (chính → dự phòng 1 → dự phòng 2); chỉ khi TẤT CẢ đều
+lỗi mới **fallback về template** kèm cảnh báo — người dùng luôn nhận được
 một báo cáo hợp lệ, không bao giờ nhận lỗi trắng.
 """
 
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping
+import time
+from typing import Any, Callable, Mapping
 
 from .contract import ContentMode, ReportDocument, ReportRequest
 from .export import bodygraph_svg
-from .llm_client import LLMConfig, LLMError, Transport, call_llm, parse_llm_json
+from .llm_client import (
+    LLMConfig, LLMError, LLMUsage, Transport, call_llm,
+    call_llm_with_usage, display_provider, estimate_cost, parse_llm_json,
+)
 from .llm_editor import build_llm_brief, merge_llm_draft
 from .orchestrator import ReportOrchestrator
 
 LLM_FALLBACK_EDITOR = "template (llm fallback)"
+
+# (config, ok, usage, error, latency_ms) — the Admin API persists one row per attempt.
+AttemptCallback = Callable[[LLMConfig, bool, "LLMUsage | None", str, int], None]
 
 
 def build_request(payload: Mapping[str, Any]) -> ReportRequest:
@@ -32,25 +40,72 @@ def _fallback(document: ReportDocument, reason: str) -> ReportDocument:
     return fallback
 
 
+def _resolve_chain(
+    llm_config: LLMConfig | None,
+    llm_configs: list[LLMConfig] | tuple[LLMConfig, ...] | None,
+) -> list[LLMConfig]:
+    """Explicit chain first, legacy single config second, ``HD_LLM_*`` env last."""
+    if llm_configs is not None:
+        return [c for c in llm_configs if c is not None]
+    if llm_config is not None:
+        return [llm_config]
+    env = LLMConfig.from_env()
+    return [env] if env is not None else []
+
+
+def _run_chain(
+    brief: str,
+    configs: list[LLMConfig],
+    transport: Transport | None,
+    on_attempt: AttemptCallback | None,
+) -> tuple[dict[str, str], LLMConfig, LLMUsage]:
+    """Try each provider in order; return the first success.
+
+    Raises ``LLMError`` listing every provider's error when all fail.
+    """
+    errors: list[str] = []
+    for config in configs:
+        started = time.perf_counter()
+        try:
+            drafts, usage = call_llm_with_usage(brief, config, transport=transport)
+        except LLMError as exc:
+            latency = int((time.perf_counter() - started) * 1000)
+            errors.append(f"{display_provider(config)} ({exc})")
+            if on_attempt is not None:
+                on_attempt(config, False, None, str(exc)[:500], latency)
+            continue
+        latency = int((time.perf_counter() - started) * 1000)
+        if on_attempt is not None:
+            on_attempt(config, True, usage, "", latency)
+        return drafts, config, usage
+    raise LLMError("; ".join(errors) if errors else "không có nhà cung cấp LLM")
+
+
 def generate_report(
     request: ReportRequest,
     *,
     llm_config: LLMConfig | None = None,
+    llm_configs: list[LLMConfig] | tuple[LLMConfig, ...] | None = None,
     transport: Transport | None = None,
     orchestrator: ReportOrchestrator | None = None,
+    on_llm_attempt: AttemptCallback | None = None,
 ) -> ReportDocument:
     """Produce a finished report in the requested content mode."""
     document = (orchestrator or ReportOrchestrator()).run(request)
     if request.content_mode is not ContentMode.LLM:
         return document
-    config = llm_config or LLMConfig.from_env()
-    if config is None:
-        return _fallback(document, "chưa cấu hình HD_LLM_API_KEY")
+    chain = _resolve_chain(llm_config, llm_configs)
+    if not chain:
+        return _fallback(document, "chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
     try:
-        drafts = call_llm(build_llm_brief(document), config, transport=transport)
+        drafts, used, usage = _run_chain(build_llm_brief(document), chain, transport, on_llm_attempt)
     except LLMError as exc:
-        return _fallback(document, str(exc))
-    return merge_llm_draft(document, drafts, editor_model=config.model)
+        tried = ", ".join(display_provider(c) for c in chain)
+        return _fallback(document, f"đã thử {len(chain)} nhà cung cấp ({tried}) đều lỗi — {exc}")
+    merged = merge_llm_draft(document, drafts, editor_model=used.model)
+    merged.provenance.llm_provider = display_provider(used)
+    merged.provenance.llm_cost_usd = estimate_cost(usage, used.input_price, used.output_price)
+    return merged
 
 
 def apply_draft(
@@ -112,20 +167,24 @@ def llm_edit_section(
     section_id: str,
     *,
     llm_config: LLMConfig | None = None,
+    llm_configs: list[LLMConfig] | tuple[LLMConfig, ...] | None = None,
     transport: Transport | None = None,
+    on_llm_attempt: AttemptCallback | None = None,
 ) -> str:
     """Ask the LLM to rewrite one section; returns the proposed markdown (not saved).
 
-    Raises ``LLMError`` when AI is not configured or the call fails, and
-    ``KeyError`` for an unknown / omitted section.
+    Tries each provider in the fallback chain. Raises ``LLMError`` when AI is
+    not configured or every call fails, and ``KeyError`` for an unknown /
+    omitted section.
     """
     section = next((s for s in document.sections if s.id == section_id and s.status == "included"), None)
     if section is None:
         raise KeyError(section_id)
-    config = llm_config or LLMConfig.from_env()
-    if config is None:
-        raise LLMError("chưa cấu hình HD_LLM_API_KEY")
-    drafts = call_llm(build_llm_brief(document, section_ids=[section_id]), config, transport=transport)
+    chain = _resolve_chain(llm_config, llm_configs)
+    if not chain:
+        raise LLMError("chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
+    drafts, _, _ = _run_chain(build_llm_brief(document, section_ids=[section_id]), chain,
+                              transport, on_llm_attempt)
     draft = drafts.get(section_id)
     if not draft or not draft.strip():
         raise LLMError("AI không trả về nội dung cho phần này")

@@ -248,7 +248,17 @@ function Wizard() {
                       extra={unavailable ? (
                         <p className="mt-2 text-xs text-amber-700">Chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY) — tạm thời chưa dùng được.</p>
                       ) : o.value === "llm" ? (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-[#7a5516]"><Sparkles className="size-3.5" /> AI không tính lại chart — chỉ viết lại lời văn từ dữ liệu đã tính.</div>
+                        <div className="mt-2 space-y-1 text-xs text-[#7a5516]">
+                          <div className="flex items-center gap-1"><Sparkles className="size-3.5" /> AI không tính lại chart — chỉ viết lại lời văn từ dữ liệu đã tính.</div>
+                          {cat.llm_providers.length > 0 && (
+                            <div>
+                              Thử theo thứ tự: <strong>{cat.llm_providers[0].name} · {cat.llm_providers[0].model}</strong>
+                              {cat.llm_providers.slice(1).map((p) => (
+                                <span key={`${p.name}-${p.model}`}> → {p.name} · {p.model}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ) : undefined} />
                   );
                 })}
@@ -265,7 +275,9 @@ function Wizard() {
                   ["Mức độ", TIER_LABEL[tier]],
                   ["Trình bày", TEMPLATE_LABEL[template]],
                   ["Chủ đề chuyên sâu", domains.length ? cat.domains.filter((d) => domains.includes(d.value)).map((d) => d.label).join(", ") : "Không"],
-                  ["Nội dung", MODE_LABEL[mode]],
+                  ["Nội dung", mode === "llm" && cat.llm_providers.length
+                    ? `${MODE_LABEL[mode]} (${cat.llm_providers.map((p) => `${p.name} · ${p.model}`).join(" → ")})`
+                    : MODE_LABEL[mode]],
                 ].map(([k, v]) => (
                   <div key={k} className="grid grid-cols-3 gap-3 px-4 py-3">
                     <dt className="text-muted">{k}</dt>

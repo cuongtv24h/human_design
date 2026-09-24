@@ -67,6 +67,11 @@ class CatalogSection(BaseModel):
     title: str
 
 
+class CatalogLlmProvider(BaseModel):
+    name: str
+    model: str
+
+
 class CatalogOut(BaseModel):
     tiers: list[CatalogOption]
     templates: list[CatalogOption]
@@ -74,6 +79,8 @@ class CatalogOut(BaseModel):
     domains: list[CatalogOption]
     sections_by_tier: dict[str, list[CatalogSection]]
     llm_available: bool
+    # Fallback chain in order (primary first) for the wizard to display.
+    llm_providers: list[CatalogLlmProvider] = Field(default_factory=list)
     timezone_default: str
     timezone_label: str
 
@@ -224,6 +231,9 @@ class ReportDetailOut(ReportSummaryOut):
     sections: list[SectionOut]
     warnings: list[str]
     markdown: str
+    # Which fallback-chain provider wrote the content ("<name> · <model>"); "" for template.
+    llm_provider: str = ""
+    llm_cost_usd: float | None = None
 
 
 # --- dashboard --------------------------------------------------------------
@@ -313,27 +323,28 @@ class DownloadLinkOut(BaseModel):
     expires_at: datetime
 
 
-# --- LLM settings (P2-6) ------------------------------------------------------
+# --- LLM settings: fallback chain + cost tracking (P2-6) ---------------------------
 
-class LlmSettingsOut(BaseModel):
-    base_url: str
-    model: str
-    temperature: float
-    timeout: float
-    key_source: Literal["database", "environment", "none"]
-    key_hint: str
-    key_unreadable: bool = False  # stored with another HD_SECRET_KEY
-    updated_by: str = ""
-    updated_at: datetime | None = None
-
-
-class LlmSettingsIn(BaseModel):
+class LlmProviderIn(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
     base_url: str = Field(min_length=8, max_length=300)
     model: str = Field(min_length=1, max_length=120)
     temperature: float = Field(ge=0, le=2)
     timeout: float = Field(ge=10, le=600)
-    # None = keep the stored key; "" = delete it (fall back to the environment).
+    # None = keep the stored key; "" = delete it.
     api_key: str | None = Field(default=None, max_length=500)
+    enabled: bool = True
+    # USD per 1M tokens (0 = unknown → cost is not computed for this provider).
+    input_price: float = Field(default=0.0, ge=0, le=10000)
+    output_price: float = Field(default=0.0, ge=0, le=10000)
+
+    @field_validator("name")
+    @classmethod
+    def _name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Tên nhà cung cấp không được để trống")
+        return value
 
     @field_validator("base_url")
     @classmethod
@@ -349,11 +360,84 @@ class LlmSettingsIn(BaseModel):
         return value.strip()
 
 
-class LlmTestOut(BaseModel):
+class LlmSettingsIn(BaseModel):
+    providers: list[LlmProviderIn] = Field(min_length=1, max_length=3)
+
+
+class LlmProviderOut(BaseModel):
+    index: int
+    name: str
+    base_url: str
+    model: str
+    temperature: float
+    timeout: float
+    enabled: bool
+    has_key: bool
+    key_hint: str = ""
+    key_unreadable: bool = False  # stored with another HD_SECRET_KEY
+    input_price: float = 0.0
+    output_price: float = 0.0
+
+
+class LlmSettingsOut(BaseModel):
+    providers: list[LlmProviderOut]
+    key_source: Literal["database", "environment", "none"]
+    updated_by: str = ""
+    updated_at: datetime | None = None
+
+
+class LlmTestIn(BaseModel):
+    # Which provider to test; None = all enabled providers with a key.
+    provider_index: int | None = Field(default=None, ge=0, le=2)
+
+
+class LlmTestItem(BaseModel):
+    index: int
+    name: str
+    model: str
     ok: bool
     latency_ms: int
-    model: str
     detail: str
+
+
+class LlmTestOut(BaseModel):
+    results: list[LlmTestItem]
+
+
+class LlmUsageTotals(BaseModel):
+    requests: int = 0
+    errors: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    cost_usd: float = 0.0
+    unpriced_requests: int = 0
+
+
+class LlmProviderStat(LlmUsageTotals):
+    provider: str
+    model: str
+
+
+class LlmUsageRow(BaseModel):
+    id: int
+    created_at: datetime
+    report_id: str | None
+    purpose: str
+    provider: str
+    model: str
+    prompt_tokens: int
+    completion_tokens: int
+    cost_usd: float | None
+    ok: bool
+    error: str = ""
+    latency_ms: int
+
+
+class LlmUsageOut(BaseModel):
+    days: int
+    totals: LlmUsageTotals
+    by_provider: list[LlmProviderStat]
+    recent: list[LlmUsageRow]
 
 
 # --- share links (P3) ---------------------------------------------------------

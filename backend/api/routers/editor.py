@@ -22,8 +22,8 @@ from ..schemas import (
     ReportDetailOut, RevisionOut, SectionSaveOut, SectionUpdate,
 )
 from ..services import (
-    audit, get_report_or_404, load_document, org_llm_config, report_detail, report_summary, run_llm_generation,
-    store_document,
+    audit, collect_attempts, get_report_or_404, load_document, org_llm_configs, report_detail, report_summary,
+    run_llm_generation, save_llm_usages, store_document,
     warm_artifacts,
 )
 
@@ -95,7 +95,7 @@ def editor(report_id: str, request: Request, user: User = Depends(current_user),
         report=report_summary(report),
         subject_display=display_birth(client.birth_date, client.birth_time, client.timezone),
         sections=[_editor_section(s) for s in sorted(document.sections, key=lambda i: i.order) if s.status == "included"],
-        llm_available=org_llm_config(db, user.org_id, request.app.state.secret_key) is not None,
+        llm_available=bool(org_llm_configs(db, user.org_id, request.app.state.secret_key)),
         glossary=glossary(),
     )
 
@@ -141,13 +141,19 @@ def llm_section(report_id: str, section_id: str, request: Request, user: User = 
     """Proposal only — the editor shows a diff and the coach accepts or discards it."""
     report, document = _editable(db, user, report_id)
     _section(document, section_id)
+    attempts: list = []
     try:
-        config = org_llm_config(db, user.org_id, request.app.state.secret_key)
-        if config is None:
+        configs = org_llm_configs(db, user.org_id, request.app.state.secret_key)
+        if not configs:
             raise LLMError("chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
-        draft = llm_edit_section(document, section_id, llm_config=config)
+        draft = llm_edit_section(document, section_id, llm_configs=configs,
+                                 on_llm_attempt=collect_attempts(attempts))
     except LLMError as exc:
+        if attempts:
+            save_llm_usages(db, user.org_id, report_id, "section", attempts)
+            db.commit()
         raise HTTPException(status_code=503, detail=f"AI chưa biên tập được phần này: {exc}") from exc
+    save_llm_usages(db, user.org_id, report_id, "section", attempts)
     audit(db, user, "report.llm_section", "report", report.id, ip=client_ip(request), section=section_id)
     db.commit()
     return LlmSectionOut(draft=draft, missing_facts=missing_facts(document.chart, _baseline(report, section_id), draft))
@@ -202,7 +208,8 @@ def regenerate(report_id: str, payload: RegenerateIn, request: Request, backgrou
         db.commit()
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
                             state.settings.artifact_dir, "regenerate",
-                            org_llm_config(db, user.org_id, state.secret_key), state.settings.job_heartbeat_seconds)
+                            llm_configs=org_llm_configs(db, user.org_id, state.secret_key),
+                            heartbeat_seconds=state.settings.job_heartbeat_seconds)
     else:
         store_document(db, report, generate_report(request_model), author=user.email, change_type="regenerate")
         db.commit()
