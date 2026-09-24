@@ -1,8 +1,9 @@
 // pm2 process file for the VPS (no Docker, no CI — plan §10).
 //   pm2 start deploy/ecosystem.config.cjs && pm2 save
-// Python services read /srv/human_design/.env themselves (backend/api/settings.py),
+// Python services read ~/human_design/.env themselves (backend/api/settings.py),
 // so this file does not depend on pm2's env_file support.
-const ROOT = process.env.HD_ROOT || "/srv/human_design";
+// Default: the pm2 user's home (e.g. /home/ubuntu/human_design); override with HD_ROOT=/path.
+const ROOT = process.env.HD_ROOT || `${process.env.HOME}/human_design`;
 
 const apps = [
     {

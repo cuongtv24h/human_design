@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Update the running app on the VPS (run as the app user, e.g. `hd`):
-#   /srv/human_design/deploy/deploy.sh            # branch main
-#   /srv/human_design/deploy/deploy.sh my-branch
+#   ~/human_design/deploy/deploy.sh            # branch main
+#   ~/human_design/deploy/deploy.sh my-branch
 # Or via the `git up` shortcut (docs/DEPLOY_VPS.md, §13).
 #
 # Smart skip: each step is skipped when its inputs did not change since the

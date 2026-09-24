@@ -12,8 +12,10 @@ Trình duyệt ──HTTPS──▶ Nginx :443 ──▶ hd-web (Next.js) 127.0.
 
 Chỉ Nginx mở ra Internet. `hd-web` và `hd-api` chỉ nghe trên `127.0.0.1`.
 
-> Quy ước trong tài liệu: thay `admin.example.com` bằng tên miền thật, còn `hd` là user Linux chạy ứng dụng.
-> Lệnh có `sudo` chạy bằng tài khoản quản trị. Lệnh sau `sudo -iu hd` chạy bằng user `hd`.
+> Quy ước trong tài liệu: thay `admin.example.com` bằng tên miền thật. Code đặt tại `~/human_design`
+> (ví dụ `/home/ubuntu/human_design` nếu bạn đăng nhập bằng user `ubuntu`).
+> Mọi lệnh không có `sudo` đều chạy bằng user đó. Lệnh có `sudo` cần quyền quản trị
+> (user `ubuntu` mặc định trên EC2 đã có sẵn).
 
 ---
 
@@ -58,12 +60,13 @@ sudo ufw enable
 sudo ufw status
 ```
 
-## 3. User chạy ứng dụng và thư mục
+## 3. Thư mục chạy ứng dụng
+
+App chạy bằng chính user hiện tại của bạn (ví dụ `ubuntu`), code đặt trong thư mục home —
+không cần tạo thêm user hệ thống:
 
 ```bash
-sudo adduser --system --group --shell /bin/bash --home /home/hd hd
-sudo mkdir -p /srv/human_design /srv/backups/human_design
-sudo chown -R hd:hd /srv/human_design /srv/backups/human_design
+mkdir -p ~/human_design ~/backups/human_design
 ```
 
 ## 4. PostgreSQL
@@ -79,8 +82,7 @@ Mật khẩu dạng hex chỉ gồm chữ và số nên đưa thẳng vào URL �
 ## 5. Lấy mã nguồn và cài thư viện
 
 ```bash
-sudo -iu hd
-cd /srv/human_design
+cd ~/human_design
 git clone https://github.com/cuongtv24h/human_design.git .
 git checkout main
 
@@ -93,7 +95,7 @@ cd web && npm ci && cd ..
 
 ## 6. File cấu hình `.env`
 
-Vẫn đang là user `hd`, trong `/srv/human_design`:
+Trong thư mục `~/human_design`:
 
 ```bash
 SECRET=$(python3 -c "import secrets;print(secrets.token_urlsafe(48))")
@@ -102,7 +104,7 @@ HD_ENV=production
 DATABASE_URL=postgresql+psycopg://hd:DAN_MAT_KHAU_CSDL_O_BUOC_4@127.0.0.1:5432/human_design
 HD_SECRET_KEY=$SECRET
 SESSION_HOURS=12
-ARTIFACT_DIR=/srv/human_design/var/artifacts
+ARTIFACT_DIR=$HOME/human_design/var/artifacts
 EOF
 chmod 600 .env
 nano .env     # thay DAN_MAT_KHAU_CSDL_O_BUOC_4 bằng mật khẩu thật
@@ -141,14 +143,13 @@ pm2 save
 pm2 install pm2-logrotate    # tự xoay vòng log, tránh đầy ổ cứng
 pm2 status          # hd-api và hd-web ở trạng thái "online"
 curl -s http://127.0.0.1:3000/api/v1/health    # {"status":"ok","environment":"production"}
-exit                # quay về tài khoản quản trị
 ```
 
-Cho pm2 tự chạy lại sau khi VPS khởi động lại (chạy bằng tài khoản quản trị):
+Cho pm2 tự chạy lại sau khi VPS khởi động lại:
 
 ```bash
-sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u hd --hp /home/hd
-sudo -iu hd pm2 save
+pm2 startup    # in ra 1 dòng lệnh sudo — copy nguyên dòng đó, chạy tiếp
+pm2 save
 ```
 
 > Tiến trình `hd-gpt-bridge` (kết nối ChatGPT Custom GPT) mặc định **không chạy**. Muốn bật thì chạy
@@ -157,7 +158,7 @@ sudo -iu hd pm2 save
 ## 9. Nginx và HTTPS
 
 ```bash
-sudo cp /srv/human_design/deploy/nginx.conf.example /etc/nginx/sites-available/human_design
+sudo cp ~/human_design/deploy/nginx.conf.example /etc/nginx/sites-available/human_design
 sudo sed -i 's/admin.example.com/TEN-MIEN-CUA-BAN/g' /etc/nginx/sites-available/human_design
 sudo ln -s /etc/nginx/sites-available/human_design /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
@@ -185,26 +186,24 @@ Mở `https://TEN-MIEN-CUA-BAN` và làm lần lượt:
 
 ```bash
 sudo apt -y install postgresql-client     # đã có sẵn nếu cài postgresql trên cùng máy
-sudo -iu hd
-/srv/human_design/deploy/backup.sh        # chạy thử một lần
+~/human_design/deploy/backup.sh        # chạy thử một lần
 crontab -e
 # thêm dòng này (2:15 sáng mỗi ngày, giữ 14 ngày):
-15 2 * * * /srv/human_design/deploy/backup.sh >> /srv/human_design/var/backup.log 2>&1
+15 2 * * * ~/human_design/deploy/backup.sh >> ~/human_design/var/backup.log 2>&1
 ```
 
-Mỗi ngày script tạo ra trong `/srv/backups/human_design/`:
+Mỗi ngày script tạo ra trong `~/backups/human_design/`:
 - `db-YYYYMMDD-HHMM.dump`: toàn bộ CSDL (khách hàng, báo cáo, lịch sử phiên bản, link chia sẻ, nhật ký).
 - `config-…tgz`: file `.env` (chứa `HD_SECRET_KEY` và mật khẩu CSDL).
 
 Nên chép thư mục này ra **ngoài VPS** định kỳ, ví dụ về máy tính của bạn:
-`rsync -a hd@IP-VPS:/srv/backups/human_design/ ~/hd-backups/`.
+`rsync -a hd@IP-VPS:~/backups/human_design/ ~/hd-backups/`.
 
 **Khôi phục CSDL** từ một bản sao lưu:
 
 ```bash
-sudo -iu hd
 pm2 stop hd-api
-pg_restore --clean --if-exists --no-owner -d "postgresql://hd:MAT_KHAU@127.0.0.1:5432/human_design" /srv/backups/human_design/db-YYYYMMDD-HHMM.dump
+pg_restore --clean --if-exists --no-owner -d "postgresql://hd:MAT_KHAU@127.0.0.1:5432/human_design" ~/backups/human_design/db-YYYYMMDD-HHMM.dump
 pm2 start hd-api
 ```
 
@@ -219,19 +218,17 @@ pm2 start hd-api
 
 ### Lệnh tắt `git up` (cài một lần, dùng mãi)
 
-Trên VPS, chạy **một lần duy nhất** bằng user `hd` để tạo lệnh tắt:
+Trên VPS, chạy **một lần duy nhất** để tạo lệnh tắt:
 
 ```bash
-sudo -iu hd
-cd /srv/human_design
+cd ~/human_design
 git config --global alias.up '!f() { bash deploy/deploy.sh "${1:-$(git rev-parse --abbrev-ref HEAD)}"; }; f'
 ```
 
 Từ đó về sau, mỗi lần cập nhật chỉ cần **đúng 1 lệnh**:
 
 ```bash
-sudo -iu hd
-cd /srv/human_design
+cd ~/human_design
 git up            # deploy nhánh hiện tại: pull code → cài lib → migrate → build → restart → kiểm tra
 ```
 
@@ -245,8 +242,7 @@ Muốn deploy nhánh khác thì thêm tên nhánh: `git up main`.
 Khi có tính năng mới cần thử trên VPS trước:
 
 ```bash
-sudo -iu hd
-cd /srv/human_design
+cd ~/human_design
 git up ten-nhanh-test        # VPS chuyển sang chạy nhánh test
 git up                       # mỗi khi có code test mới, chạy lại để cập nhật
 ```
@@ -272,8 +268,7 @@ deploy/check.sh      # chạy test + kiểm tra migration + build giao diện
 Sau đó trên VPS:
 
 ```bash
-sudo -iu hd
-/srv/human_design/deploy/deploy.sh          # nhánh main; hoặc: deploy.sh ten-nhanh
+~/human_design/deploy/deploy.sh          # nhánh main; hoặc: deploy.sh ten-nhanh
 ```
 
 Script làm lần lượt (bước nào không đổi so với lần deploy **thành công** trước sẽ tự bỏ qua):
@@ -304,7 +299,7 @@ Nên sao lưu trước những lần cập nhật lớn: `deploy/backup.sh && de
 | `git up` báo `set: Illegal option -o pipefail` | Alias cũ dùng `sh` (trên Ubuntu là `dash`) | Cài lại alias ở mục 13 (dùng `bash`), rồi chạy lại `git up` |
 | Nút “AI biên tập phần này” báo quá thời gian | Nginx cắt kết nối sớm | Giữ `proxy_read_timeout 180s` trong cấu hình Nginx |
 | Báo cáo AI “Thất bại: Máy chủ khởi động lại… đã thử 3 lần” | AI lỗi liên tục, hoặc VPS khởi động lại nhiều lần | Kiểm tra **Cài đặt → AI / LLM → Kiểm tra kết nối**, rồi bấm “Tạo lại với cùng tùy chọn” |
-| Quên mật khẩu admin | — | `sudo -iu hd; cd /srv/human_design; .venv/bin/python -m backend.api.cli create-admin --email <email cũ>` để đặt lại mật khẩu |
+| Quên mật khẩu admin | — | `cd ~/human_design; .venv/bin/python -m backend.api.cli create-admin --email <email cũ>` để đặt lại mật khẩu |
 
 Các lệnh hay dùng:
 
