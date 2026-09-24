@@ -133,3 +133,44 @@ export interface EditorData {
 export interface SectionSave { version: number; section: EditorSection; missing_facts: string[] }
 export interface Revision { version: number; author: string; change_type: string; warnings_count: number; created_at: string }
 export interface LlmProposal { draft: string; missing_facts: string[] }
+
+// --- sharing / links / LLM settings ---
+export type ShareFormat = "pdf" | "docx" | "markdown";
+export interface Share {
+  id: number;
+  report_id: string;
+  label: string;
+  formats: ShareFormat[];
+  expires_at: string;
+  revoked_at: string | null;
+  view_count: number;
+  last_viewed_at: string | null;
+  created_at: string;
+  status: "active" | "expired" | "revoked";
+}
+export interface ShareCreated { share: Share; url: string }
+export interface DownloadLink { url: string; expires_at: string }
+
+export interface LlmSettings {
+  base_url: string;
+  model: string;
+  temperature: number;
+  timeout: number;
+  key_source: "database" | "environment" | "none";
+  key_hint: string;
+  key_unreadable: boolean;
+  updated_by: string;
+  updated_at: string | null;
+}
+export interface LlmTest { ok: boolean; latency_ms: number; model: string; detail: string }
+
+export interface PublicReport {
+  client_name: string;
+  subject_display: string;
+  title: string;
+  generated_at: string;
+  summary: ChartSummary;
+  formats: ShareFormat[];
+  sections: { id: string; title: string; content_markdown: string }[];
+  org_name: string;
+}

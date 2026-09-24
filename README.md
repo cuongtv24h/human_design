@@ -150,6 +150,10 @@ cd web && npm install && npm run dev        # http://localhost:3000
 - Xuất **PDF/Word** từ cùng một `ReportDocument` (`backend/reporting/render_pdf.py`, `render_docx.py`). Cần font DejaVu (`sudo apt install fonts-dejavu-core`, hoặc đặt `HD_FONT_DIR`); hình BodyGraph PNG dùng `resvg-py`, không cần libcairo. File được render sẵn sau khi tạo báo cáo và lưu theo phiên bản ở `ARTIFACT_DIR` (mặc định `var/artifacts`).
 - Giờ sinh nhập và hiển thị theo **giờ Việt Nam khai báo**, tính theo UTC+07:00 cố định (`tools/hd_time.py`).
 - **Biên tập báo cáo** (`/reports/{id}/edit`): sửa từng phần bằng Markdown, “Lưu phiên bản” (Ctrl/⌘+S) tạo phiên bản mới, xem/khôi phục lịch sử, cảnh báo vàng khi nội dung mất thông tin kỹ thuật gốc (Type, Strategy, Authority…), bản nháp tự lưu trong trình duyệt mỗi 10 giây. Nút “AI biên tập phần này” trả về đề xuất kèm so sánh để chấp nhận hoặc bỏ.
+- **Chia sẻ cho khách**: tab “Chia sẻ” của báo cáo tạo link `/r/…` (chọn định dạng được tải, hạn 7 ngày–1 năm, thu hồi bất cứ lúc nào, đếm lượt xem). Tab “Xuất file” có nút “Link 5 phút” — link tải trực tiếp không cần đăng nhập.
+- **AI / LLM** (admin, `/settings/llm`): nhập base URL, mô hình, khóa API (mã hóa khi lưu) và bấm “Kiểm tra kết nối”; nếu không lưu khóa, hệ thống dùng `HD_LLM_API_KEY`.
+- **`HD_SECRET_KEY`** ký link và mã hóa khóa AI. Production nên đặt trong `.env` (chuỗi ngẫu nhiên dài, ví dụ `python -c "import secrets;print(secrets.token_urlsafe(48))"`); nếu bỏ trống, hệ thống tự tạo `var/secret_key`. Đổi khóa này làm link cũ mất hiệu lực và phải nhập lại khóa AI.
+- Nâng cấp CSDL: `.venv/bin/alembic upgrade head` (migration `0002`: bảng `share_links`, cột `organizations.llm_settings`).
 - Preview nhúng trong iframe khác site: đặt `COOKIE_SAMESITE=none` (cookie `Secure; Partitioned`). Production cùng domain giữ mặc định `lax`.
 - Chế độ nội dung LLM cần `HD_LLM_API_KEY`; hiện chạy nền bằng FastAPI background task (worker arq/Redis thuộc P2).
 

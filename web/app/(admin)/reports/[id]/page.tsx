@@ -1,43 +1,62 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Loader2, PencilLine, RefreshCw } from "lucide-react";
+import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Link2, Loader2, PencilLine, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChartTiles } from "@/components/ChartTiles";
 import { Markdown } from "@/components/Markdown";
+import { CopyField, SharePanel } from "@/components/SharePanel";
+import { absoluteUrl } from "@/lib/clipboard";
 import { Badge, Button, Card, ErrorBox, PageHeader, Spinner, StatusBadge, cx } from "@/components/ui";
 import { api, fileUrl } from "@/lib/api";
 import { formatTimestamp, MODE_LABEL, TEMPLATE_LABEL, TIER_LABEL } from "@/lib/format";
-import type { ReportDetail } from "@/lib/types";
+import type { DownloadLink, ReportDetail } from "@/lib/types";
 
 const TABS = [
   { id: "content", label: "Nội dung" },
   { id: "infographic", label: "Infographic" },
   { id: "bodygraph", label: "BodyGraph" },
   { id: "export", label: "Xuất file" },
+  { id: "share", label: "Chia sẻ" },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
-function ExportRow({ icon, title, description, href, disabled }: {
-  icon: React.ReactNode; title: string; description: string; href?: string; disabled?: boolean;
+function ExportRow({ icon, title, description, href, reportId, linkFormat }: {
+  icon: React.ReactNode; title: string; description: string; href: string; reportId: string;
+  linkFormat: "pdf" | "docx" | "markdown" | "infographic" | "bodygraph_svg";
 }) {
+  const [link, setLink] = useState<DownloadLink | null>(null);
+  const make = useMutation({
+    mutationFn: () => api.post<DownloadLink>(`/reports/${reportId}/links`, { format: linkFormat }),
+    onSuccess: setLink,
+  });
   return (
-    <div className="flex items-center justify-between gap-4 px-5 py-4">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 text-brand-600">{icon}</div>
-        <div>
-          <div className="font-medium text-ink">{title}</div>
-          <div className="text-sm text-muted">{description}</div>
+    <div className="px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 text-brand-600">{icon}</div>
+          <div>
+            <div className="font-medium text-ink">{title}</div>
+            <div className="text-sm text-muted">{description}</div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" className="px-3 py-1.5" loading={make.isPending} onClick={() => make.mutate()}
+            title="Link tải trực tiếp, không cần đăng nhập, hết hạn sau 5 phút">
+            <Link2 className="size-4" /> Link 5 phút
+          </Button>
+          <a href={href} className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-brand-50">
+            <Download className="size-4" /> Tải về
+          </a>
         </div>
       </div>
-      {disabled || !href ? (
-        <Badge tone="stone">Đang phát triển</Badge>
-      ) : (
-        <a href={href} className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3 py-1.5 text-sm font-medium hover:bg-brand-50">
-          <Download className="size-4" /> Tải về
-        </a>
+      <ErrorBox error={make.error} className="mt-3" />
+      {link && (
+        <div className="mt-3">
+          <CopyField value={absoluteUrl(link.url)} hint={`Mở được không cần đăng nhập đến ${formatTimestamp(link.expires_at)} (5 phút). Để gửi khách lâu dài, dùng tab “Chia sẻ”.`} />
+        </div>
       )}
     </div>
   );
@@ -190,12 +209,18 @@ export default function ReportPage() {
 
           {tab === "export" && (
             <Card className="divide-y divide-line">
-              <ExportRow icon={<FileText className="size-5" />} title="PDF" description="Bản in hoàn chỉnh: bìa, BodyGraph, mục lục và toàn bộ nội dung." href={fileUrl(r.id, "pdf", true)} />
-              <ExportRow icon={<FileText className="size-5" />} title="Word (.docx)" description="Cùng nội dung như PDF — chuyên viên chỉnh sửa, bổ sung trước khi gửi." href={fileUrl(r.id, "docx", true)} />
-              <ExportRow icon={<FileText className="size-5" />} title="Markdown (.md)" description="Toàn bộ nội dung — mở bằng Word, Notion, Obsidian…" href={fileUrl(r.id, "markdown", true)} />
-              <ExportRow icon={<FileCode2 className="size-5" />} title="Infographic (.html)" description="Trang tóm tắt một màn hình, gửi kèm cho khách hàng." href={fileUrl(r.id, "infographic.html", true)} />
-              <ExportRow icon={<FileImage className="size-5" />} title="BodyGraph (.svg)" description="Hình BodyGraph chất lượng cao, in ấn không vỡ nét." href={fileUrl(r.id, "bodygraph.svg", true)} />
+              <ExportRow reportId={r.id} linkFormat="pdf" icon={<FileText className="size-5" />} title="PDF" description="Bản in hoàn chỉnh: bìa, BodyGraph, mục lục và toàn bộ nội dung." href={fileUrl(r.id, "pdf", true)} />
+              <ExportRow reportId={r.id} linkFormat="docx" icon={<FileText className="size-5" />} title="Word (.docx)" description="Cùng nội dung như PDF — chuyên viên chỉnh sửa, bổ sung trước khi gửi." href={fileUrl(r.id, "docx", true)} />
+              <ExportRow reportId={r.id} linkFormat="markdown" icon={<FileText className="size-5" />} title="Markdown (.md)" description="Toàn bộ nội dung — mở bằng Word, Notion, Obsidian…" href={fileUrl(r.id, "markdown", true)} />
+              <ExportRow reportId={r.id} linkFormat="infographic" icon={<FileCode2 className="size-5" />} title="Infographic (.html)" description="Trang tóm tắt một màn hình, gửi kèm cho khách hàng." href={fileUrl(r.id, "infographic.html", true)} />
+              <ExportRow reportId={r.id} linkFormat="bodygraph_svg" icon={<FileImage className="size-5" />} title="BodyGraph (.svg)" description="Hình BodyGraph chất lượng cao, in ấn không vỡ nét." href={fileUrl(r.id, "bodygraph.svg", true)} />
             </Card>
+          )}
+
+          {tab === "share" && (
+            r.status === "archived"
+              ? <ErrorBox error="Báo cáo đã lưu trữ — không tạo link chia sẻ mới được." />
+              : <SharePanel reportId={r.id} clientName={r.client_name} />
           )}
         </>
       )}

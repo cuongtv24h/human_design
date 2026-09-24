@@ -1,6 +1,8 @@
 # Kế hoạch triển khai Frontend / Admin — Human Design Analyzer
 
-> Phiên bản 1.3.2 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+> Phiên bản 1.3.3 · 2026-09-24 · Trạng thái: **đã chốt D6b-giờ VN +07:00 cố định, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+>
+> Thay đổi v1.3.3: **P0-10, P2-6, P3-1, P3-2 hoàn thành** — link tải ký tên 5 phút, cấu hình AI/LLM (khóa mã hóa) + kiểm tra kết nối, link chia sẻ cho khách + trang `/r/[token]`.
 >
 > Thay đổi v1.3.2: **P2-1, P2-3, P2-4 hoàn thành** — trình biên tập từng phần, phiên bản/khôi phục, cảnh báo mất sự kiện kỹ thuật, AI biên tập từng phần kèm so sánh.
 >
@@ -301,7 +303,7 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P0-7 worker arq | ⏳ tạm thay | LLM chạy bằng FastAPI `BackgroundTasks`; fallback template khi lỗi/thiếu key |
 | P0-8 CORS whitelist, rate limit | ◐ | CORS theo `CORS_ORIGINS`; giới hạn đăng nhập sai 5 lần/15 phút (trong tiến trình, chưa Redis) |
 | P0-9 `/catalog` | ✅ | Kiểu TS viết tay trong `web/lib/types.ts` (chưa sinh tự động) |
-| P0-10 artifact trên đĩa | ◐ | Cache PDF/DOCX theo phiên bản ở `ARTIFACT_DIR` (render sẵn sau khi tạo); link ký tên có hạn: chưa làm |
+| P0-10 artifact trên đĩa + link ký tên | ✅ | Cache PDF/DOCX theo phiên bản ở `ARTIFACT_DIR` (render sẵn, xóa bản cũ); `POST /reports/{id}/links` → `/api/v1/files/{token}` (HMAC-SHA256, hết hạn 5 phút, không cần đăng nhập, ghi nhật ký) |
 | P1-1 khung web | ✅ | Next.js 15, Tailwind 4, TanStack Query; component tự viết (chưa dùng shadcn CLI) |
 | P1-2 đăng nhập + guard | ✅ | |
 | P1-3 API clients/reports/preview | ✅ | `tests/test_api_v1.py` (7 test) |
@@ -312,6 +314,10 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | P2-1 API sửa section + revision + restore + regenerate | ✅ | `backend/api/routers/editor.py`: `PUT /reports/{id}/sections/{sid}` (khóa lạc quan `base_version` → 409), `GET …/revisions`, `POST …/revisions/{v}/restore` (tạo phiên bản mới), `POST …/regenerate`; lưu 18–60 ms; PDF/DOCX render lại nền, xóa cache bản cũ |
 | P2-2 API LLM | ◐ | `POST …/sections/{sid}/llm` đồng bộ, chỉ trả **đề xuất** (không lưu), 503 khi thiếu key; LLM cả báo cáo = `regenerate` với `content_mode=llm`. SSE tiến trình: chưa làm (trang tự thăm dò) |
 | P2-3 trình biên tập | ✅ | `web/app/(admin)/reports/[id]/edit`: danh sách phần · Markdown Soạn thảo/Xem trước · dữ liệu nguồn / thuật ngữ chuẩn / lịch sử; cảnh báo vàng khi mất Type/Strategy/Authority… (`POST …/check`, không chặn lưu); tự lưu nháp trình duyệt 10 giây + khôi phục; Ctrl/⌘+S |
+| P2-6 cấu hình LLM | ✅ | `GET/PUT /settings/llm`, `POST /settings/llm/test` (chỉ admin); khóa mã hóa Fernet bằng `HD_SECRET_KEY`, chỉ hiện `••••1234`, không vào nhật ký; cấu hình trong hệ thống ưu tiên hơn `HD_LLM_*`; trang `/settings/llm` |
+| P3-1 share link | ✅ | Bảng `share_links` (migration `0002`): token chỉ hiện một lần (lưu SHA-256), định dạng được phép, hết hạn 1–365 ngày, thu hồi, đếm lượt xem; nhật ký xem/tải |
+| P3-2 trang `/r/[token]` | ✅ | SSR, mobile-first, `noindex`, `no-referrer`: thông tin + chỉ số + Infographic + đọc toàn bộ báo cáo + nút tải; không lộ cảnh báo nội bộ/giờ UTC. Link hết hạn/thu hồi → thông báo thân thiện (mã HTTP 410 ở API; trang Next trả 200) |
+| P3-3 gửi email | ⏳ | Chưa làm (cần SMTP) |
 | P2-4 “AI biên tập phần này” | ✅ | Diff theo dòng (LCS), “Dùng bản này” / “Bỏ đề xuất”; proxy Next `proxyTimeout` 180 s |
 
 ### P0 — Nền móng backend (tuần 1–2)

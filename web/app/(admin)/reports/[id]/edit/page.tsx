@@ -333,7 +333,7 @@ export default function EditReportPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" className="px-3 py-1.5" disabled={locked || !data.llm_available} loading={ai.isPending}
-                  title={data.llm_available ? "AI viết lại riêng phần này; bạn xem so sánh trước khi dùng" : "Chưa cấu hình khóa AI (HD_LLM_API_KEY)"}
+                  title={data.llm_available ? "AI viết lại riêng phần này; bạn xem so sánh trước khi dùng" : "Chưa bật AI — quản trị viên cấu hình ở Cài đặt → AI / LLM"}
                   onClick={() => ai.mutate()}>
                   <Sparkles className="size-4" /> {ai.isPending ? "AI đang viết…" : "AI biên tập phần này"}
                 </Button>
