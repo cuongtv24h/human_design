@@ -510,6 +510,7 @@ class ReportOrchestrator:
             report_id=request.report_id,
             title=title,
             tier=request.tier,
+            content_mode=request.content_mode,
             domains=request.domains,
             subject=request.subject,
             partner=request.partner,

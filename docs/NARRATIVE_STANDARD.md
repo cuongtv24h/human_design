@@ -4,6 +4,27 @@ Tài liệu này là **chuẩn bắt buộc** cho template báo cáo tự sự `
 trong `backend/reporting/`. Mọi thay đổi nội dung của template này phải (1) cập nhật
 đúng chuẩn ở đây và (2) đi qua test `tests/test_narrative_report.py`.
 
+## 0. Chuẩn cấu trúc báo cáo (áp dụng mọi template)
+
+Mọi báo cáo gồm ba khối: **(1) thông tin người được phân tích** + **(2) bản đồ
+BodyGraph tự sinh** qua công cụ + **(3) nội dung** theo một trong hai chế độ
+(`ContentMode`):
+
+1. **`template`** (mặc định): renderer deterministic — nội dung trong file này.
+2. **`llm`**: LLM biên tập lại nội dung dựa trên dữ liệu nguồn đã tính toán,
+   với vai trò **nhà chuyên môn bộ môn + chuyên gia tư vấn, tâm lý**; thể hiện
+   sự thấu cảm và tâm tình dẫn dắt khi viết. Lớp kỹ thuật:
+   `backend/reporting/llm_editor.py` (`LLM_PERSONA`, `LLM_RULES`,
+   `build_llm_brief`, `validate_llm_draft`, `merge_llm_draft`).
+
+Quy tắc bắt buộc cho chế độ LLM:
+- Chỉ diễn giải/kể chuyện trên dữ liệu đã tính — **không tính lại, không bịa số**.
+- Tuân thủ toàn bộ quy tắc viết ở mục 3 dưới đây (trục thấu cảm → cơ chế →
+  hành động, 70/30, song ngữ tùy biến cho thuật ngữ quan trọng, hệ ẩn dụ chuẩn).
+- Mọi sự kiện kỹ thuật (Type, Strategy, Authority, Profile, Definition, Cross,
+  danh sách kênh/cổng) phải được `validate_llm_draft` xác nhận còn nguyên trước
+  khi phát hành; vi phạm được ghi warning trong document.
+
 ## 1. Mục tiêu
 
 Báo cáo phải được **người chưa từng nghe qua Human Design** đọc hiểu và dùng được ngay.

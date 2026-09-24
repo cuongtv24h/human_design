@@ -40,6 +40,24 @@ class ReportTemplate(str, Enum):
     OPERATING_MANUAL = "operating_manual"
 
 
+class ContentMode(str, Enum):
+    """Who writes the report body.
+
+    Every report starts from the same calculated data and always carries the
+    subject information plus the auto-generated BodyGraph.  The content itself
+    then follows one of two modes:
+
+    - ``TEMPLATE``: deterministic renderer (default).
+    - ``LLM``: an LLM rewrites the content from the calculated source data,
+      bound to the expert/consultant persona and the hard rules defined in
+      ``backend/reporting/llm_editor.py`` (see ``docs/NARRATIVE_STANDARD.md``).
+      The LLM never recalculates — it only narrates.
+    """
+
+    TEMPLATE = "template"
+    LLM = "llm"
+
+
 class DomainName(str, Enum):
     MONEY = "money"
     POTENTIAL = "potential"
@@ -108,6 +126,7 @@ class ReportRequest(BaseModel):
     subject: SubjectInput
     tier: ReportTier = ReportTier.FREE_BASIC
     template: ReportTemplate = ReportTemplate.SECTIONS
+    content_mode: ContentMode = ContentMode.TEMPLATE
     domains: list[DomainName] = Field(default_factory=list)
     partner: PartnerInput | None = None
     output_format: ReportFormat = ReportFormat.STRUCTURED
@@ -179,6 +198,7 @@ class ReportProvenance(BaseModel):
     generated_at: datetime
     source_tools: list[str] = Field(default_factory=list)
     knowledge_refs: list[str] = Field(default_factory=list)
+    editor: str = "template"
 
 
 class ReportDocument(BaseModel):
@@ -191,6 +211,7 @@ class ReportDocument(BaseModel):
     report_id: UUID
     title: str
     tier: ReportTier
+    content_mode: ContentMode = ContentMode.TEMPLATE
     domains: list[DomainName] = Field(default_factory=list)
     subject: SubjectInput
     partner: PartnerInput | None = None
@@ -201,9 +222,23 @@ class ReportDocument(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     provenance: ReportProvenance
 
-    def to_markdown(self) -> str:
+    def to_markdown(self, bodygraph_path: str | None = None) -> str:
         """Render a deterministic Markdown document without invoking an LLM."""
         lines = [f"# {self.title}", ""]
+        info_bits = [
+            f"Ngày sinh: {self.subject.birth_date}",
+            f"Giờ sinh: {self.subject.birth_time} (UTC{self.subject.timezone})",
+        ]
+        if self.subject.birth_location:
+            info_bits.append(f"Nơi sinh: {self.subject.birth_location}")
+        if self.partner:
+            info_bits.append(
+                f"Đối tác: {self.partner.name or '—'} "
+                f"({self.partner.birth_date} {self.partner.birth_time})"
+            )
+        lines += ["> " + " · ".join(info_bits), ""]
+        if bodygraph_path:
+            lines += [f"![BodyGraph]({bodygraph_path})", ""]
         for section in sorted(self.sections, key=lambda item: item.order):
             if section.status != "included":
                 continue

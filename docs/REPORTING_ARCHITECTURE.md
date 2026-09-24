@@ -22,7 +22,45 @@ ReportDocument
 Markdown/HTML/PDF renderer
 ```
 
-`backend/reporting/contract.py` là schema chuẩn. `backend/reporting/orchestrator.py` là entry point điều phối. `backend/reporting/catalog.py` là product catalog của tier và domain. `tools/hd_language.py` là lớp thuật ngữ tiếng Việt chuẩn dùng chung cho mọi nơi hiển thị.
+`backend/reporting/contract.py` là schema chuẩn. `backend/reporting/orchestrator.py` là entry point điều phối. `backend/reporting/catalog.py` là product catalog của tier và domain. `tools/hd_language.py` là lớp thuật ngữ tiếng Việt chuẩn dùng chung cho mọi nơi hiển thị. `backend/reporting/llm_editor.py` là lớp biên tập LLM. `backend/reporting/export.py` xuất file cuối (Markdown + BodyGraph SVG).
+
+## Chuẩn cấu trúc báo cáo
+
+Mọi báo cáo gồm ba khối, đúng thứ tự:
+
+1. **Thông tin người được phân tích** — tên, ngày/giờ sinh, múi giờ, nơi sinh
+   (và đối tác nếu có) — render tự động ở đầu `to_markdown()`.
+2. **Bản đồ BodyGraph tự sinh** qua công cụ (`tools/hd_bodygraph.py`) —
+   `export_report(document, out_dir)` viết `<slug>_bodygraph.svg` và nhúng
+   `![BodyGraph](...)` vào Markdown.
+3. **Nội dung** theo một trong hai `content_mode`:
+
+| content_mode | Ai viết nội dung | Cách vận hành |
+| --- | --- | --- |
+| `template` (mặc định) | Renderer deterministic | `orchestrator.run()` ra Markdown cuối cùng |
+| `llm` | LLM biên tập trên dữ liệu nguồn | `build_llm_brief(document)` → LLM → `merge_llm_draft(document, drafts)` |
+
+### Chế độ LLM (content_mode = "llm")
+
+LLM đóng vai **nhà chuyên môn bộ môn + chuyên gia tư vấn, tâm lý**; viết thấu
+cảm và tâm tình dẫn dắt. Pipeline trong repo là deterministic — repo không gọi
+LLM:
+
+```text
+ReportDocument (template)
+  → build_llm_brief(document)      # persona + quy tắc + dữ liệu nguồn JSON
+                                    # + cấu trúc/template tham chiếu + bảng thuật ngữ chuẩn
+  → LLM bên ngoài biên tập, trả về {"<section_id>": "<markdown mới>"}
+  → merge_llm_draft(document, drafts, editor_model)
+      ├─ validate_llm_draft(): giữ nguyên sự kiện kỹ thuật (Type, Strategy,
+      │   Authority, Profile, Definition, Cross...) — thiếu → cảnh báo
+      └─ provenance.editor = "llm:<model>"
+```
+
+Quy tắc cứng (trong `LLM_RULES`): không tính lại, không bịa số, thuật ngữ
+song ngữ trau chuốt theo `tools/hd_language.py`, tỉ lệ 70/30, giữ tiêu đề/thứ
+tự phần. Dữ liệu thô trong `chart`/`ReportSection.data` không bao giờ bị thay
+bởi LLM.
 
 ## Contract chính
 
