@@ -217,6 +217,31 @@ pm2 start hd-api
 
 ## 13. Cập nhật phiên bản mới
 
+### Lệnh tắt `git up` (cài một lần, dùng mãi)
+
+Trên VPS, chạy **một lần duy nhất** bằng user `hd` để tạo lệnh tắt:
+
+```bash
+sudo -iu hd
+cd /srv/human_design
+git config --global alias.up '!f() { sh deploy/deploy.sh "${1:-$(git rev-parse --abbrev-ref HEAD)}"; }; f'
+```
+
+Từ đó về sau, mỗi lần cập nhật chỉ cần **đúng 1 lệnh**:
+
+```bash
+sudo -iu hd
+cd /srv/human_design
+git up            # deploy nhánh hiện tại: pull code → cài lib → migrate → build → restart → kiểm tra
+```
+
+Muốn deploy nhánh khác thì thêm tên nhánh: `git up main`.
+
+> `git up` dừng an toàn nếu `.env` thiếu/chưa đúng, hoặc code trên VPS có sửa đổi chưa commit
+> (do `git pull --ff-only`). Sửa xong chạy lại `git up` là tiếp tục.
+
+### Chi tiết các bước (để tham khảo)
+
 Trên máy phát triển, nếu có thể, kiểm tra trước khi đưa lên:
 
 ```bash
