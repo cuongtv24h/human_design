@@ -11,7 +11,9 @@ const nextConfig: NextConfig = {
   // Dev previews are served through proxied hosts (e.g. *.e2b.app).
   allowedDevOrigins: ["*.e2b.app", "localhost", "127.0.0.1"],
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${API_INTERNAL_URL}/api/:path*` }];
+    // afterFiles: route handler nội bộ (vd proxy stream SSE ở app/api/...)
+    // được ưu tiên trước rewrite, còn lại vẫn proxy sang FastAPI như cũ.
+    return { afterFiles: [{ source: "/api/:path*", destination: `${API_INTERNAL_URL}/api/:path*` }] };
   },
   async headers() {
     return [
