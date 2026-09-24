@@ -1,6 +1,8 @@
 # Kế hoạch triển khai Frontend / Admin — Human Design Analyzer
 
-> Phiên bản 1.0 · 2026-09-24 · Trạng thái: **đề xuất, chờ chốt các quyết định ở mục 3**
+> Phiên bản 1.1 · 2026-09-24 · Trạng thái: **đã chốt D6-giờ VN, D8-pm2/VPS, D10-template tự sinh; các mục còn lại theo đề xuất mặc định**
+>
+> Thay đổi v1.1: thêm mục 1.3 *Quy ước thời gian* (nhập & hiển thị giờ Việt Nam, tính theo UTC với offset lịch sử); bỏ Docker/CI → **pm2 trên VPS riêng**; thương hiệu dùng **template tự sinh**; bỏ geocoding; rút gọn lộ trình.
 > Nền tảng hiện có: branch `arena/01a0d215-human-design` @ `240d670` — 40 MCP tools, 44 REST routes, 48 test xanh.
 
 ---
@@ -12,19 +14,19 @@ phân tích + BodyGraph + nội dung template/LLM), infographic HTML, PDF, MCP/R
 để có sản phẩm Admin dùng được là **lớp ứng dụng**: lưu trữ, đăng nhập/phân quyền, hàng đợi
 job cho LLM, API v1 riêng cho frontend, và chính giao diện.
 
-Đề xuất triển khai **5 giai đoạn trong khoảng 9–10 tuần** với đội 1 Backend + 1 Frontend
+Đề xuất triển khai **5 giai đoạn trong khoảng 9 tuần** với đội 1 Backend + 1 Frontend
 (+ designer bán thời gian):
 
 | Giai đoạn | Nội dung | Thời lượng |
 | --- | --- | --- |
-| **P0** | Nền móng backend: DB, API v1, auth, job queue, timezone, PDF theo chuẩn | 2 tuần |
+| **P0** | Nền móng backend: DB, API v1, auth, job queue, **giờ Việt Nam lịch sử**, PDF/DOCX theo chuẩn | 2 tuần |
 | **P1** | Admin MVP: đăng nhập, khách hàng, wizard tạo báo cáo, xem/tải báo cáo | 3 tuần |
 | **P2** | Trình biên tập báo cáo + LLM + đủ định dạng xuất (MD/PDF/DOCX/Infographic) | 2 tuần |
-| **P3** | Chia sẻ cho khách hàng (link bảo mật / cổng khách hàng) | 1,5 tuần |
-| **P4** | Hardening, bảo mật, quan sát hệ thống, triển khai production | 1 tuần |
+| **P3** | Chia sẻ cho khách hàng (link bảo mật) | 1 tuần |
+| **P4** | Hardening, bảo mật, giám sát, triển khai production bằng **pm2 trên VPS** | 1 tuần |
 
 Mốc quan trọng: **cuối P1 (tuần 5)** coach đã dùng được nội bộ với chế độ template;
-**cuối P4 (tuần 10)** sẵn sàng go-live.
+**cuối P4 (tuần 9)** sẵn sàng go-live.
 
 ---
 
@@ -53,11 +55,56 @@ Mốc quan trọng: **cuối P1 (tuần 5)** coach đã dùng được nội b�
 | B4 | **Job nền** | Mọi thứ chạy đồng bộ | LLM mất 30–120 giây → timeout HTTP |
 | B5 | **PDF theo chuẩn báo cáo** | `build_pdf(chart, ...)` nhận chart thô, nội dung riêng, định dạng ngày `dd/mm/YYYY` | PDF lệch nội dung với Markdown/LLM/Infographic |
 | B6 | **DOCX** | Chưa có | Không đáp ứng yêu cầu "xuất pdf/doc" |
-| B7 | **Múi giờ lịch sử** | Nhập offset cố định `+07:00` | **Sai chart** với người sinh ở nơi/thời kỳ có offset khác (VD miền Nam trước 1975 dùng UTC+8, giờ mùa hè ở nước ngoài) |
+| B7 | **Giờ Việt Nam lịch sử** | Nhập offset cố định `+07:00` | **Sai chart** với người sinh vào giai đoạn Việt Nam không dùng UTC+7 — xem mục 1.3 |
 | B8 | **Sửa từng phần + kiểm tra lại** | Chỉ merge draft LLM | Coach sửa tay có thể làm mất sự kiện kỹ thuật mà không ai biết |
 | B9 | **Catalog cho UI** | Nằm trong `catalog.py`, chưa có endpoint | Frontend phải hard-code tier/domain/section |
 | B10 | **CORS** | `allow_origins=["*"]` + `allow_credentials=True` | Không hợp lệ cho app có cookie đăng nhập; rủi ro bảo mật |
-| B11 | **Đóng gói/triển khai** | Không có Dockerfile, không có cấu hình môi trường | Không triển khai lặp lại được |
+| B11 | **Cấu hình chạy production** | Chưa có cấu hình pm2, reverse proxy, biến môi trường | Không triển khai lặp lại được |
+
+### 1.3 Quy ước thời gian (đã chốt)
+
+**Nguyên tắc: nhập giờ Việt Nam → hiển thị giờ Việt Nam → tính toán bằng UTC.**
+
+| Bước | Giá trị | Ghi chú |
+| --- | --- | --- |
+| Nhập | Giờ đồng hồ **tại Việt Nam** lúc sinh (VD `15/05/1990 08:30`) | Người dùng không cần biết múi giờ |
+| Hiển thị | Đúng giờ đã nhập — trên báo cáo, BodyGraph, infographic, PDF/DOCX | Chỉ mang tính hiển thị: `Giờ sinh: 08:30 (giờ Việt Nam)` |
+| Tính toán | **UTC** = giờ Việt Nam − offset có hiệu lực **vào ngày sinh** | Swiss Ephemeris tính vị trí hành tinh theo Julian Day ở thang UT; Design = thời điểm Mặt Trời lùi 88° |
+
+**Vì sao phải dùng UTC:** vị trí hành tinh là một thời điểm vật lý duy nhất trên toàn cầu. 08:30 ở Hà Nội
+và 08:30 ở London là hai thời điểm khác nhau cách 7 giờ, nên phải quy về cùng một thang giờ (UTC) rồi mới
+tra lịch thiên văn. Code hiện tại đã làm đúng việc này (`orchestrator._parse_birth_datetime` đổi giờ
+địa phương sang UTC rồi mới gọi `calculate_hd_chart`). **Chỗ thiếu duy nhất là offset: hiện luôn dùng
+`+07:00`, trong khi Việt Nam không phải lúc nào cũng dùng UTC+7.**
+
+Offset lịch sử theo tzdata (`Asia/Ho_Chi_Minh`, dữ liệu IANA):
+
+| Giai đoạn (giờ địa phương) | Offset | Ghi chú |
+| --- | --- | --- |
+| trước 01/05/1911 | UTC+7:06:30 | Giờ trung bình địa phương |
+| 01/05/1911 – 31/12/1942 | UTC+7 | |
+| 01/01/1943 – 14/03/1945 | UTC+8 | |
+| 15/03/1945 – 01/09/1945 | UTC+9 | Thời kỳ Nhật chiếm đóng |
+| 02/09/1945 – 31/03/1947 | UTC+7 | |
+| 01/04/1947 – 30/06/1955 | UTC+8 | |
+| 01/07/1955 – 31/12/1959 | UTC+7 | |
+| **01/01/1960 – 12/06/1975** | **UTC+8** | **Miền Nam (VNCH)**; miền Bắc giữ UTC+7 |
+| từ 13/06/1975 | UTC+7 | Thống nhất giờ cả nước |
+
+**Mức ảnh hưởng (đo trên calculator của repo):** với 200 ca sinh ngẫu nhiên ở miền Nam giai đoạn
+1960–1974, dùng sai `+07:00` thay cho `+08:00` làm **61%** chart lệch cổng/hào ít nhất một hành tinh
+và **13%** lệch kết quả cốt lõi (Type, Authority, Profile, Definition, Cross hoặc Kênh) — VD ca sinh
+28/10/1962 02:16 bị ra Profile `3/5` thay vì `2/5`.
+
+**Giải pháp (P0-4, không cần geocoding):**
+
+- Hàm `resolve_vn_offset(birth_date, birth_time, region)` áp bảng trên; `region ∈ {bac, nam}` **chỉ
+  hỏi khi ngày sinh rơi vào giai đoạn hai miền khác nhau** (1960–13/06/1975). Các giai đoạn trước 1955
+  vẫn cần đối chiếu tư liệu cho từng vùng (vùng Việt Minh / vùng Pháp kiểm soát) → mặc định theo tzdata
+  và cho phép coach **ghi đè offset thủ công**.
+- Lưu cả `birth_local` (hiển thị), `utc_offset_applied` và `birth_utc` (tính toán) để truy vết.
+- Wizard hiển thị dòng xác nhận nhỏ: *"Đã quy đổi theo UTC+08:00 (giờ miền Nam trước 13/06/1975)"*.
+- Test bảng dữ liệu cho mọi mốc chuyển giờ (trước/sau đúng 1 phút).
 
 ---
 
@@ -84,34 +131,36 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 | D2 | Frontend stack | **Next.js 15 (App Router) + TypeScript + Tailwind + shadcn/ui + TanStack Query** | Hệ sinh thái lớn, SSR cho trang chia sẻ, dễ tuyển | Vite + React SPA (đơn giản hơn, không SSR) |
 | D3 | Backend app | **FastAPI mới tại `backend/api/` (`/api/v1`)**, giữ `mcp/openapi_server.py` cho GPT | Tách contract app khỏi contract GPT | Mở rộng thẳng `openapi_server.py` |
 | D4 | CSDL | **PostgreSQL 16** + SQLAlchemy 2 + Alembic | JSONB lưu `ReportDocument` nguyên vẹn | SQLite (chỉ demo) |
-| D5 | Lưu file | **S3-compatible** (Cloudflare R2 / MinIO) | Rẻ, link ký tên có hạn | Ổ đĩa local (không scale) |
+| D5 | Lưu file | **Ổ đĩa VPS** (`/var/lib/hd/artifacts`) + endpoint tải có token ký tên, hết hạn | Đơn giản, hợp VPS riêng; nếu cần scale chuyển sang Cloudflare R2 mà không đổi API | S3/R2 ngay từ đầu |
 | D6 | Đăng nhập | **Email + mật khẩu, session cookie httpOnly do backend cấp**; magic link cho khách (P3) | Không phụ thuộc bên thứ ba, tuân thủ dữ liệu trong nước | Clerk/Auth0/Supabase Auth |
+| D6b | Giờ sinh | ✅ **Đã chốt:** nhập & hiển thị giờ Việt Nam; tính bằng UTC với offset lịch sử (mục 1.3) | Người dùng không phải hiểu múi giờ; kết quả vẫn chính xác | — |
 | D7 | Job nền | **Redis + arq** (async, nhẹ) | Hợp FastAPI async; chỉ cần cho LLM/PDF/DOCX | Celery (nặng hơn), RQ |
-| D8 | Hosting | **1 VPS tại Việt Nam, Docker Compose** (web, api, worker, postgres, redis) | Dữ liệu cá nhân lưu trong nước, chi phí thấp | Vercel + Railway/Render |
+| D8 | Hosting | ✅ **Đã chốt: VPS riêng, chạy bằng pm2** (web, api, worker) + Nginx; PostgreSQL & Redis cài trực tiếp; **không Docker, không CI** | Theo hạ tầng sẵn có của chủ dự án | — |
 | D9 | Nhà cung cấp LLM | **Endpoint OpenAI-compatible cấu hình qua Admin** (mặc định `gpt-4o-mini`) | Code đã hỗ trợ `HD_LLM_BASE_URL` | Cố định một nhà cung cấp |
-| D10 | Thương hiệu trên báo cáo | **Logo + tên + màu của tổ chức**, cấu hình ở Settings | Coach cần báo cáo mang thương hiệu riêng | Không white-label |
+| D10 | Thương hiệu trên báo cáo | ✅ **Đã chốt (tạm thời): template mẫu tự sinh** — màu theo Type như infographic hiện tại, tên hệ thống mặc định; màn Thương hiệu chuyển vào backlog | Thay bằng bộ nhận diện thật sau, không ảnh hưởng kiến trúc (chỉ là cấu hình theme) | Làm màn Thương hiệu ngay |
 
 ---
 
 ## 4. Kiến trúc đề xuất
 
 ```text
+                  Nginx (TLS Let's Encrypt, reverse proxy)
                          ┌──────────────────────────────┐
-  Trình duyệt ──HTTPS──▶ │  web  (Next.js)               │
+  Trình duyệt ──HTTPS──▶ │  web  (Next.js · pm2)         │
   (Admin/Coach/Khách)    │  - UI Admin/Coach             │
                          │  - Trang chia sẻ /r/[token]   │
                          │  - /api/* → proxy tới api     │  ← cùng origin, không lộ localhost
                          └──────────────┬───────────────┘
                                         │ HTTP nội bộ
                          ┌──────────────▼───────────────┐
-                         │  api  (FastAPI /api/v1)       │
+                         │  api  (FastAPI /api/v1 · pm2) │
                          │  backend/api/                 │──▶ PostgreSQL (users, clients, reports…)
-                         │  auth · RBAC · CRUD · catalog │──▶ S3/R2 (pdf, docx, html, svg)
+                         │  auth · RBAC · CRUD · catalog │──▶ Ổ đĩa VPS (pdf, docx, html, svg)
                          │  gọi backend/reporting/*      │──▶ Redis (queue, rate limit)
                          └──────────────┬───────────────┘
                                         │ enqueue
                          ┌──────────────▼───────────────┐
-                         │  worker (arq)                 │
+                         │  worker (arq · pm2)           │
                          │  - LLM edit (30–120 s)        │──▶ LLM OpenAI-compatible
                          │  - PDF / DOCX render          │
                          └──────────────────────────────┘
@@ -135,9 +184,9 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 
 | Bảng | Cột chính | Ghi chú |
 | --- | --- | --- |
-| `organizations` | id, name, brand_logo_key, brand_color, llm_settings (JSONB, key mã hóa) | Chuẩn bị white-label (D10) |
+| `organizations` | id, name, theme (JSONB, mặc định = template tự sinh), llm_settings (JSONB, key mã hóa) | D10: theme tự sinh, thay bằng thương hiệu thật sau |
 | `users` | id, org_id, email, password_hash, role (`admin`/`coach`), is_active, last_login_at | Argon2 hash |
-| `clients` | id, org_id, owner_user_id, full_name, email, phone, birth_date, birth_time, birth_time_known, birth_place, lat, lng, iana_tz, utc_offset_resolved, notes, consent_at, deleted_at | Dữ liệu cá nhân — xóa mềm + xóa cứng theo yêu cầu |
+| `clients` | id, org_id, owner_user_id, full_name, email, phone, birth_date, birth_time (giờ VN), birth_time_known, birth_place (chữ, chỉ hiển thị), vn_region (`bac`/`nam`, nullable), utc_offset_applied, utc_offset_overridden (bool), birth_utc, notes, consent_at, deleted_at | Mục 1.3; dữ liệu cá nhân — xóa mềm + xóa cứng theo yêu cầu |
 | `reports` | id (= `report_id`), org_id, client_id, created_by, tier, template, content_mode, domains[], status (`draft`/`generating`/`ready`/`failed`/`archived`), request (JSONB), document (JSONB), editor, warnings_count, version, created_at, updated_at | `document` = `ReportDocument` đầy đủ |
 | `report_revisions` | id, report_id, version, author (user / `llm:<model>`), change_type (`generate`/`llm_edit`/`manual_edit`/`regenerate`), sections_diff (JSONB), warnings (JSONB), created_at | Lịch sử + hoàn tác |
 | `report_artifacts` | id, report_id, version, format (`md`/`pdf`/`docx`/`infographic_html`/`bodygraph_svg`/`bodygraph_png`), storage_key, bytes, sha256, created_at | Cache theo (report, version, format) |
@@ -153,7 +202,7 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 | --- | --- | --- | --- |
 | Auth | `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`, `POST /auth/password/reset` | ✔ | — |
 | Catalog | `GET /catalog` → tiers, templates, content_modes, domains, sections (tiêu đề song ngữ) | ✔ | `catalog.py` |
-| Địa lý | `GET /geo/search?q=` → địa điểm + lat/lng; `POST /geo/resolve` {place/lat,lng, date, time} → `iana_tz`, `utc_offset` tại thời điểm sinh | ✔ | **mới (B7)** |
+| Giờ sinh | `POST /time/resolve` {birth_date, birth_time, vn_region?} → `utc_offset`, `birth_utc`, `needs_region` (true nếu 1960–13/06/1975), `note` | ✔ | **mới (B7, mục 1.3)** |
 | Khách hàng | `GET/POST /clients`, `GET/PATCH/DELETE /clients/{id}`, `POST /clients/{id}/erase` | ✔ | — |
 | Xem trước | `POST /reports/preview` → document + markdown + infographic (không lưu) | ✔ ≤ 50 ms | `service.generate_report` |
 | Báo cáo | `POST /reports` (template → `ready` ngay; llm → `generating` + job_id), `GET /reports?client_id=&status=`, `GET /reports/{id}` | ✔ / job | `service`, `orchestrator` |
@@ -163,7 +212,7 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 | Xuất file | `POST /reports/{id}/artifacts` {format} → nhanh thì trả link, chậm thì job; `GET /reports/{id}/artifacts/{format}` → link tải ký tên (5 phút) | ✔ / job | `export`, `infographic`, PDF/DOCX mới |
 | Job | `GET /jobs/{id}` (poll) hoặc `GET /jobs/{id}/events` (SSE) | ✔ | — |
 | Chia sẻ | `POST /reports/{id}/share` → token (hiện 1 lần), `DELETE /share/{id}`; công khai: `GET /public/r/{token}` | ✔ | `infographic` |
-| Admin | `GET/POST/PATCH /users`, `GET/PUT /settings/llm` (+ `POST /settings/llm/test`), `GET/PUT /settings/brand`, `GET /audit` | ✔ | — |
+| Admin | `GET/POST/PATCH /users`, `GET/PUT /settings/llm` (+ `POST /settings/llm/test`), `GET /audit` | ✔ | — |
 
 **Quy ước:** lỗi theo RFC 9457 (`application/problem+json`); phân trang cursor; mọi route
 (trừ `/public/*`, `/auth/login`) yêu cầu session; kiểm tra quyền theo `org_id` + `owner_user_id`.
@@ -182,7 +231,6 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 /reports/[id]             Xem báo cáo (tab: Nội dung · Infographic · BodyGraph · Tệp xuất · Lịch sử)
 /reports/[id]/edit        Trình biên tập báo cáo
 /settings/llm             Cấu hình LLM            (admin)
-/settings/brand           Thương hiệu             (admin)
 /settings/users           Người dùng & vai trò    (admin)
 /audit                    Nhật ký hệ thống        (admin)
 /r/[token]                Trang báo cáo chia sẻ cho khách (công khai, SSR)
@@ -192,7 +240,7 @@ Mỗi dòng có **đề xuất mặc định** — nếu không có phản hồi
 
 | Bước | Nội dung | Chi tiết UX |
 | --- | --- | --- |
-| 1. Người được phân tích | Chọn khách có sẵn hoặc nhập mới: họ tên, ngày sinh, giờ sinh, nơi sinh | Ô nơi sinh có gợi ý địa điểm → tự điền múi giờ lịch sử (hiển thị "UTC+08:00 tại thời điểm sinh"); công tắc "Không rõ giờ sinh" → cảnh báo các phần phụ thuộc giờ |
+| 1. Người được phân tích | Chọn khách có sẵn hoặc nhập mới: họ tên, ngày sinh, **giờ sinh (giờ Việt Nam)**, nơi sinh (chữ tự do, chỉ để hiển thị) | Nếu ngày sinh trong 1960–13/06/1975 → hiện lựa chọn **Miền Bắc / Miền Nam**; luôn hiện dòng xác nhận offset đã quy đổi + nút "Ghi đè offset" (coach); công tắc "Không rõ giờ sinh" → cảnh báo các phần phụ thuộc giờ |
 | 2. Gói phân tích | `free_basic` / `deep_core` + chọn domain add-on (8 thẻ có mô tả) | Lấy từ `GET /catalog`; hiển thị danh sách phần sẽ có |
 | 3. Cách viết | Template `sections` / `operating_manual`; Content mode **Mẫu chuẩn** / **Chuyên gia AI biên tập** | Giải thích ngắn 2 chế độ; nếu chưa cấu hình LLM → vô hiệu hóa kèm lý do |
 | 4. Xem trước & tạo | Preview tức thì (tóm tắt Type/Strategy/Authority/Profile + mini BodyGraph) → nút **Tạo báo cáo** | Preview gọi `/reports/preview` (< 50 ms) mỗi khi đổi lựa chọn |
@@ -227,10 +275,9 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 | Tổng quan | Số khách, số báo cáo theo trạng thái, job đang chạy, báo cáo gần đây | Tải < 1 giây |
 | Khách hàng | Bảng tìm kiếm/lọc, hồ sơ, nút "Tạo báo cáo", nút "Xóa dữ liệu" (2 bước xác nhận) | Coach chỉ thấy khách của mình; admin thấy tất cả |
 | Cấu hình LLM | base URL, model, key (chỉ ghi, hiển thị `••••1234`), temperature, nút **Kiểm tra kết nối** | Key lưu mã hóa, không bao giờ trả về frontend |
-| Thương hiệu | Logo, tên, màu chủ đạo → áp dụng cho PDF/DOCX/Infographic | Xem trước trực tiếp |
 | Người dùng | Mời qua email, đổi vai trò, khóa | Chỉ admin |
 | Nhật ký | Lọc theo người/hành động/thời gian | Ghi nhận xem/xuất/chia sẻ/xóa |
-| Trang chia sẻ `/r/[token]` | Infographic + nút tải định dạng được phép, thương hiệu tổ chức | Token hết hạn/thu hồi → trang 410; không index (`noindex`) |
+| Trang chia sẻ `/r/[token]` | Infographic + nút tải định dạng được phép, theme tự sinh | Token hết hạn/thu hồi → trang 410; không index (`noindex`) |
 
 ### 7.5 Nguyên tắc giao diện
 
@@ -250,28 +297,28 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 
 | Mã | Việc | Ai | Ước lượng | Hoàn thành khi |
 | --- | --- | --- | --- | --- |
-| P0-1 | Khung `backend/api/` (FastAPI, settings qua env, `/api/v1/health`), Dockerfile, `docker-compose.yml` (api, worker, postgres, redis, minio) | BE | 2d | `docker compose up` chạy được, CI xanh |
+| P0-1 | Khung `backend/api/` (FastAPI, settings qua `.env`, `/api/v1/health`), `deploy/ecosystem.config.cjs` (pm2), script `deploy/check.sh` chạy pytest trước khi deploy | BE | 1d | `pm2 start deploy/ecosystem.config.cjs` chạy được trên máy dev |
 | P0-2 | SQLAlchemy models + Alembic migration theo mục 5 | BE | 2d | Migration up/down sạch |
 | P0-3 | Auth: login/logout/me, Argon2, session cookie httpOnly + CSRF, RBAC dependency | BE | 2d | Test phân quyền admin/coach/ẩn danh |
-| P0-4 | **Timezone lịch sử (B7):** `timezonefinder` + `zoneinfo` + geocoding (Nominatim/OpenCage) → `/geo/search`, `/geo/resolve`; lưu `iana_tz` + offset đã giải | BE | 2d | Test: TP.HCM 1970 → +08:00, Hà Nội 1990 → +07:00, New York mùa hè → −04:00 |
+| P0-4 | **Giờ Việt Nam lịch sử (B7, mục 1.3):** `resolve_vn_offset()` + `POST /time/resolve`; nối vào `SubjectInput` (thêm `vn_region`, `utc_offset_override`), MCP/REST cũ dùng chung; hiển thị giữ giờ VN | BE | 1,5d | Test mọi mốc chuyển giờ; 1962 miền Nam → +08:00, 1962 miền Bắc → +07:00, 1990 → +07:00, 1945-06 → +09:00 |
 | P0-5 | **PDF theo chuẩn (B5):** `render_pdf(document)` dùng `ReportDocument` (thông tin + BodyGraph + sections theo content_mode), font DejaVu hỗ trợ tiếng Việt; giữ `build_pdf` cũ cho CLI | BE | 2d | PDF khớp nội dung Markdown; test snapshot |
 | P0-6 | **DOCX (B6):** `render_docx(document)` bằng `python-docx` (tiêu đề, bảng thông tin, ảnh BodyGraph PNG, sections) | BE | 1,5d | Mở được trong Word/Google Docs, đúng dấu tiếng Việt |
 | P0-7 | Worker arq: job `llm_edit`, `render_pdf`, `render_docx`; bảng `jobs`; retry + timeout | BE | 1,5d | Job LLM chạy nền, fallback template khi lỗi |
 | P0-8 | CORS whitelist theo env (B10), rate limit (Redis) cho `/auth` và `/reports` | BE | 0,5d | Không còn `*` + credentials |
+| P0-10 | Lưu artifact trên ổ đĩa VPS + endpoint tải có token ký tên (D5) | BE | 0,5d | Link hết hạn sau 5 phút |
 | P0-9 | `GET /catalog` (B9) + OpenAPI v1 ổn định → sinh `web/src/api/types.ts` | BE | 0,5d | Frontend import type không lỗi |
 
 ### P1 — Admin MVP (tuần 3–5)
 
 | Mã | Việc | Ai | Ước lượng | Hoàn thành khi |
 | --- | --- | --- | --- | --- |
-| P1-1 | Khung `web/` (Next.js, Tailwind, shadcn/ui, TanStack Query), layout, proxy `/api`, design tokens | FE | 2d | Build/lint/typecheck xanh |
+| P1-1 | Khung `web/` (Next.js, Tailwind, shadcn/ui, TanStack Query), layout, proxy `/api`, design tokens = theme tự sinh (D10) | FE | 2d | `npm run build` + lint + typecheck xanh trên máy dev |
 | P1-2 | Đăng nhập, guard theo vai trò, trang 403/404 | FE | 1d | E2E đăng nhập/đăng xuất |
 | P1-3 | API: CRUD `clients`, `reports` (template đồng bộ), `preview` | BE | 3d | Test contract |
-| P1-4 | Màn Khách hàng: danh sách, hồ sơ, form có gợi ý địa điểm + múi giờ | FE | 3d | Tạo khách với nơi sinh → offset hiển thị đúng |
+| P1-4 | Màn Khách hàng: danh sách, hồ sơ, form giờ sinh VN + chọn miền khi cần + xác nhận offset | FE | 2,5d | Nhập ngày 1965 → hỏi miền; offset hiển thị đúng |
 | P1-5 | **Wizard tạo báo cáo 4 bước** + preview tức thì | FE | 4d | Nghiệm thu mục 7.1 |
 | P1-6 | Xem báo cáo: tab Nội dung / Infographic / BodyGraph / Tệp xuất (MD, Infographic) | FE | 3d | Nghiệm thu mục 7.2 (trừ Lịch sử) |
 | P1-7 | Tổng quan + nhật ký thao tác cơ bản | BE+FE | 1,5d | Ghi nhận tạo/xem/xuất |
-| P1-8 | Lưu artifact lên S3/MinIO, link tải ký tên | BE | 1d | Link hết hạn sau 5 phút |
 
 **Mốc M1 (cuối tuần 5):** coach nội bộ tạo, xem, tải báo cáo template + infographic.
 
@@ -288,27 +335,29 @@ khi xóa tên Type/Strategy/Authority khỏi section vốn chứa chúng.
 
 **Mốc M2 (cuối tuần 7):** đủ 2 content mode, 4 định dạng xuất, biên tập có kiểm soát.
 
-### P3 — Chia sẻ cho khách hàng (tuần 8 – giữa tuần 9)
+### P3 — Chia sẻ cho khách hàng (tuần 8)
 
 | Mã | Việc | Ai | Ước lượng |
 | --- | --- | --- | --- |
 | P3-1 | Share link: tạo/thu hồi/hết hạn, định dạng được phép, đếm lượt xem | BE | 1,5d |
-| P3-2 | Trang `/r/[token]` SSR, mobile-first, thương hiệu tổ chức, `noindex` | FE | 2d |
-| P3-3 | Gửi email kèm link (SMTP/SES) + mẫu email tiếng Việt | BE | 1d |
-| P3-4 | Thương hiệu (logo/màu) áp dụng vào Infographic/PDF/DOCX | BE+FE | 2d |
+| P3-2 | Trang `/r/[token]` SSR, mobile-first, theme tự sinh, `noindex` | FE | 2d |
+| P3-3 | Gửi email kèm link (SMTP) + mẫu email tiếng Việt | BE | 1d |
 
-### P4 — Hardening & go-live (nửa sau tuần 9 – tuần 10)
+> Màn **Thương hiệu** (logo/màu tổ chức áp vào Infographic/PDF/DOCX) chuyển vào **backlog sau go-live** theo D10.
+> Kiến trúc đã sẵn: mọi renderer đọc `organizations.theme`, nên thay template mẫu bằng bộ nhận diện thật chỉ là cập nhật cấu hình.
+
+### P4 — Hardening & go-live (tuần 9)
 
 | Mã | Việc | Ai | Ước lượng |
 | --- | --- | --- | --- |
 | P4-1 | Bảo mật: header (CSP, HSTS), kiểm tra IDOR theo org/owner, khóa đăng nhập sai nhiều lần, quét dependency | BE | 1,5d |
-| P4-2 | Quan sát: log JSON có request_id, Sentry (web + api + worker), metrics job | BE | 1d |
-| P4-3 | Sao lưu Postgres hằng ngày + thử khôi phục; lưu artifact có vòng đời | BE | 0,5d |
-| P4-4 | E2E Playwright luồng chính + kiểm thử tải nhẹ (50 người dùng đồng thời) | FE | 1,5d |
-| P4-5 | Triển khai production (VPS, Caddy/Traefik TLS), runbook vận hành | BE | 1d |
+| P4-2 | Giám sát: log JSON có request_id, `pm2-logrotate`, Sentry (tùy chọn), `pm2 monit` | BE | 0,5d |
+| P4-3 | Sao lưu Postgres hằng ngày (`pg_dump` + cron, giữ 14 bản) + thử khôi phục; dọn artifact cũ | BE | 0,5d |
+| P4-4 | E2E Playwright luồng chính chạy trên máy dev trước mỗi lần deploy + kiểm thử tải nhẹ | FE | 1,5d |
+| P4-5 | Triển khai production: Nginx + certbot, `pm2 startup` + `pm2 save`, `deploy/deploy.sh`, runbook | BE | 1d |
 | P4-6 | Chính sách dữ liệu: đồng ý xử lý dữ liệu, xuất/xóa dữ liệu theo yêu cầu | BE+FE | 1d |
 
-**Mốc M3 (cuối tuần 10):** go-live.
+**Mốc M3 (cuối tuần 9):** go-live.
 
 ---
 
@@ -329,24 +378,78 @@ human_design/
 │   ├── src/api/types.ts      # sinh từ OpenAPI — không sửa tay
 │   └── src/components/…
 ├── mcp/                      # GIỮ NGUYÊN — MCP stdio + ChatGPT bridge
-├── deploy/                   # MỚI — docker-compose.prod.yml, Caddyfile, backup.sh
+├── deploy/                   # MỚI — ecosystem.config.cjs (pm2), nginx.conf mẫu, deploy.sh, check.sh, backup.sh
 └── tests/                    # + tests/api/ (pytest) ; web/e2e/ (Playwright)
 ```
 
 ---
 
-## 10. Triển khai & vận hành
+## 10. Triển khai & vận hành (pm2 trên VPS riêng — đã chốt)
 
-**Biến môi trường chính:** `DATABASE_URL`, `REDIS_URL`, `S3_ENDPOINT`/`S3_BUCKET`/`S3_KEY`/`S3_SECRET`,
-`SESSION_SECRET`, `ENCRYPTION_KEY` (mã hóa key LLM), `CORS_ORIGINS`, `PUBLIC_BASE_URL`,
-`SMTP_*`, `GEOCODER_API_KEY`, `SENTRY_DSN`, và các `HD_LLM_*` hiện có (làm giá trị mặc định).
+**Không dùng Docker, không dùng CI.** Mọi tiến trình chạy bằng **pm2**; kiểm thử chạy trên máy dev
+bằng `deploy/check.sh` trước khi deploy.
 
-**Môi trường:** `local` (docker compose) → `staging` (bản sao production, dữ liệu giả) → `production`.
-CI (GitHub Actions): lint + typecheck + pytest + build web + Playwright trên staging; deploy khi merge `main`.
+### 10.1 Thành phần trên VPS
 
-**Chi phí hạ tầng ước tính (giai đoạn đầu):** 1 VPS 4 vCPU/8 GB (~15–25 USD/tháng) + R2 (gần như
-miễn phí ở quy mô nhỏ) + chi phí LLM theo lượt (với `gpt-4o-mini`, một báo cáo deep_core cỡ vài
-nghìn token — rất thấp; cần đo thực tế ở P2).
+| Thành phần | Cách chạy | Cổng |
+| --- | --- | --- |
+| Nginx + certbot | systemd (apt) — TLS, reverse proxy, gzip, giới hạn body | 80/443 |
+| `hd-web` (Next.js) | pm2: `npm run start` | 127.0.0.1:3000 |
+| `hd-api` (FastAPI `/api/v1`) | pm2: `uvicorn backend.api.main:app --workers 2` | 127.0.0.1:8001 |
+| `hd-worker` (arq) | pm2: `arq backend.api.workers.WorkerSettings` | — |
+| `hd-gpt-bridge` (tùy chọn) | pm2: `uvicorn openapi_server:app` (ChatGPT Actions hiện có) | 127.0.0.1:8000 |
+| PostgreSQL 16, Redis 7 | systemd (apt), chỉ lắng nghe localhost | 5432 / 6379 |
+
+Nginx: `app.<domain>` → `hd-web`; `hd-web` proxy `/api/*` → `hd-api` (trình duyệt chỉ thấy một origin).
+
+### 10.2 Cấu hình pm2 mẫu (`deploy/ecosystem.config.cjs`)
+
+```js
+// Biến môi trường do chính ứng dụng đọc từ /srv/human_design/.env (pydantic-settings / python-dotenv),
+// nên cấu hình pm2 không phụ thuộc phiên bản pm2.
+module.exports = {
+  apps: [
+    { name: "hd-api", cwd: "/srv/human_design",
+      script: ".venv/bin/uvicorn", args: "backend.api.main:app --host 127.0.0.1 --port 8001 --workers 2",
+      interpreter: "none", max_memory_restart: "600M" },
+    { name: "hd-worker", cwd: "/srv/human_design",
+      script: ".venv/bin/arq", args: "backend.api.workers.WorkerSettings",
+      interpreter: "none", max_memory_restart: "600M" },
+    { name: "hd-web", cwd: "/srv/human_design/web",
+      script: "npm", args: "run start -- -p 3000 -H 127.0.0.1",
+      interpreter: "none", env: { NODE_ENV: "production", API_INTERNAL_URL: "http://127.0.0.1:8001" } },
+    { name: "hd-gpt-bridge", cwd: "/srv/human_design/mcp",
+      script: "../.venv/bin/uvicorn", args: "openapi_server:app --host 127.0.0.1 --port 8000",
+      interpreter: "none" },
+  ],
+};
+```
+
+### 10.3 Quy trình deploy (`deploy/deploy.sh`)
+
+```bash
+set -euo pipefail
+cd /srv/human_design
+git pull --ff-only origin main
+.venv/bin/pip install -q -r requirements.txt
+.venv/bin/alembic -c backend/api/alembic.ini upgrade head
+(cd web && npm ci && npm run build)
+pm2 reload deploy/ecosystem.config.cjs --update-env
+pm2 save
+```
+
+Lần đầu: `pm2 startup` (tự khởi động cùng VPS), `pm2 install pm2-logrotate`.
+Hoàn tác: `git checkout <tag trước>` rồi chạy lại `deploy.sh` (migration luôn viết kèm `downgrade`).
+
+### 10.4 Biến môi trường (`/srv/human_design/.env`, quyền 600)
+
+`DATABASE_URL`, `REDIS_URL`, `ARTIFACT_DIR`, `SESSION_SECRET`, `ENCRYPTION_KEY` (mã hóa key LLM),
+`CORS_ORIGINS`, `PUBLIC_BASE_URL`, `SMTP_*`, `SENTRY_DSN` (tùy chọn) và các `HD_LLM_*` hiện có (làm giá trị mặc định).
+
+### 10.5 Chi phí hạ tầng ước tính
+
+1 VPS 4 vCPU / 8 GB RAM là đủ cho giai đoạn đầu (tạo báo cáo chỉ 5–8 ms; PDF ~0,4 giây). Chi phí LLM
+tính theo lượt, với `gpt-4o-mini` một báo cáo deep_core rất thấp — đo thực tế ở P2.
 
 ---
 
@@ -372,11 +475,11 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 | --- | --- | --- |
 | Lõi nghiệp vụ | pytest (48 test hiện có) | Giữ xanh; thêm test renderer PDF/DOCX |
 | API v1 | pytest + httpx | Contract, phân quyền (ma trận vai trò × endpoint), IDOR, job |
-| Contract FE/BE | OpenAPI snapshot trong CI | Phát hiện thay đổi phá vỡ type |
+| Contract FE/BE | OpenAPI snapshot trong `deploy/check.sh` | Phát hiện thay đổi phá vỡ type |
 | Frontend | Vitest + Testing Library | Wizard, editor, cảnh báo |
 | E2E | Playwright | Đăng nhập → tạo khách → tạo báo cáo → sửa → xuất → chia sẻ → mở link |
 | Hình ảnh | Playwright screenshot | Infographic & trang chia sẻ (desktop + mobile) |
-| Múi giờ | pytest bảng dữ liệu | Các mốc lịch sử VN + DST quốc tế |
+| Giờ sinh | pytest bảng dữ liệu | Mọi mốc chuyển giờ Việt Nam (mục 1.3), hai miền 1960–1975, ghi đè offset |
 
 ---
 
@@ -384,7 +487,8 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 
 | Rủi ro | Mức | Giảm thiểu |
 | --- | --- | --- |
-| Sai múi giờ lịch sử → sai chart | **Cao** | P0-4 làm đầu tiên, bộ test mốc lịch sử, luôn hiển thị offset đã dùng để coach xác nhận |
+| Sai offset giờ Việt Nam lịch sử → sai chart (đo được: 13% ca miền Nam 1960–1974 lệch kết quả cốt lõi) | **Cao** | P0-4 làm đầu tiên, test mọi mốc, luôn hiển thị offset đã dùng, cho phép ghi đè |
+| Không có CI → lỗi lọt lên production | Trung bình | `deploy/check.sh` (pytest + build + typecheck) bắt buộc chạy trước `deploy.sh`; gắn tag git mỗi lần deploy để hoàn tác nhanh |
 | LLM chậm/lỗi/đắt | Trung bình | Job nền, fallback template (đã có), giới hạn lượt theo tổ chức, cache theo phiên bản |
 | LLM làm mất/sai sự kiện kỹ thuật | Trung bình | Validator đã có + diff bắt buộc duyệt trước khi chấp nhận |
 | Lệch nội dung giữa các định dạng | Trung bình | Mọi renderer nhận **cùng một** `ReportDocument` (P0-5, P0-6) |
@@ -395,11 +499,11 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 
 ## 14. Việc cần làm ngay (Sprint 0 — 3 ngày)
 
-1. Chốt các quyết định **D1–D10** (mục 3).
-2. Tạo khung `backend/api/` + `docker-compose.yml` + CI (P0-1).
-3. Làm **P0-4 múi giờ lịch sử** trước tiên — rủi ro cao nhất về độ chính xác.
-4. Designer: wireframe 3 màn **Wizard**, **Xem báo cáo**, **Trình biên tập** (mục 7.1–7.3).
-5. Tạo backlog issue trên GitHub theo mã việc P0-x … P4-x.
+1. ✅ Đã chốt: giờ Việt Nam (D6b), pm2/VPS (D8), template tự sinh (D10). Các quyết định còn lại theo đề xuất mặc định.
+2. **P0-4 giờ Việt Nam lịch sử** — làm trước tiên, áp dụng luôn cho MCP/REST hiện có (sửa được lỗi chính xác ngay cả trước khi có frontend).
+3. Khung `backend/api/` + `deploy/ecosystem.config.cjs` + `deploy/check.sh` (P0-1).
+4. Chuẩn bị VPS: Nginx, certbot, PostgreSQL 16, Redis 7, Node LTS + pm2, Python 3.11 + venv.
+5. Wireframe 3 màn **Wizard**, **Xem báo cáo**, **Trình biên tập** (mục 7.1–7.3).
 
 ---
 
@@ -407,7 +511,7 @@ vệ dữ liệu, chuyển dữ liệu ra nước ngoài khi dùng LLM quốc t�
 
 | Màn hình | API v1 | Module lõi dùng lại |
 | --- | --- | --- |
-| Wizard bước 1 | `/geo/search`, `/geo/resolve`, `/clients` | `contract.SubjectInput` (validator) |
+| Wizard bước 1 | `/time/resolve`, `/clients` | `contract.SubjectInput` (validator), `resolve_vn_offset` |
 | Wizard bước 2–3 | `/catalog` | `catalog.py`, `contract` enums |
 | Wizard bước 4 | `/reports/preview`, `POST /reports` | `service.generate_report`, `infographic` |
 | Xem báo cáo | `/reports/{id}`, `/reports/{id}/artifacts/*` | `ReportDocument.to_markdown`, `export`, `infographic` |
