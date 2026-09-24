@@ -1,169 +1,151 @@
-# HUMAN DESIGN - HỆ THỐNG NGHIÊN CỨU CHUYÊN SÂU
+# Human Design Analyzer v3.0
 
-> Đã được chuẩn bị và nạp kiến thức hoàn chỉnh - Sẵn sàng phân tích cho bất kỳ cá nhân nào
-> Ngày chuẩn bị: 2026-09-23 | Chuyên gia: Agent Mode
+Hệ thống tính toán và phân tích Human Design bằng tiếng Việt, dùng Swiss Ephemeris cho phần thiên văn và cung cấp cả MCP server lẫn REST/OpenAPI bridge.
 
-## 📚 TỔNG QUAN NHỮNG GÌ ĐÃ CHUẨN BỊ
+> **Trạng thái chuẩn hiện tại:** v3.0.0 · 30 MCP tools · 11 MCP resources · 19 skill markdown · 32 REST routes (2026-09-24)
 
-### 1. KHO TRI THỨC HỌC THUẬT (knowledge/)
+## Tính năng
 
-Đã biên soạn 6 tài liệu chuyên sâu bằng tiếng Việt:
+- Tính BodyGraph từ ngày, giờ và múi giờ sinh: Personality, Design 88°, 64 Gates, 36 Channels, 9 Centers, Type, Strategy, Authority, Profile, Definition và Incarnation Cross.
+- Phân tích cơ bản và 6 nhóm ứng dụng v3.0: Health, Relationship, Decision, Deconditioning, Purpose và Team.
+- Các nhóm mở rộng: Fear Gates, Love Gates, 192 Incarnation Crosses, Manifestor, Consultation General, Money Map và Potential/Blind Spots.
+- CLI, xuất BodyGraph SVG/PNG và báo cáo PDF tiếng Việt.
+- MCP stdio cho Claude Desktop/Cursor/Windsurf và FastAPI/OpenAPI cho Custom GPT Actions hoặc client REST.
 
-| File | Nội dung |
-|------|----------|
-| `00_tong_quan_he_thong.md` | Tổng quan hệ thống, nguồn gốc, 2 lần tính toán, cấu trúc BodyGraph |
-| `01_mandala_64_cong.md` | Mandala, thứ tự 64 cổng, bảng tra cứu theo độ hoàng đạo chính xác đến giây, Line/Color/Tone/Base |
-| `02_9_trung_tam.md` | Chi tiết 9 trung tâm: chức năng, sinh học, defined/undefined, Not-Self, trí tuệ |
-| `03_36_kenh.md` | 36 kênh, 3 mạch (Individual/Collective/Tribal), bảng tra đầy đủ |
-| `04_5_loai_va_chien_luoc.md` | 5 Type, Strategy, Authority chi tiết, Not-Self, chữ ký |
-| `05_profile_cross_definition.md` | 12 Profile, 192 Incarnation Cross, 4 Quarter, Definition |
-| `06_phuong_phap_tinh_toan.md` | Phương pháp tính toán kỹ thuật chính xác với Swiss Ephemeris |
+## Cấu trúc repository
 
-### 2. BỘ CÔNG CỤ TÍNH TOÁN (tools/)
-
-#### a. `hd_calculator.py` - Engine tính toán cốt lõi
-- **Thư viện**: `pyswisseph` (Swiss Ephemeris) - độ chính xác <1 arc second, dùng NASA JPL DE431
-- **Chức năng**:
-  - Tính Personality (thời điểm sinh) và Design (88° Sun trước sinh) bằng thuật toán binary search
-  - Map 360° sang 64 cổng theo Rave Mandala (bắt đầu 2° Bảo Bình = Gate 41)
-  - Tính Line (1-6), Color (1-6), Tone (1-6), Base (1-5) = 1080 biến thể/cổng
-  - Xác định 36 kênh định nghĩa, 9 trung tâm định nghĩa
-  - Xác định Type (Generator/MG/Projector/Manifestor/Reflector)
-  - Xác định Authority (Emotional/Sacral/Splenic/Ego/Self-Projected/Mental/Lunar)
-  - Tính Profile (1/3, 2/4...), Definition (Single/Split/Triple/Quadruple), Incarnation Cross
-
-- **Đã kiểm thử**: So sánh với Jovian Archive, Genetic Matrix - sai số <0.1°
-
-#### b. `hd_analyzer.py` - Phân tích chuyên sâu
-- Phân tích Type, Strategy, Authority chi tiết bằng tiếng Việt
-- Phân tích 9 trung tâm (defined/undefined)
-- Phân tích kênh, cổng
-- Phân tích Profile, Definition, Incarnation Cross
-- Đưa ra lời khuyên thực hành (deconditioning, sống đúng thiết kế)
-
-#### c. `hd_cli.py` - Giao diện dòng lệnh
-```bash
-python hd_cli.py --date 1990-05-15 --time 08:30 --timezone +07:00 --name "Nguyen Van A"
-```
-- Tự động xử lý timezone (VN +07:00)
-- Xuất báo cáo text + JSON
-- Lưu file
-
-#### d. `test_calculator.py` - Kiểm thử
-
-### 3. DỮ LIỆU CHUẨN
-
-- **GATE_ORDER**: Thứ tự 64 cổng trên vòng tròn (bắt đầu Gate 41)
-- **GATE_TO_CENTER**: Map cổng -> trung tâm
-- **CHANNELS**: 36 kênh (cặp cổng)
-- **CHANNEL_TO_CENTERS**: Map kênh -> 2 trung tâm
-- **GATE_MEANINGS**: Ý nghĩa 64 cổng (I Ching)
-- **Bảng tra cứu độ**: Chi tiết từng cổng theo cung hoàng đạo (từ barneyandflow, Jovian Archive)
-
----
-
-## 🔧 CÁCH SỬ DỤNG
-
-### Phân tích nhanh một người:
-
-```bash
-cd /home/user/human_design/tools
-python3 hd_cli.py --date 1995-12-25 --time 15:45 --timezone +07:00 --name "Test"
-```
-
-### Sử dụng trong Python:
-
-```python
-from datetime import datetime
-from hd_calculator import calculate_hd_chart
-from hd_analyzer import analyze_chart
-
-birth_utc = datetime(1990, 5, 15, 1, 30)  # UTC
-chart = calculate_hd_chart(birth_utc)
-report = analyze_chart(chart)
-print(report)
-```
-
-### Đầu vào yêu cầu:
-- **BẮT BUỘC**: Ngày sinh, Giờ sinh chính xác (sai 5 phút có thể đổi Moon gate, sai 1 giờ có thể đổi Profile)
-- **Khuyến nghị**: Nơi sinh để xác định timezone (mặc định VN +07:00)
-- **Lưu ý**: Hệ thống dùng Tropical Zodiac, không phải Sidereal
-
----
-
-## 📊 QUY TRÌNH PHÂN TÍCH CHUẨN (Khi có thông tin khách hàng)
-
-1. **Thu thập**: Ngày, giờ, nơi sinh
-2. **Tính toán**: Chạy hd_calculator -> Type, Authority, Profile, Centers, Channels, Gates
-3. **Phân tích theo thứ tự ưu tiên**:
-   - Type + Strategy + Authority (80% giá trị)
-   - Centers (defined/open)
-   - Channels (tài năng cố định)
-   - Gates (cổng treo)
-   - Profile (vai trò)
-   - Incarnation Cross (mục đích sống)
-   - Definition (cách kết nối)
-4. **Đưa ra lời khuyên thực hành**: Deconditioning 7 năm, sống đúng Strategy/Authority
-
----
-
-## 🎯 ĐIỂM MẠNH CỦA HỆ THỐNG ĐÃ CHUẨN BỊ
-
-✅ **Chính xác thiên văn**: Swiss Ephemeris, không phải tính xấp xỉ
-✅ **Đầy đủ**: Tính cả 13 hành tinh x 2 = 26 điểm kích hoạt
-✅ **Chuẩn Jovian**: Thứ tự cổng, kênh, trung tâm đúng chuẩn Ra Uru Hu
-✅ **Tiếng Việt chuyên sâu**: Đã dịch và biên soạn lại toàn bộ kiến thức gốc
-✅ **Sẵn sàng mở rộng**: Có thể thêm PHS, Environment, Variables, Gene Keys
-
----
-
-## 📁 CẤU TRÚC THƯ MỤC
-
-```
+```text
 human_design/
-├── README.md
-├── knowledge/
-│   ├── 00_tong_quan_he_thong.md
-│   ├── 01_mandala_64_cong.md
-│   ├── 02_9_trung_tam.md
-│   ├── 03_36_kenh.md
-│   ├── 04_5_loai_va_chien_luoc.md
-│   ├── 05_profile_cross_definition.md
-│   └── 06_phuong_phap_tinh_toan.md
-├── tools/
-│   ├── hd_calculator.py
-│   ├── hd_analyzer.py
-│   ├── hd_cli.py
-│   └── test_calculator.py
-└── examples/
-    └── (sẽ chứa các ví dụ phân tích)
+├── requirements.txt             # dependency Python đã ghim phiên bản
+├── tools/                       # calculator, analyzer, CLI, SVG, PDF và domain analyzers
+├── mcp/
+│   ├── server.py                # MCP entrypoint hiện tại: 30 tools, 11 resources
+│   ├── openapi_server.py        # FastAPI bridge: 32 route decorator
+│   ├── tools_manifest_latest.json
+│   ├── mcp_config.json
+│   └── skills/                  # 19 skill markdown; không phải MCP prompt decorator
+├── knowledge/                   # 21 tài liệu kiến thức chuẩn hóa, đánh số 00–20
+├── docs/                        # Wiki nguồn và catalog tài liệu cá nhân
+└── report/                      # báo cáo lịch sử triển khai, giữ nguyên để tham chiếu
 ```
 
----
+`README.md`, `docs/README.md` và `mcp/README.md` là tài liệu vận hành hiện tại. Các file có hậu tố hoặc tiêu đề v2.x trong `report/`, `README_v2.1.md` và `mcp/README_v2.1.md` là tài liệu lịch sử, không dùng làm số liệu runtime.
 
-## 🚀 SẴN SÀNG PHÂN TÍCH
+## Cài đặt
 
-Hệ thống đã sẵn sàng. Bạn chỉ cần cung cấp:
+Yêu cầu Python 3.11+.
 
+```bash
+cd /home/user/human_design
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements.txt
 ```
-- Họ tên (tùy chọn)
-- Ngày sinh: YYYY-MM-DD
-- Giờ sinh: HH:MM (24h, càng chính xác càng tốt)
-- Nơi sinh / Múi giờ (mặc định +07:00 Việt Nam)
+
+`requirements.txt` bao gồm MCP SDK v1 tương thích với `FastMCP`, Swiss Ephemeris, FastAPI/Uvicorn, Pydantic, ReportLab, CairoSVG và pytest.
+
+### Dependency hệ điều hành cho PNG/PDF BodyGraph
+
+CairoSVG cần thư viện Cairo native. Trên Debian/Ubuntu cài thêm:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y libcairo2 fonts-dejavu
 ```
 
-Tôi sẽ tính toán và phân tích chuyên sâu ngay lập tức.
+Phần tính chart, MCP, REST và PDF text không cần gọi CairoSVG cho đến khi render BodyGraph; `--png` và phần BodyGraph trong PDF cần dependency hệ điều hành này.
 
----
+## Chạy nhanh
 
-## 📖 TÀI LIỆU THAM KHẢO GỐC
+### CLI tính chart
 
-- Jovian Archive - Ra Uru Hu
-- Swiss Ephemeris Documentation
-- Barney+Flow - Gates by Degrees
-- Genetic Matrix, 64Keys
-- Rave I Ching, Rave Mandala
+```bash
+PYTHONPATH=tools .venv/bin/python tools/hd_cli.py \
+  --date 1990-05-15 --time 08:30 --timezone +07:00 \
+  --name "Nguyen Van A"
+```
 
----
+### BodyGraph SVG/PNG
 
-*Được chuẩn bị bởi Agent Mode - Chuyên gia học thuật Human Design - 2026-09-23*
+```bash
+PYTHONPATH=tools .venv/bin/python tools/hd_bodygraph.py \
+  --date 1990-05-15 --time 08:30 --tz +07:00 \
+  --name "Nguyen Van A" --out output/chart.svg --png output/chart.png
+```
+
+### Báo cáo PDF
+
+```bash
+PYTHONPATH=tools .venv/bin/python tools/hd_report_pdf.py \
+  --date 1990-05-15 --time 08:30 --tz +07:00 \
+  --name "Nguyen Van A" --out output/report.pdf
+```
+
+Thư mục `output/` được `.gitignore` để tránh đưa artifact sinh ra vào Git.
+
+## MCP server
+
+Chạy từ thư mục repository:
+
+```bash
+.venv/bin/python mcp/server.py
+```
+
+Server dùng **stdio**, nên không mở HTTP port. Cấu hình mẫu nằm tại `mcp/mcp_config.json`; cần thay đường dẫn tuyệt đối nếu repository được đặt ở nơi khác. Client có thể gọi trực tiếp flow lõi bằng:
+
+```bash
+PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
+```
+
+MCP runtime hiện có:
+
+- **30 tools:** 8 core, 4 advanced, 2 general, 2 money, 2 potential và 12 domain v3.0.
+- **11 resources:** gates, centers, types, money channels, money gates, health, love, authorities, not-self, purpose và team.
+- **0 MCP prompts:** 19 skill là các file Markdown trong `mcp/skills/`, được LLM/client đọc hoặc dùng làm hướng dẫn riêng; chúng chưa được đăng ký bằng `@mcp.prompt()` trong `server.py`.
+
+Manifest máy đọc được: `mcp/tools_manifest_latest.json`.
+
+## REST/OpenAPI server
+
+Bridge cho ChatGPT Custom GPT Actions và REST client:
+
+```bash
+cd mcp
+../.venv/bin/python -m uvicorn openapi_server:app --host 0.0.0.0 --port 8000
+```
+
+- Swagger UI: `http://localhost:8000/docs`
+- OpenAPI: `http://localhost:8000/openapi.json`
+- Health check: `http://localhost:8000/health`
+- 30 route nghiệp vụ tương ứng với 30 tool và 2 route hệ thống (`/`, `/health`).
+
+Không hard-code `localhost` trong client chạy ở browser; khi deploy public, client phải gọi public base URL của API.
+
+## Kiểm tra
+
+```bash
+# Syntax toàn bộ Python source
+.venv/bin/python -m compileall -q tools mcp
+
+# Pytest runtime contract
+PYTHONPATH=tools:mcp .venv/bin/pytest -q
+
+# Smoke scripts nghiệp vụ lịch sử
+PYTHONPATH=tools .venv/bin/python tools/test_calculator.py
+PYTHONPATH=tools .venv/bin/python tools/test_manifestor_profiles.py
+
+# Kiểm tra import MCP và OpenAPI
+PYTHONPATH=tools:mcp .venv/bin/python - <<'PY'
+import server
+import openapi_server
+print("MCP import OK")
+print("OpenAPI routes:", len(openapi_server.app.routes))
+PY
+```
+
+## Lưu ý nghiệp vụ
+
+- Input cần ngày, giờ và múi giờ; giờ sinh không chính xác làm giảm độ tin cậy của Gate/Profile.
+- Engine dùng Tropical Zodiac và chuyển giờ địa phương sang UTC trước khi tính.
+- Kết quả Human Design nên được dùng như công cụ tự quan sát/thử nghiệm, không thay thế tư vấn y tế, pháp lý hoặc tài chính.
+- `server_final.py`, các manifest `v1`–`v6`, README v2.x và các file trong `report/` được giữ lại để truy vết lịch sử; entrypoint hiện tại là `mcp/server.py`.

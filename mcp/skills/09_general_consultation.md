@@ -1,6 +1,6 @@
 # SKILL: Tham Vấn Tổng Quát Human Design - 100% Dân Số - 60 Biến Thể
 
-> MỚI v2.1 - Tích hợp từ Wiki Phân mục 6 - Quy trình tham vấn 4 bước + Deep dive 5 Types x 12 Profiles = 60 biến thể
+> v3.0 - Tích hợp từ Wiki Phân mục 6 - Quy trình tham vấn 4 bước + Deep dive 5 Types x 12 Profiles = 60 biến thể
 
 ## Mô tả
 

@@ -1,14 +1,14 @@
 {
   "name": "human-design-analyzer",
   "version": "3.0.0",
-  "description": "Human Design v3.0 Complete (Option C Full) - 30 tools: 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 v3.0 (health/relationship/decision/deconditioning/purpose/team) - 19 skills (01-18 + 20; 19 reserved) - 21 knowledge - Hoàn chỉnh 7/7 nhu cầu thực tế + FIX shadowing bug",
+  "description": "Human Design Analyzer v3.0.0 - 30 MCP tools, 11 MCP resources, 0 MCP prompts, 19 Markdown skills và 21 knowledge files. Entry point: mcp/server.py; REST bridge: mcp/openapi_server.py.",
   "author": "Agent Mode + Personal Research",
   "license": "MIT",
-  "mcp_version": "1.0",
+  "mcp_version": "1.30.0",
   "server": {
-    "file": "server.py",
+    "file": "mcp/server.py",
     "transport": "stdio",
-    "command": "python server.py"
+    "command": "python mcp/server.py"
   },
   "tools": [
     {
@@ -378,7 +378,7 @@
     },
     {
       "name": "analyze_consultation_general",
-      "description": "MỚI v2.1 - TOOL TỔNG QUÁT NHẤT - Áp dụng cho TẤT CẢ Types/Profiles - 5 Types (Manifestor 9%, Generator 36%, MG 32%, Projector 22%, Reflector 1%) x 12 Profiles = 60 biến thể - 100% dân số. Deep dive chi tiết cho từng Type (aura, psychology, strategy, signature, not_self, work, relationship, child) + Profile deep dive (role, angle, description, career) + Fear/Love + quy trình tham vấn chuyên nghiệp 4 bước + buổi đọc 1-2h. Khác với analyze_manifestor_deep (chỉ 9%), tool này cho TẤT CẢ.",
+      "description": "v3.0 - TOOL TỔNG QUÁT NHẤT - Áp dụng cho TẤT CẢ Types/Profiles - 5 Types (Manifestor 9%, Generator 36%, MG 32%, Projector 22%, Reflector 1%) x 12 Profiles = 60 biến thể - 100% dân số. Deep dive chi tiết cho từng Type (aura, psychology, strategy, signature, not_self, work, relationship, child) + Profile deep dive (role, angle, description, career) + Fear/Love + quy trình tham vấn chuyên nghiệp 4 bước + buổi đọc 1-2h. Khác với analyze_manifestor_deep (chỉ 9%), tool này cho TẤT CẢ.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -412,7 +412,7 @@
     },
     {
       "name": "generate_consultation_report",
-      "description": "MỚI v2.1 - Tạo báo cáo tham vấn tổng quát đầy đủ markdown - Áp dụng cho TẤT CẢ Types/Profiles - 5x12=60 biến thể - Bao gồm Type deep dive, Profile deep dive, Centers, Channels, Fear/Love, quy trình tham vấn, nguyên tắc đạo đức, lộ trình 7 ngày/7 tháng/7 năm",
+      "description": "v3.0 - Tạo báo cáo tham vấn tổng quát đầy đủ markdown - Áp dụng cho TẤT CẢ Types/Profiles - 5x12=60 biến thể - Bao gồm Type deep dive, Profile deep dive, Centers, Channels, Fear/Love, quy trình tham vấn, nguyên tắc đạo đức, lộ trình 7 ngày/7 tháng/7 năm",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -443,7 +443,7 @@
     },
     {
       "name": "analyze_money_map",
-      "description": "MỚI v2.2 - TOOL CHUYÊN DỤNG TIỀN BẠC - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels - 5 Types Money Strategy (Manifestor khởi xướng+inform, Generator respond+Sacral, MG đa dòng tiền, Projector invitation+premium pricing cao cho ít giờ, Reflector môi trường+lunar 28 ngày) + 12 Profiles Money Style + Heart Defined 35% vs Undefined 65% (bẫy chứng minh giá trị) + 6 Money Channels (21-45 Money, 26-44 Surrender, 40-37 Community, 32-54 Transformation, 14-2 Beat, 5-15 Rhythm) + 14 Money Gates + Definition + Authority + Pricing/Business/Investment - 100% - 60 biến thể",
+      "description": "v3.0 - TOOL CHUYÊN DỤNG TIỀN BẠC - Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels - 5 Types Money Strategy (Manifestor khởi xướng+inform, Generator respond+Sacral, MG đa dòng tiền, Projector invitation+premium pricing cao cho ít giờ, Reflector môi trường+lunar 28 ngày) + 12 Profiles Money Style + Heart Defined 35% vs Undefined 65% (bẫy chứng minh giá trị) + 6 Money Channels (21-45 Money, 26-44 Surrender, 40-37 Community, 32-54 Transformation, 14-2 Beat, 5-15 Rhythm) + 14 Money Gates + Definition + Authority + Pricing/Business/Investment - 100% - 60 biến thể",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -474,7 +474,7 @@
     },
     {
       "name": "generate_money_report",
-      "description": "MỚI v2.2 - Tạo báo cáo Full Money Map đầy đủ markdown - Dòng tiền theo Type/Profile/Heart/Channels/Gates - Pricing, Business Model, Investment, Saving/Spending - 60 biến thể - 100%",
+      "description": "v3.0 - Tạo báo cáo Full Money Map đầy đủ markdown - Dòng tiền theo Type/Profile/Heart/Channels/Gates - Pricing, Business Model, Investment, Saving/Spending - 60 biến thể - 100%",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -503,7 +503,7 @@
     },
     {
       "name": "analyze_potential_blindspots",
-      "description": "MỚI v2.3 - TOOL CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - Dựa trên ý kiến thực tế: Điểm mù bản thân, điểm yếu-điểm mạnh, quan sát mình dưới các góc nhìn khác nhau (11 góc nhìn: Type + Profile + 9 Centers), lựa chọn hành vi phù hợp cải thiện bản thân - Điểm mạnh: Defined Centers (năng lượng cố định), Defined Channels (tài năng cố định), Gates, Profile Role, Cross - Điểm mù: Open/Undefined Centers (Not-Self vs Wisdom - 9 Centers), Fear Gates 19 cổng, Hanging Gates (tiềm năng treo) - Quan sát đa góc nhìn: 11 góc nhìn - Lựa chọn hành vi: Strategy+Authority (80% giá trị), Not-Self Mind (Mind không phải Authority), Deconditioning 7-year - 100% - 60 biến thể - Self-improvement",
+      "description": "v3.0 - TOOL CHUYÊN DỤNG TIỀM NĂNG & ĐIỂM MÙ - Dựa trên ý kiến thực tế: Điểm mù bản thân, điểm yếu-điểm mạnh, quan sát mình dưới các góc nhìn khác nhau (11 góc nhìn: Type + Profile + 9 Centers), lựa chọn hành vi phù hợp cải thiện bản thân - Điểm mạnh: Defined Centers (năng lượng cố định), Defined Channels (tài năng cố định), Gates, Profile Role, Cross - Điểm mù: Open/Undefined Centers (Not-Self vs Wisdom - 9 Centers), Fear Gates 19 cổng, Hanging Gates (tiềm năng treo) - Quan sát đa góc nhìn: 11 góc nhìn - Lựa chọn hành vi: Strategy+Authority (80% giá trị), Not-Self Mind (Mind không phải Authority), Deconditioning 7-year - 100% - 60 biến thể - Self-improvement",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -532,7 +532,7 @@
     },
     {
       "name": "generate_potential_report",
-      "description": "MỚI v2.3 - Tạo báo cáo Tiềm năng & Điểm mù đầy đủ markdown - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc (Type+Profile+9 Centers) - Lựa chọn hành vi phù hợp (Strategy+Authority) - 60 biến thể - Self-awareness",
+      "description": "v3.0 - Tạo báo cáo Tiềm năng & Điểm mù đầy đủ markdown - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc (Type+Profile+9 Centers) - Lựa chọn hành vi phù hợp (Strategy+Authority) - 60 biến thể - Self-awareness",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -946,59 +946,19 @@
       "description": "9 trung tâm"
     },
     {
-      "uri": "human-design://knowledge/channels",
-      "name": "All 36 Channels",
-      "description": "36 kênh"
-    },
-    {
       "uri": "human-design://knowledge/types",
       "name": "5 Types",
       "description": "5 loại"
     },
     {
-      "uri": "human-design://mandala/order",
-      "name": "Mandala Order",
-      "description": "Thứ tự 64 cổng"
-    },
-    {
-      "uri": "human-design://knowledge/fear-gates",
-      "name": "19 Fear Gates",
-      "description": "MỚI từ docs cá nhân - 6 Splenic + 6 Ajna + 7 Solar"
-    },
-    {
-      "uri": "human-design://knowledge/love-gates",
-      "name": "Love Gates",
-      "description": "MỚI - 4 Vessel of Love + 7 Mundane Love"
-    },
-    {
-      "uri": "human-design://knowledge/incarnation-crosses",
-      "name": "192 Crosses",
-      "description": "MỚI - 192 Incarnation Crosses chi tiết từ tài liệu cá nhân 413 dòng"
-    },
-    {
-      "uri": "human-design://knowledge/manifestor",
-      "name": "Manifestor Deep",
-      "description": "MỚI - Chuyên luận Manifestor + quy trình tham vấn"
-    },
-    {
-      "uri": "human-design://knowledge/general-consultation",
-      "name": "General Consultation 60 variants",
-      "description": "MỚI v2.1 - 5 Types x 12 Profiles = 60 biến thể, 100% dân số, quy trình tham vấn 4 bước"
-    },
-    {
       "uri": "human-design://knowledge/money-channels",
       "name": "6 Money Channels",
-      "description": "MỚI v2.2 - 21-45 Money, 26-44 Surrender, 40-37 Community, 32-54 Transformation, 14-2 Beat, 5-15 Rhythm"
+      "description": "v3.0 - 21-45 Money, 26-44 Surrender, 40-37 Community, 32-54 Transformation, 14-2 Beat, 5-15 Rhythm"
     },
     {
       "uri": "human-design://knowledge/money-gates",
       "name": "14 Money Gates",
-      "description": "MỚI v2.2 - 21,45,26,44,14,2,32,54,40,37,5,15,19,49 - Full Money Map"
-    },
-    {
-      "uri": "human-design://knowledge/potential-blindspots",
-      "name": "Potential & Blind Spots",
-      "description": "MỚI v2.3 - Điểm mạnh Defined Centers/Channels, Điểm mù Open Centers Not-Self vs Wisdom, Hanging Gates, Fear Gates, 11 Perspectives"
+      "description": "v3.0 - 21,45,26,44,14,2,32,54,40,37,5,15,19,49 - Full Money Map"
     },
     {
       "uri": "human-design://knowledge/health-type",
@@ -1008,7 +968,7 @@
     {
       "uri": "human-design://knowledge/love-gates",
       "name": "26 Love Gates",
-      "description": "MỚI v3.0 - 26 cổng tình yêu và vai trò trong quan hệ"
+      "description": "26 cổng tình yêu và vai trò trong quan hệ (resource runtime)"
     },
     {
       "uri": "human-design://knowledge/authorities",
@@ -1031,88 +991,7 @@
       "description": "MỚI v3.0 - Vai trò 5 Types trong hệ thống + ghế ngồi"
     }
   ],
-  "prompts": [
-    {
-      "name": "analyze_human_design_full",
-      "description": "Skill: Phân tích toàn diện"
-    },
-    {
-      "name": "analyze_career_path",
-      "description": "Skill: Hướng nghiệp"
-    },
-    {
-      "name": "analyze_relationship",
-      "description": "Skill: Mối quan hệ Composite"
-    },
-    {
-      "name": "explain_gate",
-      "description": "Skill: Giải thích 1 cổng"
-    },
-    {
-      "name": "fear_psychology_analysis",
-      "description": "MỚI từ Phân mục 4 - Skill phân tích tâm lý sợ hãi 19 cổng"
-    },
-    {
-      "name": "love_relationship_dynamics",
-      "description": "MỚI từ Phân mục 5 - Skill động lực tình yêu & kết nối"
-    },
-    {
-      "name": "manifestor_consultation",
-      "description": "MỚI từ Phân mục 6 - Skill tham vấn Manifestor chuyên nghiệp"
-    },
-    {
-      "name": "incarnation_cross_deep_dive",
-      "description": "MỚI từ Phân mục 3 - Skill giải mã sứ mệnh 192 Crosses"
-    },
-    {
-      "name": "general_consultation",
-      "description": "MỚI v2.1 - Skill tham vấn tổng quát 100% dân số - 5 Types x 12 Profiles = 60 biến thể - Áp dụng cho TẤT CẢ"
-    },
-    {
-      "name": "money_wealth_full_map",
-      "description": "MỚI v2.2 - Skill Full Money Map - Dòng tiền theo Type/Profile/Heart/Channels/Gates - 60 biến thể - Pricing, Business Model, Investment"
-    },
-    {
-      "name": "career_business_model",
-      "description": "MỚI v2.2 - Skill Career & Business Model - Mô hình kinh doanh theo thiết kế"
-    },
-    {
-      "name": "health_wellbeing",
-      "description": "MỚI v2.2 - Skill Health & Wellbeing - Sức khỏe theo Type/Center"
-    },
-    {
-      "name": "parenting_child",
-      "description": "MỚI v2.2 - Skill Parenting & Child Development - Nuôi dạy con theo Type"
-    },
-    {
-      "name": "potential_blindspots",
-      "description": "MỚI v2.3 - Skill Tiềm năng & Điểm mù - Điểm mạnh/Điểm yếu - Quan sát đa góc nhìn 11 góc - Lựa chọn hành vi - Đáp ứng ý kiến 2 về self-improvement"
-    },
-    {
-      "name": "health_wellbeing",
-      "description": "MỚI v3.0 - Skill Sức khỏe Thân-Tâm-Trí (12 nâng cấp) - Type pattern + Centers + Body signals + 7 ngày"
-    },
-    {
-      "name": "relationship_deep",
-      "description": "MỚI v3.0 - Skill Mối quan hệ chuyên sâu (15) - Aura + Love gates + Composite"
-    },
-    {
-      "name": "decision_authority",
-      "description": "MỚI v3.0 - Skill Ra quyết định (16) - 7 Authorities + quy trình + bẫy"
-    },
-    {
-      "name": "deconditioning",
-      "description": "MỚI v3.0 - Skill Giải điều kiện hóa (17) - Not-Self + lộ trình 7d/7m/7y"
-    },
-    {
-      "name": "purpose_mission",
-      "description": "MỚI v3.0 - Skill Sứ mệnh ứng dụng (18) - Cross + Life's Work 70% + hướng nghề"
-    },
-    {
-      "name": "team_leadership",
-      "description": "MỚI v3.0 - Skill Team & Hệ thống (20) - Vai trò + ghế ngồi + quản lý"
-    }
-  ],
+  "prompts": [],
   "knowledge_base": {
     "path": "../knowledge/",
     "files": [
@@ -1160,6 +1039,7 @@
     "1.0.0": "8 tools core",
     "2.2.0": "Thêm 2 tools money chuyên dụng: analyze_money_map (Full Money Map 60 biến thể - 5 Types Money Strategy + 12 Profiles Money Style + Heart Defined/Undefined + 6 Money Channels + 14 Money Gates + Definition + Authority + Pricing/Business/Investment) + generate_money_report - Thêm 4 skills chuyên dụng: 10_money_wealth, 11_career_business, 12_health_wellbeing, 13_parenting_child - Đề xuất full bộ 12 skills chuyên dụng trong PROPOSAL_SPECIALIZED_SKILLS_v2.2.md",
     "2.3.0": "Thêm 2 tools potential chuyên dụng: analyze_potential_blindspots (Tiềm năng & Điểm mù - Điểm mạnh Defined Centers/Channels, Điểm mù Open Centers Not-Self vs Wisdom, Hanging Gates, Fear Gates, 11 Perspectives Type+Profile+9 Centers, Lựa chọn hành vi Strategy+Authority) + generate_potential_report - Đáp ứng ý kiến thực tế về điểm mù, điểm mạnh/yếu, quan sát đa góc nhìn, lựa chọn hành vi cải thiện bản thân - Thêm 1 skill 14_potential_blindspots - Tổng 18 tools, 14 skills, 15 knowledge - 7 nhu cầu thực tế: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior",
-    "3.0.0": "Option C Full: +12 tools 6 domains mới (Health Thân-Tâm-Trí, Relationship+Composite, Decision Authority, Deconditioning 7d/7m/7y, Purpose Mission, Team System) + 5 skills mới (15,16,17,18,20) + nâng cấp skill 12 + 6 knowledge (15-20) - Hoàn chỉnh 7/7 nhu cầu thực tế + FIX shadowing bug 6 wrappers cũ (money/consultation/potential) bằng alias imports"
+    "3.0.0": "Option C Full: thêm 12 tools cho Health, Relationship, Decision, Deconditioning, Purpose và Team; tổng 30 tools, 21 knowledge files và 19 Markdown skills.",
+    "3.0.0-docs": "Chuẩn hóa manifest theo decorator runtime: 11 resources thực tế, 0 MCP prompts; 19 skills được lưu dưới dạng Markdown."
   }
 }

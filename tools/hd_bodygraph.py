@@ -1126,8 +1126,8 @@ def main():
             cairosvg.svg2png(bytestring=svg.encode("utf-8"), write_to=args.png,
                              output_width=900, background_color="#FFFFFF")
             print(f"OK - {args.png}")
-        except ImportError:
-            print("!! cairosvg chưa cài, bỏ qua --png")
+        except (ImportError, OSError) as exc:
+            print(f"!! CairoSVG/libcairo chưa sẵn sàng, bỏ qua --png: {exc}")
 
 
 if __name__ == "__main__":

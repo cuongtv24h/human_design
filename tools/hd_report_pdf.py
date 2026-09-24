@@ -183,7 +183,12 @@ def _append_markdown(story, text, st):
 
 
 def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
-    import cairosvg
+    # CairoSVG needs the native libcairo library. Keep text/report generation
+    # usable when that optional system dependency is unavailable.
+    try:
+        import cairosvg
+    except (ImportError, OSError):
+        cairosvg = None
 
     st = _styles()
     story = []
@@ -246,19 +251,26 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
                            "Kênh <b>có màu</b> = Định nghĩa (tài năng cố định). "
                            "<b>Đen</b> = Personality/Ý thức, <b>Đỏ</b> = Design/Vô thức.",
                            st["body"]))
-    tmpdir = tempfile.mkdtemp()
-    full_png = os.path.join(tmpdir, "bg_full.png")
-    focus_png = os.path.join(tmpdir, "bg_focus.png")
-    svg_full = generate_bodygraph_svg(chart, name=name, birth_local_str=birth_local_str,
-                                      utc_str=utc_str, place_str=place_str, mode="full")
-    svg_focus = generate_bodygraph_svg(chart, name=name, birth_local_str=birth_local_str,
-                                       utc_str=utc_str, place_str=place_str, mode="focus")
-    cairosvg.svg2png(bytestring=svg_full.encode("utf-8"), write_to=full_png,
-                     scale=2, background_color="white")
-    cairosvg.svg2png(bytestring=svg_focus.encode("utf-8"), write_to=focus_png,
-                     scale=2, background_color="white")
-    story.append(Image(full_png, width=152 * mm, height=210.3 * mm))
-    story.append(PageBreak())
+    if cairosvg is not None:
+        tmpdir = tempfile.mkdtemp()
+        full_png = os.path.join(tmpdir, "bg_full.png")
+        focus_png = os.path.join(tmpdir, "bg_focus.png")
+        svg_full = generate_bodygraph_svg(chart, name=name, birth_local_str=birth_local_str,
+                                          utc_str=utc_str, place_str=place_str, mode="full")
+        svg_focus = generate_bodygraph_svg(chart, name=name, birth_local_str=birth_local_str,
+                                           utc_str=utc_str, place_str=place_str, mode="focus")
+        cairosvg.svg2png(bytestring=svg_full.encode("utf-8"), write_to=full_png,
+                         scale=2, background_color="white")
+        cairosvg.svg2png(bytestring=svg_focus.encode("utf-8"), write_to=focus_png,
+                         scale=2, background_color="white")
+        story.append(Image(full_png, width=152 * mm, height=210.3 * mm))
+        story.append(PageBreak())
+    else:
+        story.append(Paragraph(
+            "BodyGraph chưa được nhúng vì thiếu thư viện native Cairo. "
+            "Cài <b>libcairo2</b> rồi chạy lại để có hình minh họa; phần báo cáo chữ vẫn được xuất.",
+            st["body"]))
+        story.append(PageBreak())
 
     # ================= SỐNG ĐÚNG THIẾT KẾ =================
     story.append(Paragraph("1. Sống đúng thiết kế của bạn", st["h1"]))
@@ -350,7 +362,12 @@ def build_pdf(chart, name, birth_local_str, utc_str, place_str, out_path):
     story.append(Paragraph("Bản đồ BodyGraph — Chế độ nổi bật kênh định nghĩa", st["h1"]))
     story.append(Paragraph("Cùng một bản đồ nhưng làm mờ các kênh mở, giúp bạn tập trung vào "
                            "luồng năng lượng cố định (tài năng bẩm sinh) của mình.", st["body"]))
-    story.append(Image(focus_png, width=152 * mm, height=210.3 * mm))
+    if cairosvg is not None:
+        story.append(Image(focus_png, width=152 * mm, height=210.3 * mm))
+    else:
+        story.append(Paragraph(
+            "Chế độ BodyGraph nổi bật không được nhúng vì thiếu thư viện native Cairo.",
+            st["body"]))
     story.append(PageBreak())
 
     # ================= CỔNG KÍCH HOẠT =================

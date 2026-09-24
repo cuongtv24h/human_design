@@ -1,252 +1,103 @@
-# TÍCH HỢP HUMAN DESIGN VỚI CHATGPT BẢN WEB - HƯỚNG DẪN CHI TIẾT
+# Tích hợp Human Design với ChatGPT Web
 
-> ChatGPT bản web (chat.openai.com) KHÔNG hỗ trợ MCP trực tiếp như Claude Desktop, nhưng có 3 cách tích hợp chính thức
+`server.py` là MCP stdio server. ChatGPT Custom GPT Actions không dùng trực tiếp file MCP config; hãy dùng `openapi_server.py` để expose cùng logic qua REST/OpenAPI.
 
----
+> **Snapshot hiện tại:** API v3.0.0 · 30 route nghiệp vụ · 2 route hệ thống (`/`, `/health`) · OpenAPI spec tự sinh tại `/openapi.json`.
 
-## 🔍 TÌNH TRẠNG HIỆN TẠI (2026)
+## 1. Chạy và kiểm tra API local
 
-| Nền tảng | Hỗ trợ MCP trực tiếp? | Cách tích hợp |
-|----------|----------------------|---------------|
-| **Claude Desktop** | ✅ Có - Native MCP | Dùng `mcp_config.json` |
-| **Claude Web** | ✅ Có (từ 2025) | MCP Connectors |
-| **Cursor / Windsurf** | ✅ Có | MCP Config |
-| **ChatGPT Web (Free)** | ❌ Không | Cần workaround qua Custom GPT Actions |
-| **ChatGPT Plus / Pro** | ⚠️ Gián tiếp | Custom GPT + Actions (OpenAPI) |
-| **ChatGPT Team/Enterprise** | ⚠️ Gián tiếp | Custom GPT + Actions + API |
-| **OpenAI API** | ✅ Có (Function Calling) | Dùng API server như function |
-
-**Kết luận:** ChatGPT bản web thường KHÔNG thể thêm MCP Server như Claude, nhưng **ChatGPT Plus** có thể tích hợp qua **Custom GPT Actions** - đây là cách chính thức và mạnh nhất.
-
----
-
-## ✅ CÁCH 1: CUSTOM GPT + ACTIONS (KHUYÊN DÙNG - Cho ChatGPT Plus/Pro)
-
-Đây là cách chính thức OpenAI khuyến nghị để tích hợp API bên ngoài vào ChatGPT web.
-
-### Bước 1: Deploy API Server
-
-Bạn đã có sẵn `openapi_server.py` - FastAPI server chuyển đổi MCP Tools thành REST API.
-
-**Chạy local + ngrok:**
+Từ root repository:
 
 ```bash
 cd /home/user/human_design/mcp
-pip install fastapi uvicorn
-python openapi_server.py
-# Server chạy tại http://localhost:8000
-
-# Mở terminal khác, chạy ngrok để có public URL
-ngrok http 8000
-# -> https://abc123.ngrok.io
+../.venv/bin/python -m uvicorn openapi_server:app \
+  --host 0.0.0.0 --port 8000
 ```
 
-**Hoặc deploy lên cloud miễn phí:**
-- Railway: `railway up`
-- Render: `render.com`
-- Fly.io: `fly deploy`
-- Vercel: `vercel deploy`
+Kiểm tra:
 
-Sau khi deploy, bạn sẽ có URL public, ví dụ: `https://human-design-api.yourdomain.com`
-
-### Bước 2: Lấy OpenAPI Spec
-
-Mở: `https://your-public-url.com/openapi.json`
-
-Hoặc local: `http://localhost:8000/openapi.json`
-
-Lưu file này lại.
-
-### Bước 3: Tạo Custom GPT
-
-1. Vào https://chat.openai.com/gpts/editor
-2. Chọn **Create a GPT**
-3. Tab **Configure**:
-   - Name: `Human Design Analyzer`
-   - Description: `Chuyên gia Human Design - Tính toán và phân tích BodyGraph chính xác bằng Swiss Ephemeris`
-   - Instructions: Copy từ file `custom_gpt_instructions.txt` (bên dưới)
-   - Conversation starters:
-     - `Phân tích Human Design cho tôi sinh 1990-05-15 lúc 08:30 ở Hà Nội`
-     - `Tra cứu Gate 10 là gì?`
-     - `So sánh mối quan hệ 2 người`
-
-4. Kéo xuống **Actions** -> **Create new action**
-   - Chọn **Import from URL** -> dán URL `https://your-public-url.com/openapi.json`
-   - Hoặc **Import** file `openapi.json` local
-   - OpenAI sẽ tự parse thành các actions: calculate-chart, analyze-deep, gate-info, v.v.
-
-5. Trong **Authentication**: Chọn **None** (hoặc API Key nếu bạn set)
-
-6. **Privacy Policy**: Dán URL `https://your-public-url.com` hoặc để trống nếu test
-
-7. Save -> Chọn **Only me** hoặc **Public**
-
-### Bước 4: Sử dụng
-
-Vào Custom GPT vừa tạo, chat:
-
-```
-Phân tích Human Design cho Nguyễn Văn A sinh 1990-05-15 lúc 08:30 ở Hà Nội
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/openapi.json
 ```
 
-ChatGPT sẽ tự động gọi API `calculate-chart` và `analyze-deep` để lấy dữ liệu chính xác và phân tích!
+Swagger UI nằm ở `http://localhost:8000/docs`. Địa chỉ `localhost` chỉ dành cho máy chạy server; ChatGPT trên web cần một URL public có HTTPS.
 
-### File hướng dẫn Custom GPT
+## 2. Deploy public
 
-Tạo file `custom_gpt_instructions.txt`:
+Có thể deploy FastAPI app trên máy chủ/container hoặc nền tảng hỗ trợ ASGI. Lệnh production tối thiểu:
 
-```
-Bạn là chuyên gia Human Design chuyên sâu 20 năm kinh nghiệm, được trang bị API tính toán chính xác bằng Swiss Ephemeris.
-
-QUY TRÌNH BẮT BUỘC khi người dùng yêu cầu phân tích:
-
-1. Khi có ngày giờ sinh:
-   - Gọi calculate-chart để tính toán chính xác Type, Authority, Profile, Centers, Channels
-   - Sau đó gọi analyze-deep với focus_area=full để có phân tích chuyên sâu
-   - Tổng hợp thành báo cáo 7 phần chuẩn
-
-2. Khi hỏi về Gate/Center/Channel/Profile:
-   - Gọi gate-info, center-info, channel-info, profile-info tương ứng
-
-3. Khi hỏi mối quan hệ:
-   - Gọi compare-charts
-
-4. Luôn:
-   - Dùng tiếng Việt
-   - Giải thích dễ hiểu, ví dụ thực tế
-   - Nhấn mạnh Strategy + Authority
-   - Không phán xét, không có chart xấu
-   - Kết thúc bằng hành động thực hành
-
-CẤU TRÚC BÁO CÁO CHUẨN:
-- Tóm tắt nhanh (Type, Strategy, Authority, Profile)
-- Type & Strategy (30%)
-- Authority (20%)
-- Centers (20%)
-- Channels & Gates (15%)
-- Profile & Definition (10%)
-- Cross (5%)
-- Lời khuyên thực hành
-
-Bạn có API chính xác, đừng đoán, hãy gọi API.
+```bash
+python -m uvicorn openapi_server:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
----
+Khi chạy từ thư mục `mcp`, cần bảo đảm `../tools` nằm trong repository đúng như import path của source. Không commit secret; nếu thêm authentication, cấu hình API key ở reverse proxy hoặc middleware và cập nhật schema tương ứng.
 
-## ✅ CÁCH 2: OPENAI API + FUNCTION CALLING (Cho Developer)
+Sau khi deploy, kiểm tra các URL:
 
-Nếu bạn dùng OpenAI API (không phải ChatGPT web), bạn có thể tích hợp trực tiếp MCP Tools như Functions.
+- `https://YOUR_HOST/health`
+- `https://YOUR_HOST/docs`
+- `https://YOUR_HOST/openapi.json`
 
-**Ví dụ Python:**
+## 3. Tạo Custom GPT Action
 
-```python
-import openai
+1. Mở trình tạo Custom GPT.
+2. Tạo Action mới.
+3. Import OpenAPI schema từ `https://YOUR_HOST/openapi.json`.
+4. Chọn authentication phù hợp với deployment. Bản local/public test chỉ nên dùng `None` khi API đã được giới hạn truy cập.
+5. Lưu và thử với ngày, giờ, timezone.
 
-# Định nghĩa functions từ MCP Tools
-tools = [
-  {
-    "type": "function",
-    "function": {
-      "name": "calculate_human_design_chart",
-      "description": "Tính toán Human Design chart chính xác...",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "birth_date": {"type": "string", "description": "YYYY-MM-DD"},
-          "birth_time": {"type": "string", "description": "HH:MM"},
-          "timezone": {"type": "string", "default": "+07:00"},
-          "name": {"type": "string"}
-        },
-        "required": ["birth_date", "birth_time"]
-      }
-    }
-  }
-  # ... thêm các tools khác
-]
+Các nhóm endpoint gồm:
 
-# Gọi ChatGPT với tools
-response = openai.chat.completions.create(
-  model="gpt-4o",
-  messages=[{"role": "user", "content": "Phân tích Human Design cho 1990-05-15 08:30"}],
-  tools=tools
-)
+- Core: `/calculate-chart`, `/analyze-deep`, lookup Gate/Center/Channel/Profile, `/compare-charts`, `/generate-report`.
+- Advanced: fear, love, incarnation cross, Manifestor.
+- General/Money/Potential: consultation, money map, blind spots.
+- v3.0: health, relationship, decision, deconditioning, purpose, team; mỗi domain có endpoint phân tích và endpoint report.
 
-# Xử lý function call -> gọi hd_calculator.py
-# ...
-```
+## 4. Quy trình gọi khuyến nghị
 
-File ví dụ: `openai_function_calling_example.py` (sẽ tạo)
+### Phân tích một người
 
----
+1. Gọi `POST /calculate-chart` với `birth_date`, `birth_time`, `timezone` và thông tin tùy chọn.
+2. Gọi `POST /analyze-deep` nếu cần phân tích nền tảng.
+3. Gọi domain endpoint tương ứng với nhu cầu: `/analyze-health`, `/analyze-purpose`, `/analyze-money-map`, v.v.
+4. Dùng `/generate-*-report` khi cần bản Markdown hoàn chỉnh.
 
-## ⚠️ CÁCH 3: CHATGPT WEB FREE (Workaround - Không chính thức)
+### Tra cứu
 
-ChatGPT Free không có Custom GPT Actions, nhưng bạn có thể:
+- `GET /gate-info/{gate_number}`
+- `GET /center-info/{center_name}`
+- `GET /profile-info/{profile}`
+- `GET /channel-info?gate1=10&gate2=20`
 
-### 3a. Dùng ChatGPT với Browser Tool + API
+### Quan hệ
 
-1. Deploy API server public
-2. Trong ChatGPT Free, bật **Browsing** hoặc **Code Interpreter**
-3. Nói: "Gọi API https://your-url.com/calculate-chart với birth_date=1990-05-15..."
-4. ChatGPT sẽ dùng browsing để gọi API (không ổn định)
+Gọi `/compare-charts` cho composite cơ bản hoặc `/analyze-relationship` cho phân tích quan hệ chuyên sâu có thông tin đối phương.
 
-### 3b. Copy-Paste
+## 5. Nội dung hướng dẫn Custom GPT
 
-1. Chạy `hd_cli.py` local để tính chart
-2. Copy kết quả JSON
-3. Paste vào ChatGPT web và nói: "Phân tích JSON này theo Human Design"
-4. ChatGPT sẽ phân tích dựa trên JSON (không tự tính được)
+Có thể copy `custom_gpt_instructions.txt`. Nguyên tắc chính:
 
-**Nhược điểm:** Không tự động, phải làm thủ công.
+- Luôn gọi API, không tự đoán Type/Authority/Profile/Gates.
+- Với phân tích đầy đủ, gọi chart trước rồi gọi analyzer/domain phù hợp.
+- Giải thích bằng tiếng Việt, ưu tiên Strategy + Authority và ví dụ thực tế.
+- Nhắc rằng giờ sinh không chính xác làm giảm độ tin cậy.
+- Không biến kết quả thành chẩn đoán y khoa, khuyến nghị đầu tư, pháp lý hoặc phán xét con người.
 
----
+## 6. Xử lý lỗi thường gặp
 
-## 🚀 KHUYÊN NGHỊ CHO BẠN
+| Hiện tượng | Cách kiểm tra |
+|---|---|
+| Action không import được | Mở `/openapi.json`, kiểm tra HTTPS và schema hợp lệ |
+| API không gọi được | Kiểm tra public URL, port binding `0.0.0.0`, reverse proxy và firewall |
+| Kết quả thiếu domain | Kiểm tra import path `tools/` và dependency trong `requirements.txt` |
+| PNG/PDF BodyGraph lỗi | Cài Python `cairosvg` và system package `libcairo2` |
+| Browser báo CORS | Kiểm tra cấu hình CORS/reverse proxy; không hard-code localhost trong client |
 
-| Bạn đang dùng | Cách tốt nhất |
-|---------------|---------------|
-| **ChatGPT Plus/Pro ($20/tháng)** | **Cách 1: Custom GPT + Actions** - Mạnh nhất, tự động, chính xác |
-| **ChatGPT Free** | Cách 3b: Copy-Paste hoặc nâng cấp lên Plus |
-| **Developer (dùng API)** | Cách 2: OpenAI Function Calling |
-| **Claude** | Dùng MCP trực tiếp với `mcp_config.json` - Native, tốt nhất |
+## File liên quan
 
-**Nếu bạn dùng ChatGPT Plus:** Tôi khuyên dùng Cách 1, tôi đã chuẩn bị sẵn:
-- `openapi_server.py` - API server
-- OpenAPI spec tự động tại `/openapi.json`
-- Hướng dẫn Custom GPT
-
-Chỉ cần deploy server lên public URL (ngrok miễn phí 5 phút là xong) và tạo Custom GPT!
-
----
-
-## 📋 CHECKLIST TÍCH HỢP CHATGPT WEB
-
-- [ ] Deploy `openapi_server.py` lên public URL (ngrok/Railway/Render)
-- [ ] Kiểm tra `https://your-url.com/docs` hoạt động
-- [ ] Lấy `https://your-url.com/openapi.json`
-- [ ] Tạo Custom GPT tại https://chat.openai.com/gpts/editor
-- [ ] Thêm Action với openapi.json
-- [ ] Test với câu: "Phân tích Human Design cho 1990-05-15 08:30"
-- [ ] Nếu thành công, ChatGPT sẽ gọi API và trả về báo cáo chính xác!
-
----
-
-## 🆘 HỖ TRỢ
-
-Nếu gặp lỗi:
-- **Action không gọi được:** Kiểm tra CORS (đã thêm trong openapi_server.py), kiểm tra public URL có truy cập được không
-- **ChatGPT Free:** Không có Actions, phải dùng Plus hoặc copy-paste
-- **Ngrok URL hết hạn:** Ngrok free URL đổi mỗi lần chạy, cần update lại trong Custom GPT
-
----
-
-## 📁 FILE LIÊN QUAN
-
-- `openapi_server.py` - FastAPI server cho ChatGPT Actions
-- `mcp_config.json` - Cho Claude Desktop (không dùng cho ChatGPT)
-- `server.py` - MCP Server gốc (cho Claude)
-- `CHATGPT_WEB_INTEGRATION.md` - File này
-
----
-
-*Human Design MCP - ChatGPT Web Integration Guide - 2026-09-23*
+- `openapi_server.py`: FastAPI app.
+- `custom_gpt_instructions.txt`: hướng dẫn LLM.
+- `../requirements.txt`: dependency chuẩn.
+- `../README.md`: hướng dẫn vận hành tổng thể.
+- `README.md`: MCP stdio và resource/tool contract.

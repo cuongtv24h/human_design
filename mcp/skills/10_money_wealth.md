@@ -1,6 +1,6 @@
 # SKILL: Full Money Map - Dòng Tiền & Tài Chính Theo Human Design - 60 Biến Thể
 
-> **MỚI v2.2 - Ưu tiên #1 theo yêu cầu user - Chuyên dụng Money/Wealth**
+> **v3.0 - Ưu tiên #1 theo yêu cầu user - Chuyên dụng Money/Wealth**
 > Tích hợp từ knowledge: 03_36_kenh.md (21-45 Money, 26-44 Surrender, 40-37 Community, 32-54 Transformation) + 02_9_trung_tam.md (Heart/Ego - tiền bạc) + 04_5_loai_va_chien_luoc.md + 12_tham_van_tong_quat_60_bien_the.md
 
 ## Mô tả
@@ -40,7 +40,7 @@ calculate_human_design_chart
   Input: birth_date, birth_time, timezone, name
   Output: chart cơ bản
 
-analyze_money_map (TOOL CHÍNH MỚI v2.2)
+analyze_money_map (TOOL CHÍNH v3.0)
   Input: birth_datetime, name
   Output:
   - type, profile, authority, definition, defined_centers
