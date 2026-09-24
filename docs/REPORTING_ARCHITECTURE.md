@@ -28,7 +28,8 @@ Markdown/HTML/PDF renderer
 
 - `SubjectInput`: ngày, giờ, timezone và thông tin định danh của khách hàng.
 - `PartnerInput`: dữ liệu đối tác cho relationship/composite report.
-- `ReportRequest`: tier, domain add-on, output format, locale và options.
+- `ReportRequest`: tier, template, domain add-on, output format, locale và options.
+- `ReportTemplate`: `sections` (mặc định, structured theo tier) hoặc `operating_manual` (narrative 5 phần chuẩn).
 - `ReportTier`: `free_basic` hoặc `deep_core`.
 - `DomainName`: `money`, `potential`, `health`, `relationship`, `decision`, `deconditioning`, `purpose`, `team`.
 - `ReportPlan`: definition, thứ tự section, tool và knowledge dependencies.
@@ -54,6 +55,27 @@ Domain được thêm vào cùng một orchestrator, ví dụ:
 - `free_basic + health`
 
 Không tạo codepath riêng cho từng combination. Catalog bổ sung section và adapter theo `DomainName`.
+
+## Report template
+
+Template là chiều thứ ba, độc lập với tier và domain: tier chọn *bao nhiêu* dữ liệu
+chart được phân tích, template chọn *cách viết*.
+
+| Template | Section chuẩn | Phong cách |
+| --- | --- | --- |
+| `sections` (mặc định) | 5 section structured theo tier (`summary` ... `practical_actions`) | Dữ liệu kỹ thuật kèm phân tích ngắn |
+| `operating_manual` | 5 phần tự sự (`part1_identity` ... `part5_field_application`) | "Cẩm nang vận hành" bằng tiếng Việt đời sống, chuẩn `docs/NARRATIVE_STANDARD.md` |
+
+Template `operating_manual` render qua `backend/reporting/narrative.py` trên lớp ngôn
+ngữ `backend/reporting/language_vn.py`; deterministic, không LLM. Domain add-on vẫn
+được gắn sau 5 phần chuẩn trong cùng `ReportDocument`.
+
+```python
+request = ReportRequest.model_validate({
+    "subject": { ... },
+    "template": "operating_manual",   # mặc định: "sections"
+})
+```
 
 ## Admin/Coach usage
 

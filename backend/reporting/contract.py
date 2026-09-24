@@ -27,6 +27,19 @@ class ReportFormat(str, Enum):
     MARKDOWN = "markdown"
 
 
+class ReportTemplate(str, Enum):
+    """Presentation template for the report document.
+
+    The template is independent from ``tier`` and ``domains``: a base report
+    level selects how much chart data is analyzed, while the template selects
+    how that data is written.  ``operating_manual`` is the natural-Vietnamese
+    narrative standard documented in ``docs/NARRATIVE_STANDARD.md``.
+    """
+
+    SECTIONS = "sections"
+    OPERATING_MANUAL = "operating_manual"
+
+
 class DomainName(str, Enum):
     MONEY = "money"
     POTENTIAL = "potential"
@@ -94,6 +107,7 @@ class ReportRequest(BaseModel):
     report_id: UUID = Field(default_factory=uuid4)
     subject: SubjectInput
     tier: ReportTier = ReportTier.FREE_BASIC
+    template: ReportTemplate = ReportTemplate.SECTIONS
     domains: list[DomainName] = Field(default_factory=list)
     partner: PartnerInput | None = None
     output_format: ReportFormat = ReportFormat.STRUCTURED

@@ -65,8 +65,9 @@ Sáu skill foundation mới (`21`–`26`) bổ sung Centers, Channels, Type/Stra
 `REPORTING_ARCHITECTURE.md` mô tả application layer mới trong `backend/reporting/`:
 
 - `contract.py`: `ReportRequest`, `ReportPlan`, `ReportSection`, `ReportDocument` và provenance.
-- `catalog.py`: tier `free_basic`/`deep_core` và 8 domain module.
+- `catalog.py`: tier `free_basic`/`deep_core`, 8 domain module và 2 report template (`sections`, `operating_manual`).
 - `orchestrator.py`: tính chart một lần, gọi analyzer hiện có trong `tools/`, chuẩn hóa output và tạo Markdown preview deterministic.
+- `language_vn.py` + `narrative.py`: lớp ngôn ngữ tiếng Việt đời sống và chuẩn 5 phần của template "Bản Thiết Kế Bản Thân — Cẩm Nang Vận Hành" (nội dung chuẩn: `NARRATIVE_STANDARD.md`).
 
 Layer này chưa bao gồm frontend, billing hoặc payment. Raw chart/analyzer output luôn là source of truth; LLM nếu được thêm sau này chỉ diễn giải structured output.
 

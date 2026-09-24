@@ -52,6 +52,49 @@ DOMAIN_SPECS: dict[DomainName, DomainSpec] = {
 
 FREE_BASIC_SECTION_SPECS = (CORE_SECTIONS[0], CORE_SECTIONS[1], CORE_SECTIONS[2], CORE_SECTIONS[3], CORE_SECTIONS[6])
 
+# Narrative template — "Bản Thiết Kế Bản Thân — Cẩm Nang Vận Hành".
+# The 5 parts follow the standard in docs/NARRATIVE_STANDARD.md:
+# (1) identity, (2) decision compass, (3) burden release, (4) role/profile,
+# (5) field application.  Content is rendered by backend/reporting/narrative.py
+# on top of the language layer backend/reporting/language_vn.py.
+NARRATIVE_SECTIONS: tuple[SectionSpec, ...] = (
+    SectionSpec(
+        "part1_identity",
+        "Phần 1 — Bức tranh toàn cảnh: Bạn thực sự là ai khi bỏ qua mọi kỳ vọng?",
+        "summary",
+        ("calculate_hd_chart", "language_vn"),
+        ("00_tong_quan_he_thong.md", "04_5_loai_va_chien_luoc.md"),
+    ),
+    SectionSpec(
+        "part2_decision_compass",
+        "Phần 2 — La bàn ra quyết định: Làm sao để ngừng hối hận sau mỗi lựa chọn?",
+        "core",
+        ("calculate_hd_chart", "language_vn"),
+        ("04_5_loai_va_chien_luoc.md", "17_decision_authority.md"),
+    ),
+    SectionSpec(
+        "part3_burden_release",
+        "Phần 3 — Tháo gỡ gánh nặng: Những điều bạn đang gánh mà vốn không phải của bạn",
+        "core",
+        ("calculate_hd_chart", "language_vn"),
+        ("02_9_trung_tam.md", "18_deconditioning_notsel.md"),
+    ),
+    SectionSpec(
+        "part4_role_profile",
+        "Phần 4 — Phong cách sống & vai diễn cuộc đời: Người bên trong và hình ảnh bên ngoài",
+        "core",
+        ("calculate_hd_chart", "language_vn"),
+        ("05_profile_cross_definition.md", "08_192_incarnation_crosses_chi_tiet.md"),
+    ),
+    SectionSpec(
+        "part5_field_application",
+        "Phần 5 — Ứng dụng thực chiến: Đưa thiết kế vào đời sống 24/7",
+        "practice",
+        ("calculate_hd_chart", "language_vn"),
+        ("07_ung_dung_thuc_tien.md", "20_team_leadership_dynamics.md"),
+    ),
+)
+
 REPORT_DEFINITIONS: dict[str, ReportDefinition] = {
     "free_basic": ReportDefinition(
         key="free_basic",
@@ -67,6 +110,17 @@ REPORT_DEFINITIONS: dict[str, ReportDefinition] = {
         section_ids=[spec.id for spec in CORE_SECTIONS],
         description="Complete core chart analysis before optional domain modules.",
     ),
+    "operating_manual": ReportDefinition(
+        key="operating_manual",
+        title="Bản Thiết Kế Bản Thân — Cẩm Nang Vận Hành",
+        tier=ReportTier.DEEP_CORE,
+        section_ids=[spec.id for spec in NARRATIVE_SECTIONS],
+        description=(
+            "Narrative report in natural Vietnamese, styled as a personal operating "
+            "manual: 5 parts (identity, decision compass, burden release, role/profile, "
+            "field application) rendered from the language layer."
+        ),
+    ),
 }
 
 
@@ -75,3 +129,8 @@ def get_plan_definition(tier: ReportTier) -> tuple[ReportDefinition, tuple[Secti
     definition = REPORT_DEFINITIONS[key]
     specs = tuple(spec for spec in CORE_SECTIONS if spec.id in definition.section_ids)
     return definition, specs
+
+
+def get_manual_spec() -> tuple[ReportDefinition, tuple[SectionSpec, ...]]:
+    """Definition and part specs for the ``operating_manual`` narrative template."""
+    return REPORT_DEFINITIONS["operating_manual"], NARRATIVE_SECTIONS

@@ -3,6 +3,11 @@
 The orchestrator calculates the chart once, delegates domain analysis to the
 existing tools, and normalizes every result into the report contract.  It does
 not call an LLM and it never lets prose overwrite calculated chart values.
+
+Two presentation templates are supported (see ``docs/NARRATIVE_STANDARD.md``):
+- ``sections`` (default): deterministic structured sections per tier.
+- ``operating_manual``: the 5-part narrative standard, rendered by
+  ``backend/reporting/narrative.py`` on top of ``language_vn.py``.
 """
 
 from __future__ import annotations
@@ -27,7 +32,7 @@ from hd_calculator import (  # noqa: E402
 )
 from hd_analyzer import CENTER_ANALYSIS, PROFILE_ANALYSIS, TYPE_ANALYSIS  # noqa: E402
 
-from .catalog import DOMAIN_SPECS, SectionSpec, get_plan_definition  # noqa: E402
+from .catalog import DOMAIN_SPECS, SectionSpec, get_manual_spec, get_plan_definition  # noqa: E402
 from .contract import (  # noqa: E402
     DomainName,
     ReportDocument,
@@ -35,7 +40,9 @@ from .contract import (  # noqa: E402
     ReportProvenance,
     ReportRequest,
     ReportSection,
+    ReportTemplate,
 )
+from .narrative import render_operating_manual  # noqa: E402
 
 # Domain analyzers are deliberately imported from tools/, rather than copied
 # into the application layer.  ``None`` means that a formatter is not needed
@@ -50,7 +57,7 @@ from hd_relationship_analysis import analyze_relationship, format_relationship_r
 from hd_team_analysis import analyze_team, format_team_report  # noqa: E402
 
 
-ORCHESTRATOR_VERSION = "0.1.0"
+ORCHESTRATOR_VERSION = "0.2.0"
 CALCULATOR_VERSION = "pyswisseph 2.10.3.2 / Human Design calculator"
 KNOWLEDGE_VERSION = "2026-09-24"
 
@@ -273,7 +280,10 @@ class ReportOrchestrator:
         self.knowledge_version = knowledge_version
 
     def build_plan(self, request: ReportRequest) -> ReportPlan:
-        definition, core_specs = get_plan_definition(request.tier)
+        if request.template is ReportTemplate.OPERATING_MANUAL:
+            definition, core_specs = get_manual_spec()
+        else:
+            definition, core_specs = get_plan_definition(request.tier)
         section_ids = [spec.id for spec in core_specs]
         source_tools: list[str] = []
         knowledge_refs: list[str] = []
@@ -294,6 +304,43 @@ class ReportOrchestrator:
             knowledge_refs=list(dict.fromkeys(knowledge_refs)),
         )
 
+    def _run_narrative_sections(
+        self, chart: dict[str, Any], name: str
+    ) -> tuple[list[ReportSection], list[str]]:
+        """Build the 5 narrative parts; a failing part is auditable, not fatal."""
+        sections: list[ReportSection] = []
+        warnings: list[str] = []
+        for order, part in enumerate(render_operating_manual(chart, name)):
+            try:
+                sections.append(
+                    ReportSection(
+                        id=part["id"],
+                        title=part["title"],
+                        kind=part["kind"],  # type: ignore[arg-type]
+                        order=order,
+                        data=part["data"],
+                        content_markdown=part["markdown"],
+                        source_tools=part["source_tools"],
+                        knowledge_refs=part["knowledge_refs"],
+                    )
+                )
+            except Exception as exc:  # keep an auditable failed section
+                warning = f"Section {part['id']} failed: {exc}"
+                warnings.append(warning)
+                sections.append(
+                    ReportSection(
+                        id=part["id"],
+                        title=part["title"],
+                        kind=part["kind"],  # type: ignore[arg-type]
+                        order=order,
+                        status="failed",
+                        warnings=[warning],
+                        source_tools=part["source_tools"],
+                        knowledge_refs=part["knowledge_refs"],
+                    )
+                )
+        return sections, warnings
+
     def run(self, request: ReportRequest) -> ReportDocument:
         """Calculate once and execute the sections selected in ``request``."""
         birth_datetime = _parse_birth_datetime(
@@ -307,37 +354,41 @@ class ReportOrchestrator:
         sections: list[ReportSection] = []
         warnings: list[str] = []
 
-        _, core_specs = get_plan_definition(request.tier)
-        for order, spec in enumerate(core_specs):
-            try:
-                data, markdown = _core_section(spec, chart, request.subject.name)
-                sections.append(
-                    ReportSection(
-                        id=spec.id,
-                        title=spec.title,
-                        kind=spec.kind,  # type: ignore[arg-type]
-                        order=order,
-                        data=data,
-                        content_markdown=markdown,
-                        source_tools=list(spec.source_tools),
-                        knowledge_refs=list(spec.knowledge_refs),
+        if request.template is ReportTemplate.OPERATING_MANUAL:
+            sections, section_warnings = self._run_narrative_sections(chart, request.subject.name)
+            warnings.extend(section_warnings)
+        else:
+            _, core_specs = get_plan_definition(request.tier)
+            for order, spec in enumerate(core_specs):
+                try:
+                    data, markdown = _core_section(spec, chart, request.subject.name)
+                    sections.append(
+                        ReportSection(
+                            id=spec.id,
+                            title=spec.title,
+                            kind=spec.kind,  # type: ignore[arg-type]
+                            order=order,
+                            data=data,
+                            content_markdown=markdown,
+                            source_tools=list(spec.source_tools),
+                            knowledge_refs=list(spec.knowledge_refs),
+                        )
                     )
-                )
-            except Exception as exc:  # keep an auditable failed section
-                warning = f"Section {spec.id} failed: {exc}"
-                warnings.append(warning)
-                sections.append(
-                    ReportSection(
-                        id=spec.id,
-                        title=spec.title,
-                        kind=spec.kind,  # type: ignore[arg-type]
-                        order=order,
-                        status="failed",
-                        warnings=[warning],
-                        source_tools=list(spec.source_tools),
-                        knowledge_refs=list(spec.knowledge_refs),
+                except Exception as exc:  # keep an auditable failed section
+                    warning = f"Section {spec.id} failed: {exc}"
+                    warnings.append(warning)
+                    sections.append(
+                        ReportSection(
+                            id=spec.id,
+                            title=spec.title,
+                            kind=spec.kind,  # type: ignore[arg-type]
+                            order=order,
+                            status="failed",
+                            warnings=[warning],
+                            source_tools=list(spec.source_tools),
+                            knowledge_refs=list(spec.knowledge_refs),
+                        )
                     )
-                )
 
         next_order = len(sections)
         for domain in request.domains:
@@ -407,7 +458,11 @@ class ReportOrchestrator:
             source_tools=plan.source_tools,
             knowledge_refs=plan.knowledge_refs,
         )
-        title = f"Human Design Report - {request.subject.name or 'Customer'}"
+        display_name = request.subject.name or "Customer"
+        if request.template is ReportTemplate.OPERATING_MANUAL:
+            title = f"Bản Thiết Kế Bản Thân — Cẩm Nang Vận Hành cho {display_name}"
+        else:
+            title = f"Human Design Report - {display_name}"
         return ReportDocument(
             report_id=request.report_id,
             title=title,

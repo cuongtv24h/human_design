@@ -10,6 +10,7 @@ from .contract import (
     ReportProvenance,
     ReportRequest,
     ReportSection,
+    ReportTemplate,
     ReportTier,
     SubjectInput,
 )
@@ -25,6 +26,7 @@ __all__ = [
     "ReportProvenance",
     "ReportRequest",
     "ReportSection",
+    "ReportTemplate",
     "ReportTier",
     "SubjectInput",
     "ReportOrchestrator",
