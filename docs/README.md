@@ -9,7 +9,7 @@
 | `knowledge/` | 21 file (`00`–`20`) | Nội dung chuẩn để engine/MCP tham chiếu |
 | Wiki cá nhân trong `docs/` | 7 file, 989 dòng | Tài liệu nguồn đã tích hợp vào knowledge và tools |
 | `mcp/skills/` | 25 file Markdown (`01`–`18`, `20`–`26`) | Hướng dẫn phân tích cho LLM/client; không phải MCP prompt runtime |
-| `mcp/server.py` | 36 tools, 22 resources | MCP entrypoint hiện tại |
+| `mcp/server.py` | 39 tools, 22 resources | MCP entrypoint hiện tại |
 | `mcp/openapi_server.py` | 38 route decorator | REST/OpenAPI bridge |
 
 Không dùng các con số trong README hoặc report v2.x để mô tả runtime hiện tại. Số liệu runtime được kiểm tra từ source và phản ánh trong `mcp/tools_manifest_latest.json`.

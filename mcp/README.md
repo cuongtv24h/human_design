@@ -2,7 +2,7 @@
 
 MCP stdio server hiện tại của Human Design Analyzer. Server dùng `mcp/server.py`, nạp calculator/analyzer từ `tools/` và cung cấp dữ liệu qua tools + resources.
 
-> **Runtime chuẩn (2026-09-24):** 36 tools · 22 resources · 0 MCP prompts · 25 skill Markdown · MCP SDK `mcp==1.30.0`.
+> **Runtime chuẩn (2026-09-24):** 39 tools · 22 resources · 0 MCP prompts · 25 skill Markdown · MCP SDK `mcp==1.30.0`.
 
 ## Kiến trúc
 
@@ -11,7 +11,7 @@ LLM client (Claude Desktop / Cursor / Windsurf)
                  │ MCP stdio
                  ▼
           mcp/server.py
-          ├── 36 tools
+          ├── 39 tools
           ├── 22 resources
           └── import tools/hd_*.py
                  │
@@ -73,7 +73,7 @@ Smoke test logic trực tiếp, không mở transport:
 PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 ```
 
-## 36 tools
+## 39 tools
 
 ### Foundation — 6
 
@@ -132,6 +132,17 @@ PYTHONPATH=tools:mcp .venv/bin/python mcp/client_example.py
 35. `analyze_team`
 36. `generate_team_report`
 
+### Report — 3 (chuẩn báo cáo: thông tin + BodyGraph + template/LLM)
+
+37. `generate_hd_report` — báo cáo hoàn chỉnh; `content_mode="template"` (mặc định) hoặc `"llm"`; `save_files` ghi `.md` + `_bodygraph.svg` vào `output/reports/`
+38. `build_hd_report_brief` — brief biên tập (persona chuyên gia HD + nhà tư vấn tâm lý, quy tắc, dữ liệu nguồn, thuật ngữ chuẩn) để **chính AI host** tự biên tập, không cần API key
+39. `apply_hd_report_draft` — ghép bản biên tập `{section_id: markdown}`, kiểm tra giữ nguyên sự kiện kỹ thuật (mất → `warnings`)
+
+Chế độ LLM có hai cách chạy:
+
+- **Server tự gọi LLM:** đặt `HD_LLM_API_KEY` (hoặc `OPENAI_API_KEY`), tuỳ chọn `HD_LLM_BASE_URL` (endpoint OpenAI-compatible bất kỳ), `HD_LLM_MODEL` (mặc định `gpt-4o-mini`), `HD_LLM_TIMEOUT`, `HD_LLM_TEMPERATURE` → gọi `generate_hd_report(content_mode="llm")`. Thiếu key hoặc LLM lỗi → fallback template, `editor="template (llm fallback)"` + cảnh báo.
+- **AI host tự biên tập:** `build_hd_report_brief` → AI viết lại → `apply_hd_report_draft`.
+
 Luồng phân tích chart nên bắt đầu bằng `calculate_human_design_chart`, sau đó dùng foundation analyzer hoặc domain tool phù hợp. Các tool nhận ngày/giờ local và timezone, rồi server chuyển sang UTC trước khi gọi calculator.
 
 ## 22 resources
@@ -173,7 +184,7 @@ Có 25 file skill tại `mcp/skills/`: `01`–`18` và `20`–`26`. Sáu skill `
 
 ## REST/OpenAPI bridge
 
-`openapi_server.py` cung cấp 38 route decorator: 36 route nghiệp vụ, `/` và `/health`.
+`openapi_server.py` cung cấp 42 route decorator: 40 route nghiệp vụ, `/` và `/health`. Report routes: `POST /reports/generate` (`?include_bodygraph_svg=true` để kèm SVG), `POST /reports/llm-brief`, `POST /reports/apply-draft`, `POST /reports/bodygraph.svg` — body là `ReportRequest` (`subject`, `tier`, `template`, `content_mode`, `domains`...).
 
 ```bash
 cd /home/user/human_design/mcp

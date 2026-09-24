@@ -62,6 +62,32 @@ song ngữ trau chuốt theo `tools/hd_language.py`, tỉ lệ 70/30, giữ tiê
 tự phần. Dữ liệu thô trong `chart`/`ReportSection.data` không bao giờ bị thay
 bởi LLM.
 
+### Service & các "cửa" (MCP / REST)
+
+`backend/reporting/service.py::generate_report(request)` là entry point duy nhất
+cho mọi cửa. Ở `content_mode="llm"` nó build brief → gọi LLM qua
+`backend/reporting/llm_client.py` (OpenAI-compatible, chỉ stdlib) → merge +
+validate. **Thiếu key / lỗi mạng / JSON hỏng → fallback template**, ghi
+`provenance.editor = "template (llm fallback)"` và một cảnh báo — người dùng
+luôn nhận được báo cáo hợp lệ.
+
+| Biến môi trường | Mặc định | Ý nghĩa |
+| --- | --- | --- |
+| `HD_LLM_API_KEY` (fallback `OPENAI_API_KEY`) | — | Bắt buộc để bật LLM |
+| `HD_LLM_BASE_URL` | `https://api.openai.com/v1` | Endpoint OpenAI-compatible bất kỳ |
+| `HD_LLM_MODEL` | `gpt-4o-mini` | Model biên tập |
+| `HD_LLM_TIMEOUT` | `120` | Giây |
+| `HD_LLM_TEMPERATURE` | `0.6` | Độ mềm văn phong |
+
+| Cửa | Tạo báo cáo | Brief cho AI host | Ghép bản biên tập | BodyGraph |
+| --- | --- | --- | --- | --- |
+| MCP (`mcp/server.py`) | `generate_hd_report` | `build_hd_report_brief` | `apply_hd_report_draft` | trong `files` khi `save_files=true` |
+| REST (`mcp/openapi_server.py`) | `POST /reports/generate` | `POST /reports/llm-brief` | `POST /reports/apply-draft` | `POST /reports/bodygraph.svg` |
+
+Luồng "AI host tự biên tập" (brief → apply) không cần API key: chính
+Claude/ChatGPT đang gọi MCP/Actions đóng vai biên tập viên; `apply_draft` tính
+lại chart deterministic từ cùng input nên không cần lưu state giữa hai lần gọi.
+
 ## Contract chính
 
 - `SubjectInput`: ngày, giờ, timezone và thông tin định danh của khách hàng.

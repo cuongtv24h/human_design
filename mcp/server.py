@@ -1,6 +1,6 @@
 """
 Human Design MCP Server v3.0 - Chuẩn Model Context Protocol
-36 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain) + 22 resources
+39 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 3 report) + 22 resources
 
 Tích hợp 21 knowledge files, 7 Wiki nguồn và 25 skill Markdown. Skills không phải MCP prompts; server hiện có 0 @mcp.prompt decorators.
 v3.0: đầy đủ các domain Health, Relationship, Decision, Deconditioning, Purpose và Team; các wrapper dùng alias imports để tránh shadowing.
@@ -80,7 +80,7 @@ try:
 except:
     TEAM_AVAILABLE = False
 
-mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 36 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain), 22 resources, Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
+mcp = FastMCP(name="human-design-analyzer", instructions="Human Design v3.0 - 39 tools (6 foundation + 8 core + 4 advanced + 2 general + 2 money + 2 potential + 12 domain + 3 report), 22 resources, Swiss Ephemeris, 7 nhu cầu thực tế hoàn chỉnh", dependencies=["pyswisseph", "pydantic"])
 
 def parse_birth_datetime(date_str: str, time_str: str, tz_str: str = "+07:00") -> datetime:
     dt_str = f"{date_str} {time_str}"
@@ -850,6 +850,92 @@ def generate_team_report(birth_date: str, birth_time: str, timezone: str = "+07:
         return mod_format_team(data)
     except Exception as e:
         return "Lỗi: " + str(e)
+
+# ---------------------------------------------------------------------------
+# Report layer (chuẩn báo cáo: thông tin + BodyGraph + template/LLM content)
+# ---------------------------------------------------------------------------
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+REPORT_OUTPUT_DIR = os.path.join(REPO_ROOT, 'output', 'reports')
+
+
+def _report_request(birth_date: str, birth_time: str, timezone: str, name: str, birth_location: str,
+                    tier: str, template: str, content_mode: str, domains: str):
+    from backend.reporting.service import build_request
+    return build_request({
+        "subject": {"name": name, "birth_date": birth_date, "birth_time": birth_time,
+                    "timezone": timezone, "birth_location": birth_location},
+        "tier": tier, "template": template, "content_mode": content_mode,
+        "domains": [d.strip() for d in (domains or "").split(",") if d.strip()],
+    })
+
+
+def _report_result(document, save_files: bool) -> Dict[str, Any]:
+    from backend.reporting.export import export_report
+    from backend.reporting.service import report_payload
+    if not save_files:
+        return report_payload(document)
+    paths = export_report(document, REPORT_OUTPUT_DIR)
+    payload = report_payload(document, bodygraph_path=paths["bodygraph_svg"].name)
+    payload["files"] = {key: str(path) for key, path in paths.items()}
+    return payload
+
+
+@mcp.tool()
+def generate_hd_report(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "",
+                       tier: str = "free_basic", template: str = "sections", content_mode: str = "template",
+                       domains: str = "", save_files: bool = True) -> Dict[str, Any]:
+    """Báo cáo chuẩn: thông tin người được phân tích + BodyGraph tự sinh + nội dung.
+
+    tier: free_basic | deep_core. template: sections | operating_manual.
+    content_mode: template (mặc định, deterministic) | llm (LLM biên tập với vai trò chuyên gia
+    HD + nhà tư vấn tâm lý; cần HD_LLM_API_KEY, tự fallback về template nếu lỗi).
+    domains: danh sách phẩy, ví dụ "money,health". save_files: ghi .md + _bodygraph.svg vào output/reports.
+    """
+    try:
+        from backend.reporting.service import generate_report
+        request = _report_request(birth_date, birth_time, timezone, name, birth_location, tier, template, content_mode, domains)
+        return _report_result(generate_report(request), save_files)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def build_hd_report_brief(birth_date: str, birth_time: str, timezone: str = "+07:00", name: str = "", birth_location: str = "",
+                          tier: str = "free_basic", template: str = "sections", domains: str = "") -> Dict[str, Any]:
+    """Brief biên tập LLM (persona + quy tắc + dữ liệu nguồn + template + thuật ngữ chuẩn).
+
+    Dùng khi chính AI đang gọi MCP muốn tự biên tập báo cáo (không cần API key):
+    đọc brief, viết lại theo đúng vai trò, rồi gọi apply_hd_report_draft với cùng tham số.
+    """
+    try:
+        from backend.reporting.llm_editor import build_llm_brief
+        from backend.reporting.orchestrator import ReportOrchestrator
+        request = _report_request(birth_date, birth_time, timezone, name, birth_location, tier, template, "llm", domains)
+        document = ReportOrchestrator().run(request)
+        return {"brief": build_llm_brief(document),
+                "section_ids": [s.id for s in document.sections if s.status == "included"],
+                "next_step": "Biên tập theo brief, rồi gọi apply_hd_report_draft với drafts_json = JSON {section_id: markdown}."}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def apply_hd_report_draft(birth_date: str, birth_time: str, drafts_json: str, timezone: str = "+07:00", name: str = "",
+                          birth_location: str = "", tier: str = "free_basic", template: str = "sections", domains: str = "",
+                          editor_model: str = "", save_files: bool = True) -> Dict[str, Any]:
+    """Ghép bản biên tập LLM vào báo cáo và kiểm tra giữ nguyên mọi sự kiện kỹ thuật.
+
+    drafts_json: JSON {section_id: markdown}. Sự kiện bị mất sẽ được ghi vào warnings.
+    """
+    try:
+        from backend.reporting.service import apply_draft
+        request = _report_request(birth_date, birth_time, timezone, name, birth_location, tier, template, "llm", domains)
+        return _report_result(apply_draft(request, drafts_json, editor_model=editor_model), save_files)
+    except Exception as e:
+        return {"error": str(e)}
+
 
 # Resources
 @mcp.resource("human-design://knowledge/gates")

@@ -45,8 +45,8 @@ def test_source_and_manifest_counts_match():
     openapi_counts = _decorator_counts(ROOT / "mcp" / "openapi_server.py")
     manifest = json.loads((ROOT / "mcp" / "tools_manifest_latest.json").read_text(encoding="utf-8"))
 
-    assert server_counts == {"tools": 36, "resources": 22, "prompts": 0, "routes": 0}
-    assert openapi_counts["routes"] == 38
+    assert server_counts == {"tools": 39, "resources": 22, "prompts": 0, "routes": 0}
+    assert openapi_counts["routes"] == 42
     assert len(manifest["tools"]) == server_counts["tools"]
     assert len(manifest["resources"]) == server_counts["resources"]
     assert manifest["prompts"] == []
@@ -66,3 +66,4 @@ def test_openapi_app_imports():
     assert "/health" in paths
     assert "/calculate-chart" in paths
     assert "/generate-team-report" in paths
+    assert {"/reports/generate", "/reports/llm-brief", "/reports/apply-draft", "/reports/bodygraph.svg"} <= paths

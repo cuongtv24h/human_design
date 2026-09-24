@@ -877,10 +877,75 @@ def team_report_api(req: ChartRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# ---------------------------------------------------------------------------
+# Report layer — chuẩn báo cáo: thông tin + BodyGraph tự sinh + template/LLM
+# ---------------------------------------------------------------------------
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+from fastapi import Response  # noqa: E402
+
+from backend.reporting.contract import ReportRequest as _ReportRequest  # noqa: E402
+from backend.reporting.export import bodygraph_svg as _bodygraph_svg  # noqa: E402
+from backend.reporting.llm_editor import build_llm_brief as _build_llm_brief  # noqa: E402
+from backend.reporting.orchestrator import ReportOrchestrator as _ReportOrchestrator  # noqa: E402
+from backend.reporting.service import (  # noqa: E402
+    apply_draft as _apply_draft,
+    generate_report as _generate_report,
+    report_payload as _report_payload,
+)
+from backend.reporting.llm_client import LLMError as _LLMError  # noqa: E402
+
+
+class ReportDraftRequest(BaseModel):
+    request: _ReportRequest
+    drafts: Dict[str, str] = Field(..., description="JSON {section_id: markdown} do LLM biên tập")
+    editor_model: str = ""
+
+
+@app.post("/reports/generate", tags=["Reports"], summary="Báo cáo chuẩn: thông tin + BodyGraph + nội dung template/LLM")
+def reports_generate(req: _ReportRequest, include_bodygraph_svg: bool = Query(False, description="Kèm SVG BodyGraph dạng chuỗi")):
+    try:
+        document = _generate_report(req)
+        return _report_payload(document, include_bodygraph_svg=include_bodygraph_svg and req.include_bodygraph)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/reports/llm-brief", tags=["Reports"], summary="Brief biên tập cho LLM (persona + quy tắc + dữ liệu nguồn)")
+def reports_llm_brief(req: _ReportRequest):
+    try:
+        document = _ReportOrchestrator().run(req)
+        return {"brief": _build_llm_brief(document), "section_ids": [s.id for s in document.sections if s.status == "included"]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/reports/apply-draft", tags=["Reports"], summary="Ghép bản biên tập LLM + kiểm tra giữ nguyên sự kiện kỹ thuật")
+def reports_apply_draft(req: ReportDraftRequest, include_bodygraph_svg: bool = Query(False)):
+    try:
+        document = _apply_draft(req.request, req.drafts, editor_model=req.editor_model)
+        return _report_payload(document, include_bodygraph_svg=include_bodygraph_svg)
+    except _LLMError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/reports/bodygraph.svg", tags=["Reports"], summary="BodyGraph SVG tự sinh cho người được phân tích")
+def reports_bodygraph(req: _ReportRequest):
+    try:
+        document = _ReportOrchestrator().run(req)
+        return Response(content=_bodygraph_svg(document), media_type="image/svg+xml")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # Health check
 @app.get("/health", tags=["System"])
 def health():
-    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 36, "api_routes": 38, "coverage": "Foundation + 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "25 Markdown skills (01-18, 20-26; 19 reserved), 0 MCP prompts"}
+    return {"status": "ok", "service": "human-design-analyzer", "version": "3.0.0", "engine": "Swiss Ephemeris", "tools": 39, "api_routes": 42, "coverage": "Foundation + 5x12=60 variants + Money 6x14 + Potential 11 Perspectives + v3.0 6 domains", "user_interests": "7 nhu cầu: Money, Health Thân-Tâm-Trí, Potential & Blind Spots, Relationships, Purpose Mission, System Building, Decision & Behavior", "specialized_skills": "25 Markdown skills (01-18, 20-26; 19 reserved), 0 MCP prompts"}
 
 if __name__ == "__main__":
     import uvicorn
