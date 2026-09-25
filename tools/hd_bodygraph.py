@@ -51,7 +51,7 @@ CENTERS = {
                "name": "HEAD", "nl": (500, 112), "fs": 13, "badge": 12},
     "Ajna":   {"poly": [(412, 198), (588, 198), (500, 308)], "r": 10,
                "color": "#5FA05A", "tcol": "#FFFFFF",
-               "name": "AJNA", "nl": (500, 240), "fs": 13, "badge": 12},
+               "name": "AJNA", "nl": (500, 255), "fs": 13, "badge": 12},
     "Throat": {"poly": [(412, 352), (588, 352), (588, 522), (412, 522)], "r": 22,
                "color": "#8A6A4F", "tcol": "#FFFFFF",
                "name": "THROAT", "nl": (500, 438), "fs": 14, "badge": 12},
@@ -63,7 +63,7 @@ CENTERS = {
                "name": "HEART", "nl": (784, 630), "fs": 12, "outside": "start", "badge": 10.5},
     "Spleen": {"poly": [(315, 588), (315, 792), (180, 690)], "r": 12,
                "color": "#C39A63", "tcol": "#3B2A12",
-               "name": "SPLEEN", "nl": (300, 660), "fs": 10.5, "badge": 10.5},
+               "name": "SPLEEN", "nl": (268, 662), "fs": 10.5, "badge": 10.5},
     "Sacral": {"circle": (500, 958, 96),
                "color": "#C8503C", "tcol": "#FFFFFF",
                "name": "SACRAL", "nl": (500, 986), "fs": 13, "badge": 12},
@@ -98,27 +98,27 @@ GATES = {
     20: {"c": "Throat", "a": (412, 472), "l": (444, 466)},
     45: {"c": "Throat", "a": (588, 400), "l": (556, 404)},
     35: {"c": "Throat", "a": (588, 448), "l": (556, 448)},
-    12: {"c": "Throat", "a": (588, 494), "l": (556, 492)},
+    12: {"c": "Throat", "a": (588, 494), "l": (556, 474)},
     31: {"c": "Throat", "a": (446, 522), "l": (446, 500)},
     8:  {"c": "Throat", "a": (500, 522), "l": (500, 500)},
     33: {"c": "Throat", "a": (554, 522), "l": (554, 500)},
     # ---------------- G ----------------
-    1:  {"c": "G", "a": (474, 600), "l": (486, 634)},
-    13: {"c": "G", "a": (526, 600), "l": (514, 634)},
+    1:  {"c": "G", "a": (474, 600), "l": (476, 634)},
+    13: {"c": "G", "a": (526, 600), "l": (524, 634)},
     7:  {"c": "G", "a": (408, 706), "l": (430, 700)},
     25: {"c": "G", "a": (599, 700), "l": (568, 712)},
-    10: {"c": "G", "a": (438, 740), "l": (458, 758)},
+    10: {"c": "G", "a": (438, 740), "l": (452, 750)},
     46: {"c": "G", "a": (544, 758), "l": (536, 742)},
-    15: {"c": "G", "a": (486, 793), "l": (472, 776)},
-    2:  {"c": "G", "a": (500, 808), "l": (500, 786)},
+    15: {"c": "G", "a": (486, 793), "l": (478, 780)},
+    2:  {"c": "G", "a": (500, 808), "l": (500, 791)},
     # ---------------- Heart ----------------
     21: {"c": "Heart", "a": (656, 580), "l": (674, 598)},
     51: {"c": "Heart", "a": (652, 632), "l": (666, 636)},
-    26: {"c": "Heart", "a": (658, 680), "l": (686, 660)},
+    26: {"c": "Heart", "a": (658, 680), "l": (684, 652)},
     40: {"c": "Heart", "a": (712, 660), "l": (714, 644)},
     # ---------------- Spleen ----------------
     48: {"c": "Spleen", "a": (315, 592), "l": (296, 616)},
-    57: {"c": "Spleen", "a": (315, 640), "l": (292, 648)},
+    57: {"c": "Spleen", "a": (315, 640), "l": (292, 644)},
     44: {"c": "Spleen", "a": (315, 690), "l": (292, 686)},
     50: {"c": "Spleen", "a": (315, 740), "l": (290, 720)},
     32: {"c": "Spleen", "a": (275, 778), "l": (280, 754)},
@@ -145,11 +145,11 @@ GATES = {
     # ---------------- Root ----------------
     53: {"c": "Root", "a": (448, 1128), "l": (448, 1152)},
     60: {"c": "Root", "a": (500, 1128), "l": (500, 1152)},
-    52: {"c": "Root", "a": (552, 1128), "l": (552, 1152)},
+    52: {"c": "Root", "a": (552, 1128), "l": (552, 1146)},
     54: {"c": "Root", "a": (412, 1180), "l": (440, 1180)},
     38: {"c": "Root", "a": (412, 1232), "l": (440, 1232)},
     58: {"c": "Root", "a": (412, 1282), "l": (440, 1282)},
-    19: {"c": "Root", "a": (588, 1172), "l": (560, 1172)},
+    19: {"c": "Root", "a": (588, 1172), "l": (560, 1182)},
     39: {"c": "Root", "a": (588, 1220), "l": (560, 1220)},
     41: {"c": "Root", "a": (588, 1268), "l": (560, 1268)},
 }
@@ -402,10 +402,26 @@ def _wrap_text(text, max_chars):
     return lines
 
 
-def _panel_open(x, y, w, h, title, subtitle=""):
+def _wrap_items(items, max_chars):
+    """Gói danh sách thành dòng 'A · B · C', không treo dấu · đầu/cuối dòng."""
+    lines, cur = [], ""
+    for item in items:
+        piece = item if not cur else cur + " · " + item
+        if len(piece) <= max_chars:
+            cur = piece
+        else:
+            if cur:
+                lines.append(cur)
+            cur = item
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def _panel_open(x, y, w, h, title, subtitle="", title_fs=12.5, title_ls=2.2):
     s = (f'<rect x="{x + 5}" y="{y + 7}" width="{w}" height="{h}" rx="18" fill="#000" opacity="0.07" filter="url(#soft)"/>'
          f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="18" fill="#FFFDF7" stroke="#DED7C6" stroke-width="1.5"/>'
-         f'<text x="{x + 22}" y="{y + 36}" font-size="12.5" font-weight="bold" letter-spacing="2.2" fill="#2B2A26">{_esc(title)}</text>')
+         f'<text x="{x + 22}" y="{y + 36}" font-size="{title_fs}" font-weight="bold" letter-spacing="{title_ls}" fill="#2B2A26">{_esc(title)}</text>')
     if subtitle:
         s += f'<text x="{x + 22}" y="{y + 55}" font-size="11" fill="#9A9384">{subtitle}</text>'
     s += f'<line x1="{x + 18}" y1="{y + 66}" x2="{x + w - 18}" y2="{y + 66}" stroke="#E7DFCE" stroke-width="1"/>'
@@ -675,8 +691,8 @@ def _ribbon(pts, kind, w, act=None, stub=False):
     d = _path_of(pts)
     o = []
     if kind == "open":
-        o.append(_stroke(d, "#BEB6A2", w + 2.4, 1.0))
-        o.append(_stroke(d, "#FFFFFF", w, 1.0))
+        # Kênh mở chỉ là nét mảnh chìm để dải màu (định nghĩa/cổng treo) nổi rõ.
+        o.append(_stroke(d, "#D3CEC0", w, 1.0))
         return o
     base = INK if kind == "P" else RED
     if stub:
@@ -853,7 +869,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     rows = (len(keys) + cols - 1) // cols
     pa_h = 118 + rows * 40
     S.append('<g id="panel-gates">')
-    S.append(_panel_open(pa_x, pa_y, pa_w, pa_h, "CỔNG KÍCH HOẠT", f"{len(keys)} cổng có năng lượng"))
+    S.append(_panel_open(pa_x, pa_y, pa_w, pa_h, "CỔNG KÍCH HOẠT", f"{len(keys)} cổng có năng lượng", title_ls=2.0))
     for i, g in enumerate(keys):
         cx = pa_x + 36 + (i % cols) * 42
         cy = pa_y + 104 + (i // cols) * 40
@@ -863,18 +879,20 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     # ================= Panel trái B: điểm mạnh & điểm mù =================
     pb_x, pb_y, pb_w, pb_h = 24, pa_y + pa_h + 26, 190, 330
     S.append('<g id="panel-strength">')
-    S.append(_panel_open(pb_x, pb_y, pb_w, pb_h, "ĐIỂM MẠNH & ĐIỂM MÙ", "Defined = tài năng · Open = bài học"))
+    S.append(_panel_open(pb_x, pb_y, pb_w, pb_h, "TÀI NĂNG & ĐIỂM MÙ", "● tài năng · ○ bài học",
+                         title_fs=11, title_ls=1))
     ry = pb_y + 96
-    S.append(_section_head(pb_x + 20, ry, "ĐỊNH NGHĨA (TÀI NĂNG)"))
+    S.append(_section_head(pb_x + 20, ry, "ĐỊNH NGHĨA"))
     ry += 20
-    for line in _wrap_text(" · ".join(on), 20):
+    for line in _wrap_items(on, 20):
         S.append(f'<text x="{pb_x + 22}" y="{ry}" font-size="12" fill="#3A3833">{line}</text>')
         ry += 19
     ry += 16
-    S.append(_section_head(pb_x + 20, ry, "MỞ (ĐIỂM MÙ / BÀI HỌC)"))
+    S.append(_section_head(pb_x + 20, ry, "MỞ · BÀI HỌC"))
     ry += 20
     off_c = [c for c in order if c not in defined_centers]
-    for line in _wrap_text(" · ".join(off_c) if off_c else "Không có — bạn gần như hoàn toàn định nghĩa", 20):
+    off_lines = _wrap_items(off_c, 20) if off_c else ["Tất cả đã định nghĩa"]
+    for line in off_lines:
         S.append(f'<text x="{pb_x + 22}" y="{ry}" font-size="12" fill="#3A3833">{line}</text>')
         ry += 19
     S.append('</g>')
@@ -929,7 +947,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     px3, py3, pw3, ph3 = 878, 1080, 316, 400
     S.append('<g id="panel-living">')
     S.append(_panel_open(px3, py3, pw3, ph3, "SỐNG ĐÚNG THIẾT KẾ",
-                         f'{chart["type"]}  ·  Profile {chart["profile"]}  ·  {chart["definition"]}'))
+                         f'{chart["type"]}  ·  {chart["profile"]}'))
     ns, sg = NOT_SELF_SIGNATURE.get(chart["type"], ("—", "—"))
     rows3 = [("CHIẾN LƯỢC", chart.get("strategy", "")),
              ("THẨM QUYỀN", chart["authority"]),
@@ -951,7 +969,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     S.append('<ellipse cx="500" cy="700" rx="430" ry="560" fill="url(#halo)" opacity="0.75"/>')
 
     W = 15.5                      # bề rộng kênh định nghĩa
-    W_OPEN = 11.0                 # bề rộng kênh mở
+    W_OPEN = 3.2                  # bề rộng kênh mở (nét mảnh)
     W_STUB = 14.0                 # bề rộng nhánh cổng treo
     ROUTES = {ch: _route(*ch) for ch in CHANNELS_36}
     BADGE_R = {k: v.get("badge", 12) for k, v in CENTERS.items()}
