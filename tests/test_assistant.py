@@ -258,3 +258,71 @@ def test_rate_message_and_admin_stats(app):
 
     coach = _coach(app)  # cannot rate someone else's answer
     assert coach.post(url, json={"rating": 1}, headers=H).status_code == 404
+
+
+# --- retrieval v3: tiếng Việt, cụm từ, nhiệt độ ------------------------------------
+
+def _result_files(text):
+    import re
+
+    return re.findall(r"— (\S+\.md)\]", text)
+
+
+def test_search_vietnamese_equiv_and_phrase():
+    from backend.api.assistant_tools import search_knowledge
+
+    text, _ = search_knowledge("Thẩm quyền cảm xúc là gì?")
+    assert any(f in ("17_decision_authority.md", "04_5_loai_va_chien_luoc.md")
+               for f in _result_files(text)[:3])
+    text, _ = search_knowledge("Kênh 34-57 nói về gì?")
+    assert _result_files(text)[0] == "03_36_kenh.md"
+    text, _ = search_knowledge("Nuôi dạy con theo HD?")
+    files = _result_files(text)
+    assert files[0] in ("07_ung_dung_thuc_tien.md", "11_chuyen_luan_manifestor_tham_van.md")
+    assert "07_ung_dung_thuc_tien.md" in files[:3]
+    text, _ = search_knowledge("Type Projector chờ lời mời?")
+    assert "04_5_loai_va_chien_luoc.md" in _result_files(text)[:3]
+
+
+def test_search_snippet_window_bounded():
+    from backend.api.assistant_tools import search_knowledge
+
+    text, _ = search_knowledge("Incarnation Cross là gì?")
+    assert text
+    for part in text.split("\n\n---\n\n"):
+        body = part.split("\n", 1)[1] if "\n" in part else ""
+        assert len(body) <= 1400
+
+
+def test_prompt_requires_search_before_knowledge_answer():
+    assert "BẮT BUỘC gọi search_knowledge TRƯỚC" in ASSISTANT_SYSTEM
+    assert "KHÔNG tự trả lời bằng trí nhớ" in ASSISTANT_SYSTEM
+
+
+def test_agent_turn_temperature_override():
+    from backend.reporting.assistant import run_agent_turn
+    from backend.reporting.llm_client import LLMConfig
+
+    config = LLMConfig(api_key="k", base_url="https://llm.example/v1", model="m", temperature=0.6)
+    script = _scripted_transport([_answer("Chào bạn")])
+    run_agent_turn("hi", [], [config], lambda n, a: ("", ""), transport=script, temperature=0.2)
+    assert script.calls[0]["temperature"] == 0.2
+    script = _scripted_transport([_answer("Chào bạn")])
+    run_agent_turn("hi", [], [config], lambda n, a: ("", ""), transport=script)
+    assert script.calls[0]["temperature"] == 0.6
+
+
+def test_tool_result_capped_for_llm():
+    from backend.reporting.assistant import run_agent_turn
+    from backend.reporting.llm_client import LLMConfig
+
+    script = _scripted_transport([
+        (json.dumps({"tool": "search_knowledge", "args": {"query": "x"}}),
+         {"prompt_tokens": 10, "completion_tokens": 5}),
+        _answer("Xong"),
+    ])
+    config = LLMConfig(api_key="k", base_url="https://llm.example/v1", model="m")
+    run_agent_turn("hi", [], [config], lambda n, a: ("y" * 9000, "Nguồn X"), transport=script)
+    fed = script.calls[1]["messages"][-1]["content"]
+    assert fed.startswith("[Kết quả search_knowledge]\n")
+    assert len(fed) == len("[Kết quả search_knowledge]\n") + 6000

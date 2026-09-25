@@ -135,7 +135,8 @@ def chat(payload: ChatSendIn, request: Request, user: User = Depends(current_use
     try:
         result = run_agent_turn(_effective_message(payload), history, ordered, make_executor(db, user),
                                 transport=request.app.state.llm_transport,
-                                on_llm_attempt=collect_attempts(attempts))
+                                on_llm_attempt=collect_attempts(attempts),
+                                temperature=0.2)  # chat tra cứu: ổn định, ít bịa
     except LLMError as exc:
         raise HTTPException(status_code=503, detail=f"AI đang bận, thử lại sau: {exc}") from exc
     latency_ms = int((time.perf_counter() - started) * 1000)
@@ -190,7 +191,8 @@ def chat_stream(payload: ChatSendIn, request: Request, user: User = Depends(curr
             started = time.perf_counter()
             try:
                 events = agent_turn_events(effective, history, ordered, make_executor(gdb, agent_user),
-                                           transport=transport, on_llm_attempt=collect_attempts(attempts))
+                                           transport=transport, on_llm_attempt=collect_attempts(attempts),
+                                           temperature=0.2)  # chat tra cứu: ổn định, ít bịa
                 final = None
                 for kind, data in events:
                     if kind == "token":

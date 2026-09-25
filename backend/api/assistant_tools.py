@@ -31,7 +31,7 @@ SKILLS_DIR = ROOT / "mcp" / "skills"
 
 _STOPWORDS = frozenset(
     "là của và có cho về gì như thế nào trong với để các những một cái này kia đó ấy ơi ạ nhé không là gì bao "
-    "nhiêu sao hay hoặc nếu thì mà còn được bị sẽ đang đã hãy là".split())
+    "nhiêu sao hay hoặc nếu thì mà còn được bị sẽ đang đã hãy là theo nói".split())
 
 
 def fold_vi(text: str) -> str:
@@ -41,11 +41,106 @@ def fold_vi(text: str) -> str:
     return text.replace("đ", "d")
 
 
+def _raw_terms(query: str) -> list[str]:
+    # Lọc stopword TRƯỚC khi bỏ dấu ("chờ" khác "cho", "nói" là stopword).
+    return [t for t in re.findall(r"[a-z0-9đá-ỹâăêôơư]+", (query or "").lower())
+            if len(t) >= 2 and t not in _STOPWORDS]
+
+
 def _terms(query: str) -> list[str]:
-    # Lọc stopword TRƯỚC khi bỏ dấu ("chờ" khác "cho").
-    raw = [t for t in re.findall(r"[a-z0-9đá-ỹâăêôơư]+", (query or "").lower())
-           if len(t) >= 2 and t not in _STOPWORDS]
-    return [fold_vi(t) for t in raw]
+    return [fold_vi(t) for t in _raw_terms(query)]
+
+
+def _build_fold1_table() -> dict[int, str]:
+    table: dict[int, str] = {}
+    for code in range(0x20, 0x2500):
+        ch = chr(code)
+        decomp = unicodedata.normalize("NFD", ch)
+        if len(decomp) == 2 and unicodedata.category(decomp[1]) == "Mn":
+            base = decomp[0]
+            if "a" <= base <= "z":
+                table[code] = base
+    table[ord("đ")] = "d"
+    return table
+
+
+_FOLD1_TABLE = _build_fold1_table()
+
+
+def _fold1(text: str) -> str:
+    """Bỏ dấu GIỮ NGUYÊN độ dài (để ánh xạ vị trí khớp về đoạn gốc)."""
+    return text.lower().translate(_FOLD1_TABLE)
+
+
+def _norm(text: str) -> str:
+    """Chuẩn hóa để khớp: dấu câu -> khoảng trắng, gộp khoảng trắng."""
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", text)).strip()
+
+
+# Cụm từ tương đương (đã bỏ dấu): cách hỏi khác nhau nhưng cùng ý. Đối xứng
+# 2 chiều — suy ra tự động bên dưới. Chỉ dùng cụm ít gây nhiễu (tránh từ ngắn
+# như "con", "tim" vì khớp lung tung do đếm chuỗi con).
+_PHRASE_EQUIV_PAIRS = [
+    ("diem manh", ["uu diem", "so truong", "the manh", "strength", "strengths", "tai nang"]),
+    ("diem yeu", ["diem mu", "han che", "thach thuc", "weakness", "yeu diem"]),
+    ("diem mu", ["blind spot", "blindspot", "diem mu"]),
+    ("chien luoc", ["strategy", "strategies"]),
+    ("tham quyen", ["authority", "authorities"]),
+    ("cam xuc", ["emotional", "emotion", "cam tinh"]),
+    ("trung tam", ["center", "centre", "centers"]),
+    ("kenh", ["channel", "channels"]),
+    ("cong", ["gate", "gates"]),
+    ("loai", ["type", "types"]),
+    ("ho so", ["profile", "profiles"]),
+    ("thap gia", ["cross", "incarnation cross"]),
+    ("dinh nghia", ["definition", "dinh hinh"]),
+    ("tinh yeu", ["love", "moi quan he", "relationship", "hon nhan"]),
+    ("moi quan he", ["relationship", "quan he"]),
+    ("tien bac", ["money", "tai chinh", "wealth", "tien"]),
+    ("tai chinh", ["finance", "wealth"]),
+    ("suc khoe", ["health", "healthy"]),
+    ("con cai", ["tre em", "children", "child"]),
+    ("tre em", ["children", "child"]),
+    ("nuoi day con", ["tre em", "con cai", "day con"]),
+    ("day con", ["tre em"]),
+    ("su nghiep", ["nghe nghiep", "cong viec", "career", "nghe"]),
+    ("nghe nghiep", ["career", "occupation"]),
+    ("cong viec", ["job", "work", "career"]),
+    ("giai dieu kien", ["deconditioning", "de-conditioning"]),
+    ("dieu kien hoa", ["conditioning"]),
+    ("ra quyet dinh", ["decision", "decisions"]),
+    ("chu ky", ["signature"]),
+    ("cho dap ung", ["wait to respond", "wait for a response", "responding"]),
+    ("cho loi moi", ["wait for the invitation", "invitation"]),
+    ("thong bao", ["inform", "informing"]),
+    ("cay dang", ["bitterness", "bitter"]),
+    ("that vong", ["frustration", "disappointment"]),
+    ("thoa man", ["satisfaction", "satisfied"]),
+    ("tuc gian", ["anger", "angry"]),
+    ("binh an", ["peace", "peaceful"]),
+    ("ngac nhien", ["surprise", "surprised"]),
+    ("lach", ["spleen"]),
+    ("hong", ["throat", "co hong"]),
+    ("goc", ["root"]),
+]
+
+_PHRASE_EQUIV: dict[str, list[str]] = {}
+for _key, _vals in _PHRASE_EQUIV_PAIRS:
+    _PHRASE_EQUIV.setdefault(_key, []).extend(v for v in _vals if v not in _PHRASE_EQUIV.get(_key, []))
+    for _v in _vals:
+        if _key not in _PHRASE_EQUIV.setdefault(_v, []):
+            _PHRASE_EQUIV[_v].append(_key)
+
+
+def _phrases(terms: list[str]) -> list[str]:
+    """Cụm 2-3 từ liên tiếp + cả câu (để thưởng khớp nguyên văn)."""
+    out: list[str] = []
+    for n in (2, 3):
+        for i in range(len(terms) - n + 1):
+            out.append(" ".join(terms[i:i + n]))
+    if len(terms) > 3:
+        out.append(" ".join(terms))
+    return out
 
 
 @lru_cache(maxsize=1)
@@ -61,38 +156,184 @@ def knowledge_chunks() -> list[tuple[str, str, str]]:
             continue
         title = next((line[2:].strip() for line in text.splitlines() if line.startswith("# ")), path.stem)
         current: list[str] = []
+        sections: list[str] = []
         for line in text.splitlines():
             if line.startswith("## ") and current:
-                chunks.append((path.name, title, "\n".join(current).strip()))
+                sections.append("\n".join(current).strip())
                 current = [line]
             else:
                 current.append(line)
         if "".join(current).strip():
-            chunks.append((path.name, title, "\n".join(current).strip()))
+            sections.append("\n".join(current).strip())
+        for section in sections:
+            for part in _split_big(section):
+                chunks.append((path.name, title, part))
     return chunks
 
 
-def search_knowledge(query: str, top_k: int = 4) -> tuple[str, str]:
-    terms = _terms(query)
+def _split_big(section: str, limit: int = 2000) -> list[str]:
+    """Chẻ mục quá dài theo đoạn văn — chunk 10KB nuốt mọi từ khóa, kém chính xác."""
+    if len(section) <= limit:
+        return [section]
+    parts, buf = [], ""
+    for para in re.split(r"\n\s*\n", section):
+        para = para.strip()
+        if not para:
+            continue
+        if len(para) > limit:  # đoạn đơn quá dài: cắt cứng
+            if buf.strip():
+                parts.append(buf.strip())
+                buf = ""
+            parts.extend(para[i:i + limit] for i in range(0, len(para), limit))
+        elif len(buf) + len(para) + 2 > limit and buf.strip():
+            parts.append(buf.strip())
+            buf = para
+        else:
+            buf = f"{buf}\n\n{para}" if buf else para
+    if buf.strip():
+        parts.append(buf.strip())
+    return parts or [section]
+
+
+def _word_pattern(s: str) -> re.Pattern:
+    # Nguyên từ (không trúng "con" trong "conditioning"); từ đơn cho phép
+    # thêm "s" (Type/Types, channel/channels). Cụm từ khớp chính xác.
+    tail = "s?" if " " not in s else ""
+    return re.compile(r"(?<!\w)" + re.escape(s) + tail + r"(?!\w)")
+
+
+def _snippet(chunk: str, anchors: list[str], size: int = 1400) -> str:
+    """Cửa sổ `size` ký tự quanh cụm khớp dày nhất (thay vì cắt đầu chunk)."""
+    if len(chunk) <= size:
+        return chunk
+    space = _fold1(chunk)  # cùng độ dài với chunk -> vị trí khớp dùng được ngay
+    pats = [_word_pattern(a) for a in {_norm(a) for a in anchors} if a]
+    offsets = sorted(m.start() for p in pats for m in p.finditer(space))
+    if not offsets:
+        return chunk[:size]
+    best, best_count, j = 0, 0, 0
+    for i, off in enumerate(offsets):
+        j = max(j, i)
+        while j + 1 < len(offsets) and offsets[j + 1] - off <= size - 300:
+            j += 1
+        if j - i + 1 > best_count:
+            best, best_count = off, j - i + 1
+    start = max(0, best - 300)
+    return chunk[start:start + size]
+
+
+def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
+    raws = _raw_terms(query)
+    terms = [fold_vi(t) for t in raws]
     if not terms:
         return "Từ khóa quá ngắn, hãy hỏi cụ thể hơn.", ""
-    scored: list[tuple[float, str, str, str]] = []
+    phrases = _phrases(terms)
+    raw_of = dict(zip(phrases, _phrases(raws)))
+    raw_by_fold: dict[str, set[str]] = {}
+    for r, t in zip(raws, terms):
+        raw_by_fold.setdefault(t, set()).add(_norm(r))
+    items = set(phrases) | set(terms)
+    equivs = {e for item in items for e in _PHRASE_EQUIV.get(item, [])}
+    needles = {_norm(s) for s in items} | {_norm(e) for e in equivs}
+    pats = {s: _word_pattern(s) for s in needles}
+    pats1 = {_norm(r): _word_pattern(_norm(r)) for r in set(raws)}
+    for pr in set(raw_of.values()):
+        pats1.setdefault(_norm(pr), _word_pattern(_norm(pr)))
+
+    def C(text: str, s: str) -> int:
+        return len(pats[s].findall(text))
+
+    def C1(text: str, s: str) -> int:
+        return len(pats1[s].findall(text))
+
+    chunks = []
     for filename, title, chunk in knowledge_chunks():
-        folded = fold_vi(f"{title}\n{chunk}")
-        hits = [folded.count(t) for t in terms]
-        coverage = sum(1 for h in hits if h > 0)
-        if coverage == 0:
+        full = f"{title}\n{chunk}"
+        chunks.append((filename, title, chunk, _norm(fold_vi(full)), _norm(full.lower()),
+                       _norm(fold_vi(title)), _norm(title.lower())))
+    # Bỏ từ xuất hiện ở >60% số chunk ("cho", "mỗi"...). Cụm nguyên văn vẫn
+    # được tính — chỉ bỏ điểm từ lẻ.
+    if len(terms) > 2:
+        n_chunks = max(len(chunks), 1)
+        active = [
+            t for t in terms
+            if sum(1 for c in chunks if pats[t].search(c[3])) <= 0.6 * n_chunks
+        ] or terms
+    else:
+        active = terms
+    scored: list[tuple[float, str, str, str, list[str]]] = []
+    for filename, title, chunk, fm, t1, ft, t1t in chunks:
+        # 2 tầng: đúng dấu (10đ) = từ điển tương đương (10đ, "type"~"loại") >
+        # chỉ khớp bỏ dấu (3đ, vì "lời/lợi", "mời/mỗi" nhập nhằng).
+        cov, eff_hits, title_pts = 0, 0.0, 0
+        all_tier1 = len(active) >= 2
+        for t in active:
+            variants = raw_by_fold.get(t, set())
+            c1 = max([C1(t1, v) for v in variants] + [0])
+            if c1:
+                cov += 10
+                eff_hits += c1
+            else:
+                eq_hits = sum(C(fm, _norm(e)) for e in _PHRASE_EQUIV.get(t, []))
+                if eq_hits:
+                    cov += 10
+                    eff_hits += min(eq_hits, 3)
+                else:
+                    cf = C(fm, t)
+                    if cf:
+                        cov += 3
+                        eff_hits += 0.3 * cf
+                    all_tier1 = False
+            if max([C1(t1t, v) for v in variants] + [0]):
+                title_pts += 5
+            elif pats[t].search(ft):
+                title_pts += 2
+        if cov == 0:
             continue
-        density = sum(hits) / (len(folded) / 1000 + 1)
-        title_hits = sum(1 for t in terms if t in fold_vi(title))
-        score = coverage * 10 + title_hits * 5 + min(density, 10)
-        scored.append((score, filename, title, chunk))
+        density = min(eff_hits / (len(fm) / 1000 + 1), 10)
+        score = cov + density + title_pts + (8 if all_tier1 else 0)
+        # Cụm nguyên văn: dài trước, cụm con bị nuốt ("chờ lời mời" nuốt
+        # "lời mời"); đúng dấu 12đ, chỉ khớp bỏ dấu 6đ.
+        ordered = sorted(set(raw_of), key=len, reverse=True)
+        matched: list[str] = []
+        layer = 0
+        for pf in ordered:
+            if " " not in pf or any(pf in m for m in matched):
+                continue
+            if C1(t1, _norm(raw_of[pf])):
+                layer += 12
+                matched.append(pf)
+            elif C(fm, pf):
+                layer += 6
+                matched.append(pf)
+        # Cụm + từ khác đứng gần nhau (<400 ký tự): đúng ngữ cảnh.
+        if matched:
+            in_phrase = set()
+            for m in matched:
+                in_phrase.update(m.split())
+            prox_terms = [t for t in active
+                          if t not in in_phrase
+                          and any(pats1[v].search(t1) for v in raw_by_fold.get(t, ()))]
+            spans = [mm.start() for m in matched for mm in pats1[_norm(raw_of[m])].finditer(t1)]
+            if prox_terms and spans:
+                near = [mm.start() for t in prox_terms for v in raw_by_fold[t]
+                        for mm in pats1[v].finditer(t1)]
+                if any(abs(s - n) <= 400 for s in spans for n in near):
+                    layer += 8
+        for e in equivs:
+            if pats[_norm(e)].search(fm):
+                layer += 4
+        equiv_title = sum(1 for e in equivs if pats[_norm(e)].search(ft))
+        score += min(layer + min(equiv_title, 2) * 4, 24)
+        if score < 11:  # chỉ trúng 1 từ lẻ, yếu — bỏ để khỏi nhiễu
+            continue
+        scored.append((score, filename, title, chunk, list(active) + matched + list(equivs)))
     scored.sort(key=lambda item: -item[0])
     if not scored:
         return f"Không tìm thấy gì cho “{query}” trong kho kiến thức.", ""
     parts, sources = [], []
-    for _, filename, title, chunk in scored[:top_k]:
-        parts.append(f"[{title} — {filename}]\n{chunk[:900]}")
+    for _, filename, title, chunk, anchors in scored[:top_k]:
+        parts.append(f"[{title} — {filename}]\n{_snippet(chunk, anchors)}")
         if title not in sources:
             sources.append(title)
     return "\n\n---\n\n".join(parts), "Kho kiến thức: " + "; ".join(sources)

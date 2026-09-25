@@ -38,11 +38,15 @@ Human Design, trả lời ngắn gọn bằng tiếng Việt.
    cầu của user.
 
 ## QUY TẮC TRA CỨU (bắt buộc)
-- Câu hỏi lý thuyết CƠ BẢN (Type/Strategy/Authority/Center là gì, vận hành ra
-  sao...) mà bạn chắc chắn → TRẢ LỜI LUÔN, không gọi công cụ để user khỏi chờ.
-- CHỈ gọi công cụ khi thật sự cần: con số/tên Gate/Channel/Profile/Cross CỤ THỂ,
-  dữ liệu khách hàng/báo cáo trong hệ thống, hoặc tính chart. Mỗi lần gọi là
-  một lần user phải chờ — gọi càng ít càng tốt.
+- Chào hỏi, câu hỏi siêu cơ bản ("Human Design là gì" — 1-2 câu là đủ) →
+  TRẢ LỜI LUÔN, không gọi công cụ để user khỏi chờ.
+- Mọi câu hỏi kiến thức CÓ NỘI DUNG (Type/Strategy/Authority/Center/Channel/
+  Gate/Profile/Cross là gì, vận hành ra sao, ứng dụng sức khỏe/tình cảm/tiền
+  bạc/nghề nghiệp/nuôi dạy con...) → BẮT BUỘC gọi search_knowledge TRƯỚC, rồi
+  mới tổng hợp câu trả lời từ kết quả. KHÔNG tự trả lời bằng trí nhớ.
+- CHỈ gọi công cụ khác khi thật sự cần: dữ liệu khách hàng/báo cáo trong hệ
+  thống, hoặc tính chart. Mỗi lần gọi là một lần user phải chờ —
+  gọi càng ít càng tốt.
 - Mọi con số, tên Gate/Channel/Center/Type/Authority/Profile/Cross PHẢI lấy từ
   kết quả công cụ — TUYỆT ĐỐI KHÔNG đoán, không bịa, không "nhớ mang máng".
 - Không có giờ sinh thì nói rõ độ tin cậy giảm (Gate/Profile có thể lệch).
@@ -60,8 +64,8 @@ Không thêm bất kỳ chữ nào ngoài object JSON đó.
 
 Các công cụ:
 - search_knowledge {"query": "..."} — tìm trong kho kiến thức Human Design của
-  studio (21 tài liệu chuẩn). Dùng cho câu hỏi lý thuyết cần chi tiết chính xác
-  (số Gate, tên Channel...), KHÔNG dùng cho câu hỏi cơ bản đã trả lời luôn được.
+  studio (21 tài liệu chuẩn). Dùng cho MỌI câu hỏi kiến thức có nội dung: gọi
+  trước, rồi mới trả lời dựa trên kết quả.
 - list_skills {} — liệt kê các skill hướng dẫn phân tích hiện có.
 - read_skill {"name": "..."} — đọc một skill (truyền tên gần đúng cũng được).
 - calculate_chart {"birth_date": "YYYY-MM-DD", "birth_time": "HH:MM",
@@ -209,11 +213,13 @@ def agent_turn_events(
     transport: Transport | None = None,
     on_llm_attempt: AttemptCallback | None = None,
     max_steps: int = MAX_STEPS,
+    temperature: float | None = None,
 ):
     """Chạy một lượt chat, yield từng sự kiện để stream về UI.
 
     Sự kiện: ``("tool_start", name)``, ``("tool_done", {"tool", "source"})``,
     ``("token", text)``, ``("result", AgentResult)``. Hết provider thì raise LLMError.
+    ``temperature`` khác None sẽ ghi đè nhiệt độ của provider trong lượt này.
     """
     messages: list[dict[str, str]] = [{"role": "system", "content": ASSISTANT_SYSTEM}]
     messages += history[-12:]
@@ -221,7 +227,9 @@ def agent_turn_events(
 
     result = AgentResult(answer="")
     dead: set[int] = set()  # provider lỗi trong lượt này thì bỏ qua ở bước sau
-    payload_extra = {"response_format": {"type": "json_object"}}
+    payload_extra: dict[str, Any] = {"response_format": {"type": "json_object"}}
+    if temperature is not None:
+        payload_extra["temperature"] = temperature
 
     for _ in range(max_steps):
         alive = [c for i, c in enumerate(configs) if i not in dead] or list(configs)
@@ -290,7 +298,8 @@ def agent_turn_events(
             result.sources.append(source)
         yield ("tool_done", {"tool": name, "source": source})
         messages.append({"role": "assistant", "content": raw})
-        messages.append({"role": "user", "content": f"[Kết quả {name}]\n{tool_text[:4000]}"})
+        # 6000 ký tự: vừa 3 chunk kiến thức (3x1400) + tên tài liệu.
+        messages.append({"role": "user", "content": f"[Kết quả {name}]\n{tool_text[:6000]}"})
 
     result.answer = ("Mình đã tra cứu nhiều bước mà chưa chốt được câu trả lời. "
                      "Bạn thử hỏi cụ thể hơn (ví dụ kèm tên khách hàng hoặc ngày giờ sinh) nhé.")
@@ -305,11 +314,12 @@ def run_agent_turn(
     transport: Transport | None = None,
     on_llm_attempt: AttemptCallback | None = None,
     max_steps: int = MAX_STEPS,
+    temperature: float | None = None,
 ) -> AgentResult:
     """Chạy một lượt chat (không stream): gom sự kiện tới ``result`` cuối cùng."""
     final: AgentResult | None = None
     for kind, payload in agent_turn_events(user_message, history, configs, execute_tool,
-                                           transport, on_llm_attempt, max_steps):
+                                           transport, on_llm_attempt, max_steps, temperature):
         if kind == "result":
             final = payload
     assert final is not None
