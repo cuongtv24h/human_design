@@ -61,14 +61,42 @@ function OptionCard({ option, selected, onSelect, disabled, extra }: {
   );
 }
 
+function ClientRow({ c, selected, onSelect }: { c: Client; selected: boolean; onSelect: (c: Client) => void }) {
+  return (
+    <li>
+      <button type="button" onClick={() => onSelect(c)} aria-pressed={selected}
+        className={cx("flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm",
+          selected ? "bg-brand-50" : "hover:bg-paper")}>
+        <span>
+          <span className="font-medium text-ink">{c.full_name}</span>
+          <span className="block text-xs text-muted">{c.birth_display}{c.birth_place ? ` · ${c.birth_place}` : ""}</span>
+        </span>
+        {selected && <Check className="size-4 text-brand-600" />}
+      </button>
+    </li>
+  );
+}
+
 function ClientPicker({ value, onChange }: { value: number | null; onChange: (c: Client) => void }) {
   const [q, setQ] = useState("");
   const query = useDebounced(q);
+  const searching = query.trim() !== "";
   const { data, isLoading } = useQuery({
-    queryKey: ["clients", query],
-    queryFn: () => api.get<Paged<Client>>(`/clients${qs({ q: query, limit: 50 })}`),
+    queryKey: ["clients", searching ? query : "recent"],
+    queryFn: () => searching
+      ? api.get<Paged<Client>>(`/clients${qs({ q: query, limit: 50 })}`)
+      : api.get<Paged<Client>>(`/clients${qs({ order: "recent", limit: 5 })}`),
     placeholderData: keepPreviousData,
   });
+  // Giữ dòng đã chọn hiển thị kể cả khi rớt khỏi top 5 gần đây.
+  const selected = useQuery({
+    queryKey: ["client", String(value)],
+    queryFn: () => api.get<Client>(`/clients/${value}`),
+    enabled: value !== null,
+    staleTime: 5 * 60_000,
+  });
+  const items = data?.items ?? [];
+  const pinned = value !== null && selected.data && !items.some((c) => c.id === value) ? selected.data : null;
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-3">
@@ -78,23 +106,17 @@ function ClientPicker({ value, onChange }: { value: number | null; onChange: (c:
         </div>
         <LinkButton href="/clients/new" variant="secondary"><UserPlus className="size-4" /> Khách hàng mới</LinkButton>
       </div>
-      {isLoading ? <Spinner /> : !data?.items.length ? (
-        <p className="rounded-lg bg-paper p-4 text-sm text-muted">Chưa có khách hàng phù hợp. Hãy thêm khách hàng mới trước.</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+        {searching ? `Kết quả tìm kiếm (${data?.total ?? 0})` : "Tương tác gần đây"}
+      </p>
+      {isLoading ? <Spinner /> : !items.length && !pinned ? (
+        <p className="rounded-lg bg-paper p-4 text-sm text-muted">
+          {searching ? "Không tìm thấy khách hàng phù hợp." : "Chưa có khách hàng nào. Hãy thêm khách hàng mới trước."}
+        </p>
       ) : (
         <ul className="max-h-96 divide-y divide-line overflow-y-auto rounded-xl border border-line bg-white">
-          {data.items.map((c) => (
-            <li key={c.id}>
-              <button type="button" onClick={() => onChange(c)} aria-pressed={value === c.id}
-                className={cx("flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm",
-                  value === c.id ? "bg-brand-50" : "hover:bg-paper")}>
-                <span>
-                  <span className="font-medium text-ink">{c.full_name}</span>
-                  <span className="block text-xs text-muted">{c.birth_display}{c.birth_place ? ` · ${c.birth_place}` : ""}</span>
-                </span>
-                {value === c.id && <Check className="size-4 text-brand-600" />}
-              </button>
-            </li>
-          ))}
+          {pinned && <ClientRow c={pinned} selected onSelect={onChange} />}
+          {items.map((c) => <ClientRow key={c.id} c={c} selected={value === c.id} onSelect={onChange} />)}
         </ul>
       )}
     </div>
@@ -193,7 +215,8 @@ function Wizard() {
     <>
       <PageHeader title="Tạo báo cáo" description="4 bước — bạn luôn thấy trước BodyGraph và nội dung nháp trước khi tạo." />
       <Stepper step={step} onJump={go} maxStep={maxStep} />
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+      {/* Bước 1: khối chọn khách hàng full-width, Xem trước đẩy xuống dưới. */}
+      <div className={step === 0 ? "grid items-start gap-6" : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]"}>
         <Card className="p-6">
           {step === 0 && (
             <section className="space-y-4">
@@ -310,7 +333,7 @@ function Wizard() {
           </div>
         </Card>
 
-        <Card className="lg:sticky lg:top-6">
+        <Card className={step === 0 ? undefined : "lg:sticky lg:top-6"}>
           <div className="border-b border-line px-5 py-4">
             <h2 className="font-semibold text-ink">Xem trước</h2>
             {client && <p className="text-xs text-muted">{client.full_name}</p>}

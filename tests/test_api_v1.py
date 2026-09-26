@@ -312,3 +312,36 @@ def test_embedded_preview_token_fallback(app):
     assert no_cookie.post(f"/api/v1/reports/{rid}/archive?access_token={token}", headers=H).status_code == 401
     assert no_cookie.post("/api/v1/auth/logout", headers={**H, **bearer}).status_code == 204
     assert no_cookie.get("/api/v1/auth/me", headers=bearer).status_code == 401
+
+
+def test_clients_order_recent(app):
+    admin = login(app)
+    a = admin.post("/api/v1/clients", json={**CLIENT, "full_name": "Khách A"}, headers=H).json()
+    b = admin.post("/api/v1/clients", json={**CLIENT, "full_name": "Khách B"}, headers=H).json()
+    c = admin.post("/api/v1/clients", json={**CLIENT, "full_name": "Khách C"}, headers=H).json()
+    for cid in (b["id"], a["id"]):
+        made = admin.post("/api/v1/reports", json={"client_id": cid, "tier": "free_basic",
+                                                   "template": "sections", "domains": []}, headers=H)
+        assert made.status_code == 201, made.text
+    recent = [x["id"] for x in admin.get("/api/v1/clients", params={"order": "recent"}).json()["items"]]
+    assert recent == [a["id"], b["id"], c["id"]]
+    top5 = admin.get("/api/v1/clients", params={"order": "recent", "limit": 5}).json()["items"]
+    assert len(top5) == 3
+    # Mặc định cũ giữ nguyên: cập nhật gần nhất trước.
+    default = [x["id"] for x in admin.get("/api/v1/clients").json()["items"]]
+    assert default == [c["id"], b["id"], a["id"]]
+    assert admin.get("/api/v1/clients", params={"order": "bogus"}).status_code == 422
+
+    # Tương tác của user khác không chen vào top của mình; khách mới vẫn hiện trước.
+    coach = admin.post("/api/v1/users", json={"email": "coach@example.com", "password": PASSWORD,
+                                              "full_name": "Coach B", "role": "coach"}, headers=H)
+    assert coach.status_code == 201
+    session = login(app, "coach@example.com")
+    d = session.post("/api/v1/clients", json={**CLIENT, "full_name": "Khách D"}, headers=H).json()
+    made = session.post("/api/v1/reports", json={"client_id": d["id"], "tier": "free_basic",
+                                                 "template": "sections", "domains": []}, headers=H)
+    assert made.status_code == 201, made.text
+    own = [x["id"] for x in session.get("/api/v1/clients", params={"order": "recent"}).json()["items"]]
+    assert own == [d["id"]]
+    recent2 = [x["id"] for x in admin.get("/api/v1/clients", params={"order": "recent"}).json()["items"]]
+    assert recent2 == [a["id"], b["id"], d["id"], c["id"]]
