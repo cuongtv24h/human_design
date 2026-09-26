@@ -162,3 +162,21 @@ def test_open_modes_only_draw_hanging():
             assert svg.count("(cổng treo)") == 4
             assert "(mở)" not in svg
         assert ('stroke="#FFFFFF"' in svg) == white
+
+
+def test_outside_labels_clear_of_side_panels():
+    # Nhãn ngoài tam giác (Heart/Solar) không được đè lên panel 2 bên.
+    # Ước lượng rộng chữ bảo thủ: 0.80em/ký tự (DejaVu/Verdana Bold caps ~0.72-0.75).
+    panels = [(24, 560, 214, 1500),      # panel trái A+B (x1,y1,x2,y2)
+              (878, 46, 1194, 1480)]     # cột phải: card + panel 2+3
+    for cname, cfg in B.CENTERS.items():
+        anchor = cfg.get("outside")
+        if not anchor:
+            continue
+        w = len(cfg["name"]) * cfg["fs"] * 0.80
+        cx = cfg["nl"][0] + B.CHART_DX
+        x1 = cx - (w if anchor == "end" else (w / 2 if anchor == "middle" else 0))
+        x2 = x1 + w
+        y = cfg["nl"][1] + B.CHART_DY
+        for px1, py1, px2, py2 in panels:
+            assert x2 < px1 or x1 > px2 or y - 14 > py2 or y + 6 < py1, cname

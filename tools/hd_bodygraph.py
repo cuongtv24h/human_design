@@ -60,7 +60,7 @@ CENTERS = {
                "name": "G", "nl": (500, 700), "fs": 15, "badge": 12},
     "Heart":  {"poly": [(652, 572), (652, 688), (748, 630)], "r": 10,
                "color": "#C4674A", "tcol": "#FFFFFF",
-               "name": "HEART", "nl": (784, 630), "fs": 12, "outside": "start", "badge": 10.5},
+               "name": "HEART", "nl": (700, 555), "fs": 12, "outside": "middle", "badge": 10.5},
     "Spleen": {"poly": [(315, 588), (315, 792), (180, 690)], "r": 12,
                "color": "#C39A63", "tcol": "#3B2A12",
                "name": "SPLEEN", "nl": (268, 662), "fs": 10.5, "badge": 10.5},
@@ -69,7 +69,7 @@ CENTERS = {
                "name": "SACRAL", "nl": (500, 986), "fs": 13, "badge": 12},
     "Solar Plexus": {"poly": [(662, 868), (662, 1052), (772, 960)], "r": 10,
                      "color": "#B98B4E", "tcol": "#FFFFFF",
-                     "name": "SOLAR PLEXUS", "nl": (786, 966), "fs": 12, "outside": "start", "badge": 10.5},
+                     "name": "SOLAR PLEXUS", "nl": (750, 1085), "fs": 12, "outside": "middle", "badge": 10.5},
     "Root":   {"poly": [(412, 1128), (588, 1128), (588, 1302), (412, 1302)], "r": 22,
                "color": "#4A3B33", "tcol": "#FFFFFF",
                "name": "ROOT", "nl": (500, 1216), "fs": 14, "badge": 12},
@@ -885,9 +885,11 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
             tcol = "#8C918C"
         anchor = cfg.get("outside")
         lcol = tcol if not anchor else ("#8F6A4A")
+        halo = (' paint-order="stroke" stroke="#F8F4EA" stroke-width="4"'
+                ' stroke-linejoin="round"' if anchor else "")
         S.append(f'<text x="{cfg["nl"][0]}" y="{cfg["nl"][1]}" text-anchor="{anchor or "middle"}" '
                  f'font-size="{cfg["fs"]}" font-weight="bold" letter-spacing="{1.4 if not anchor else 0.6}" '
-                 f'fill="{lcol}">{cfg["name"]}</text>')
+                 f'fill="{lcol}"{halo}>{cfg["name"]}</text>')
         S.append('</g>')
     S.append('</g>')
 
@@ -945,7 +947,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     S.append(f'<text x="{PAGE_W / 2}" y="{ly + 58}" text-anchor="middle" font-size="12.5" fill="#A29C8E">'
              f'Human Design System · Tính bằng Swiss Ephemeris · "Đừng tin, hãy thử nghiệm" — Ra Uru Hu</text>')
     S.append(f'<text x="{PAGE_W / 2}" y="{ly + 80}" text-anchor="middle" font-size="11" fill="#BDB7A9">'
-             f'BodyGraph Engine v5.1 (template routing) · {chart.get("definition", "")} · {len(defined_ch)}/36 kênh định nghĩa · '
+             f'BodyGraph Engine v5.1.1 (template routing) · {chart.get("definition", "")} · {len(defined_ch)}/36 kênh định nghĩa · '
              f'{len(defined_centers)}/9 trung tâm định nghĩa</text>')
     S.append('</svg>')
     return "\n".join(S)
@@ -953,7 +955,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Vẽ BodyGraph SVG (v5.1)")
+    ap = argparse.ArgumentParser(description="Vẽ BodyGraph SVG (v5.1.1)")
     ap.add_argument("--date", required=True)
     ap.add_argument("--time", required=True)
     ap.add_argument("--tz", default="+07:00")
