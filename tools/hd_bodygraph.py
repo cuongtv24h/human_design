@@ -171,46 +171,6 @@ CHANNELS_36 = [
     (30, 41), (49, 19), (39, 55),
 ]
 
-WAYPOINTS = {
-    # === Cụm 10 / 20 / 34 / 57 (Throat ✕ G ✕ Spleen ✕ Sacral) — làn song song ===
-    (20, 10):  [(378, 550), (376, 650), (382, 694)],
-    (10, 20):  [(382, 694), (376, 650), (378, 550)],
-    (20, 34):  [(362, 552), (352, 660), (352, 792), (396, 866)],
-    (34, 20):  [(396, 866), (352, 792), (352, 660), (362, 552)],
-    (10, 34):  [(442, 802), (436, 864)],
-    (34, 10):  [(436, 864), (442, 802)],
-    (20, 57):  [(366, 512), (336, 572)],
-    (57, 20):  [(336, 572), (366, 512)],
-    (34, 57):  [(380, 870), (330, 792), (314, 706)],
-    (57, 34):  [(314, 706), (330, 792), (380, 870)],
-    (10, 57):  [(400, 706), (356, 662)],
-    (57, 10):  [(356, 662), (400, 706)],
-    # === Spleen ✕ Throat phía trên ===
-    (16, 48):  [(374, 468), (332, 526)],
-    (48, 16):  [(332, 526), (374, 468)],
-    # === 26-44 luồn khe G ✕ Sacral ===
-    (26, 44):  [(634, 750), (566, 828), (482, 840), (404, 800), (364, 754)],
-    (44, 26):  [(364, 754), (404, 800), (482, 840), (566, 828), (634, 750)],
-    # === Root ✕ Spleen vòng ngoài trái ===
-    (32, 54):  [(252, 830), (304, 902), (358, 992)],
-    (54, 32):  [(358, 992), (304, 902), (252, 830)],
-    (28, 38):  [(204, 830), (264, 962), (338, 1092)],
-    (38, 28):  [(338, 1092), (264, 962), (204, 830)],
-    (18, 58):  [(168, 800), (206, 1002), (312, 1162), (372, 1252)],
-    (58, 18):  [(372, 1252), (312, 1162), (206, 1002), (168, 800)],
-    # === Solar ✕ Sacral / Root ===
-    (6, 59):   [(672, 908), (650, 936), (630, 950)],
-    (59, 6):   [(630, 950), (650, 936), (672, 908)],
-    # === Throat ✕ Solar vòng phải ===
-    (12, 22):  [(634, 512), (676, 570), (688, 610)],
-    (22, 12):  [(688, 610), (676, 570), (634, 512)],
-    (35, 36):  [(632, 470), (662, 500)],
-    (36, 35):  [(662, 500), (632, 470)],
-    # === 45-21 (Throat ✕ Heart) ===
-    (45, 21):  [(618, 452), (642, 510), (648, 552)],
-    (21, 45):  [(648, 552), (642, 510), (618, 452)],
-}
-
 CHANNEL_NAMES = {
     (64, 47): "Abstraction", (61, 24): "Awareness", (63, 4): "Logic",
     (17, 62): "Acceptance", (43, 23): "Structuring", (11, 56): "Curiosity",
@@ -274,13 +234,6 @@ def _seg_len(p, q):
     return math.hypot(q[0] - p[0], q[1] - p[1])
 
 
-def _path_points(g1, g2):
-    pts = [GATES[g1]["a"]]
-    pts += WAYPOINTS.get((g1, g2), [])
-    pts.append(GATES[g2]["a"])
-    return pts
-
-
 def _cum(pts):
     d = [0.0]
     for i in range(len(pts) - 1):
@@ -298,57 +251,6 @@ def _at(pts, cum, frac):
             return (pts[i][0] + (pts[i + 1][0] - pts[i][0]) * k,
                     pts[i][1] + (pts[i + 1][1] - pts[i][1]) * k)
     return pts[-1]
-
-
-def _sub(pts, f0, f1):
-    """Cắt polyline [f0,f1] và làm mượt (Catmull-Rom -> cubic)."""
-    cum = _cum(pts)
-    out = [_at(pts, cum, f0)]
-    for i in range(1, len(pts) - 1):
-        f = cum[i] / cum[-1]
-        if f0 < f < f1:
-            out.append(pts[i])
-    out.append(_at(pts, cum, f1))
-    clean = [out[0]]
-    for p in out[1:]:
-        if _seg_len(p, clean[-1]) > 0.01:
-            clean.append(p)
-    return clean
-
-
-def _smooth_d(pts):
-    if len(pts) < 3:
-        return "M %.1f %.1f L %.1f %.1f" % (pts[0][0], pts[0][1], pts[-1][0], pts[-1][1])
-    d = "M %.1f %.1f" % pts[0]
-    n = len(pts)
-    for i in range(n - 1):
-        p0 = pts[i - 1] if i > 0 else pts[0]
-        p1, p2 = pts[i], pts[i + 1]
-        p3 = pts[i + 2] if i + 2 < n else pts[n - 1]
-        c1 = (p1[0] + (p2[0] - p0[0]) / 6.0, p1[1] + (p2[1] - p0[1]) / 6.0)
-        c2 = (p2[0] - (p3[0] - p1[0]) / 6.0, p2[1] - (p3[1] - p1[1]) / 6.0)
-        d += " C %.1f %.1f %.1f %.1f %.1f %.1f" % (c1[0], c1[1], c2[0], c2[1], p2[0], p2[1])
-    return d
-
-
-def _offset(pts, dist):
-    """Dời polyline sang 1 bên `dist` px (để vẽ nửa đen / nửa đỏ song song)."""
-    out = []
-    n = len(pts)
-    for i in range(n):
-        if i == 0:
-            nx, ny = pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]
-        elif i == n - 1:
-            nx, ny = pts[-1][0] - pts[-2][0], pts[-1][1] - pts[-2][1]
-        else:
-            x1, y1 = pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]
-            x2, y2 = pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]
-            n1 = math.hypot(x1, y1) or 1
-            n2 = math.hypot(x2, y2) or 1
-            nx, ny = x1 / n1 + x2 / n2, y1 / n1 + y2 / n2
-        L = math.hypot(nx, ny) or 1
-        out.append((pts[i][0] - ny / L * dist, pts[i][1] + nx / L * dist))
-    return out
 
 
 def _pl(pts):
@@ -443,31 +345,47 @@ NOT_SELF_SIGNATURE = {
 
 
 # ---------------------------------------------------------------------------
-# ENGINE ĐỊNH TUYẾN v4 — mạng kênh kiểu MANDALA
-#   • Kênh thông thoáng  → đường cong trực tiếp
-#   • Kênh bị chắn       → chạy ra VÀNH CƠ THỂ rồi ôm theo vành (mỗi kênh 1 làn
-#     riêng, cách nhau LANE_GAP) → các kênh song song lồng nhau, không đè
+# ENGINE ĐỊNH TUYẾN v5 — TEMPLATE CỐ ĐỊNH cho từng kênh
+#   • Mỗi kênh có hành lang (via points) thiết kế sẵn, tuân thủ làn:
+#       - cặp dọc trung tâm: đi thẳng / cong nhẹ, tách làn song song
+#       - cụm trái (Spleen): làn trong x≈340-400, làn ngoài x≈240-330
+#       - cụm phải (Heart/Solar): làn trong x≈605-660
+#       - 26-44: luồn khe G–Sacral rồi lên Spleen (như bản cổ điển)
+#   • Cùng 1 dữ liệu chart → cùng 1 hình học (không random, không phụ thuộc
+#     trạng thái kích hoạt). Màu sắc chỉ là lớp style phủ lên route này.
+#   • Stub cổng treo: đoạn ngắn cố định (STUB_LEN px) từ đầu route, không bao
+#     giờ chạy xa khỏi Center.
 # ---------------------------------------------------------------------------
-O_CHART = (500, 690)          # tâm hệ
-LANE_GAP = 11.0               # khoảng cách giữa 2 làn
-RING_MARGIN = 22.0            # khe hở tối thiểu từ center tới làn trong cùng
-CLEAR_MIN = 7.0               # khe hở tối thiểu để coi là "thông thoáng"
+STUB_LEN = 64.0               # độ dài nhánh cổng treo (px, chart space)
 
-_VERTS = []
-for _cfg in CENTERS.values():
-    if "circle" in _cfg:
-        _cx, _cy, _rr = _cfg["circle"]
-        _VERTS += [(_cx + _rr * math.cos(k * math.pi / 8), _cy + _rr * math.sin(k * math.pi / 8))
-                   for k in range(16)]
-    else:
-        _VERTS += list(_cfg["poly"])
+# Via points theo đúng thứ tự (g1, g2) trong CHANNELS_36; chiều ngược tự đảo.
+# Kênh vắng mặt = đi thẳng bằng 1 đường Bezier (đã kiểm tra không xuyên Center).
+ROUTE_VIA = {
+    (35, 36): [(606, 545), (620, 645), (628, 735), (640, 810)],
+    (12, 22): [(624, 516), (642, 610), (650, 710), (658, 800), (670, 862)],
+    (20, 10): [(415, 545), (390, 650), (394, 712)],
+    (20, 34): [(385, 545), (352, 640), (345, 760), (362, 838), (388, 862)],
+    (31, 7):  [(418, 605), (404, 662)],
+    (21, 45): [(648, 530), (626, 470)],
+    (15, 5):  [(476, 834)],
+    (46, 29): [(543, 832)],
+    (26, 44): [(648, 742), (618, 798), (560, 838), (500, 850), (470, 850),
+               (430, 830), (388, 795), (350, 748)],
+    (18, 58): [(240, 900), (290, 1080), (340, 1210)],
+    (28, 38): [(290, 920), (330, 1060), (365, 1170)],
+    (32, 54): [(330, 900), (360, 1030), (385, 1120)],
+    (50, 27): [(350, 860), (380, 940)],
+    (34, 57): [(412, 832), (398, 762), (374, 702), (340, 664)],
+    (10, 57): [(372, 712), (338, 676)],
+    (30, 41): [(668, 1140), (662, 1230), (625, 1260)],
+    (39, 55): [(640, 1120), (650, 1060)],
+}
+for _k in list(ROUTE_VIA):
+    ROUTE_VIA[(_k[1], _k[0])] = list(reversed(ROUTE_VIA[_k]))
 
-_POLYS = []
-for _cn, _cfg in CENTERS.items():
-    if "circle" in _cfg:
-        _POLYS.append((_cn, "c", _cfg["circle"]))
-    else:
-        _POLYS.append((_cn, "p", list(_cfg["poly"])))
+
+def _via(g1, g2):
+    return ROUTE_VIA.get((g1, g2), [])
 
 
 def _centroid(cfg):
@@ -491,102 +409,6 @@ def _normal(g):
     ax, ay = GATES[g]["a"]
     cx, cy = CENTER_CENTROID[GATES[g]["c"]]
     return _unit((cx, cy), (ax, ay))
-
-
-def _support(theta):
-    """Khoảng cách xa nhất từ tâm hệ tới biên các Center theo hướng theta."""
-    cx, cy = math.cos(theta), math.sin(theta)
-    ox, oy = O_CHART
-    best = 0.0
-    for vx, vy in _VERTS:
-        d = (vx - ox) * cx + (vy - oy) * cy
-        if d > best:
-            best = d
-    return best
-
-
-def _dist_to_centers(x, y, skip=None):
-    """Khoảng cách tới biên gần nhất của các center (bỏ qua `skip`)."""
-    best = 1e9
-    for cname, kind, data in _POLYS:
-        if skip and cname in skip:
-            continue
-        if kind == "c":
-            cxc, cyc, rr = data
-            best = min(best, abs(math.hypot(x - cxc, y - cyc) - rr))
-        else:
-            n = len(data)
-            for i in range(n):
-                x1, y1 = data[i]
-                x2, y2 = data[(i + 1) % n]
-                dx, dy = x2 - x1, y2 - y1
-                L2 = dx * dx + dy * dy or 1.0
-                t = max(0.0, min(1.0, ((x - x1) * dx + (y - y1) * dy) / L2))
-                best = min(best, math.hypot(x - (x1 + t * dx), y - (y1 + t * dy)))
-    return best
-
-
-def _clear_direct(g1, g2):
-    """True nếu đường A1→A2 không xuyên center nào KHÁC 2 center của 2 cổng."""
-    A, B = GATES[g1]["a"], GATES[g2]["a"]
-    own = {GATES[g1]["c"], GATES[g2]["c"]}
-    L = math.hypot(B[0] - A[0], B[1] - A[1])
-    if L < 1:
-        return True
-    # bỏ qua 14px sát mỗi đầu (kênh hợp lệ chạm biên center của chính nó)
-    pad = 14.0 / L
-    n = max(4, int(L / 5))
-    for i in range(1, n):
-        t = i / n
-        if t < pad or t > 1 - pad:
-            continue
-        x = A[0] + (B[0] - A[0]) * t
-        y = A[1] + (B[1] - A[1]) * t
-        if _dist_to_centers(x, y, skip=own) < CLEAR_MIN:
-            return False
-    return True
-
-
-def _t_of(g):
-    ax, ay = GATES[g]["a"]
-    return math.atan2(ay - O_CHART[1], ax - O_CHART[0])
-
-
-# --- gán làn: cung ngắn → làn trong, cung dài → làn ngoài --------------------
-CH_LANE = {}
-_spans = []
-for _c in CHANNELS_36:
-    _d = (_t_of(_c[1]) - _t_of(_c[0]) + math.pi) % (2 * math.pi) - math.pi
-    _spans.append((abs(_d), _c))
-_spans.sort(key=lambda z: z[0])
-for _k, (_sp, _c) in enumerate(_spans):
-    _v = _clear_direct(_c[0], _c[1])
-    CH_LANE[_c] = (min(_k, 9), _v)
-    CH_LANE[(_c[1], _c[0])] = (min(_k, 9), _v)
-N_LANES = max((v[0] for v in CH_LANE.values()), default=8) + 1
-
-# Giới hạn mềm: SIÊU ELLIPSE (bo tròn) — vành uốn cong mượt, không góc vuông
-LIM_H, LIM_V, LIM_P = 296.0, 648.0, 2.35
-
-
-def _smooth_limit(theta):
-    """Bán kính tối đa cho phép theo hướng theta (siêu ellipse quanh O_CHART)."""
-    c, s_ = abs(math.cos(theta)), abs(math.sin(theta))
-    return 1.0 / ((c / LIM_H) ** LIM_P + (s_ / LIM_V) ** LIM_P) ** (1.0 / LIM_P)
-
-
-def _stem(g):
-    """Ra khỏi cổng theo pháp tuyến tới khi đủ thoáng."""
-    A = GATES[g]["a"]
-    n = _normal(g)
-    out = [A]
-    for step in range(1, 46):
-        d = step * 5.0
-        x, y = A[0] + n[0] * d, A[1] + n[1] * d
-        out.append((x, y))
-        if _dist_to_centers(x, y) > RING_MARGIN and step >= 6:
-            break
-    return out
 
 
 def _leave(g_from, g_to):
@@ -626,49 +448,46 @@ def _hermite(pts, t0, tn, n_per=30):
     return out
 
 
-CORRIDOR = {
-    # 26–44 luồn khe G ✕ Sacral rồi vòng trái lên Spleen (như bản in cổ điển)
-    (26, 44): [(672, 742), (640, 800), (566, 834), (470, 840), (398, 806), (356, 752)],
-    (44, 26): [(356, 752), (398, 806), (470, 840), (566, 834), (640, 800), (672, 742)],
-    # 20–34 chạy hành lang hẹp giữa Spleen ✕ G rồi xuống Sacral
-    (20, 34): [(376, 520), (356, 600), (352, 700), (356, 800), (386, 858)],
-    (34, 20): [(386, 858), (356, 800), (352, 700), (356, 600), (376, 520)],
-}
-
-
 def _route(g1, g2):
-    """Polyline mượt cho kênh g1→g2."""
-    A, B = GATES[g1]["a"], GATES[g2]["a"]
-    cor = CORRIDOR.get((g1, g2))
-    if cor:
-        pts = [A] + list(cor) + [B]
-        n0 = _normal(g1)
-        return _hermite(pts, (n0[0] * 46, n0[1] * 46), (0.0, 0.0), n_per=12)
-    if _clear_direct(g1, g2):
-        d0, d1 = _leave(g1, g2), _leave(g2, g1)
-        dist = math.hypot(B[0] - A[0], B[1] - A[1])
-        k = min(0.34 * dist, 130)
-        return _bez(A, (A[0] + d0[0] * k, A[1] + d0[1] * k),
-                    (B[0] - d1[0] * k, B[1] - d1[1] * k), B, 46)
+    """Polyline mượt cho kênh g1→g2 — hoàn toàn xác định từ ROUTE_VIA.
 
-    lane, _clear = CH_LANE.get((g1, g2), (4, True))
-    t1 = _t_of(g1)
-    d = (_t_of(g2) - t1 + math.pi) % (2 * math.pi) - math.pi
-    n_arc = max(18, int(abs(d) / (2 * math.pi) * 200))
-    arc = []
-    for i in range(n_arc + 1):
-        th = t1 + d * i / n_arc
-        base = _support(th) + RING_MARGIN
-        rmax = min(max(_smooth_limit(th), base + LANE_GAP), base * 1.16 + 30)
-        band = max(rmax - base, LANE_GAP)
-        step = max(band / max(N_LANES - 0.6, 1.0), LANE_GAP * 0.7)
-        r = min(base + lane * step, rmax)
-        arc.append((O_CHART[0] + r * math.cos(th), O_CHART[1] + r * math.sin(th)))
-    pts = _stem(g1) + arc + list(reversed(_stem(g2)))
-    n0, nn = _normal(g1), _normal(g2)
-    k0 = min(70.0, _seg_len(pts[0], pts[1]) * 3)
-    kn = min(70.0, _seg_len(pts[-1], pts[-2]) * 3)
-    return _hermite(pts, (n0[0] * k0, n0[1] * k0), (-nn[0] * kn, -nn[1] * kn), n_per=7)
+    Cùng cặp cổng luôn cho cùng 1 hình học, bất kể trạng thái kích hoạt.
+    """
+    A, B = GATES[g1]["a"], GATES[g2]["a"]
+    via = _via(g1, g2)
+    if via:
+        pts = [A] + list(via) + [B]
+        n0, nn = _normal(g1), _normal(g2)
+        k0 = min(46.0, _seg_len(pts[0], pts[1]) * 0.7)
+        kn = min(46.0, _seg_len(pts[-1], pts[-2]) * 0.7)
+        return _hermite(pts, (n0[0] * k0, n0[1] * k0),
+                         (-nn[0] * kn, -nn[1] * kn), n_per=14)
+    d0, d1 = _leave(g1, g2), _leave(g2, g1)
+    dist = math.hypot(B[0] - A[0], B[1] - A[1])
+    k = min(0.30 * dist, 90)
+    return _bez(A, (A[0] + d0[0] * k, A[1] + d0[1] * k),
+                (B[0] - d1[0] * k, B[1] - d1[1] * k), B, 40)
+
+
+def _head(pts, px):
+    """Đoạn đầu route dài `px` (nhánh cổng treo) — không bao giờ chạy xa."""
+    if px <= 0:
+        return [pts[0], pts[0]]
+    out, acc = [pts[0]], 0.0
+    for a, b in zip(pts, pts[1:]):
+        L = _seg_len(a, b)
+        if acc + L >= px:
+            k = (px - acc) / L if L else 0.0
+            out.append((a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k))
+            return out
+        acc += L
+        out.append(b)
+    return out
+
+
+def _tail(pts, px):
+    """Đoạn cuối route dài `px` (nhánh cổng treo phía bên kia)."""
+    return list(reversed(_head(list(reversed(pts)), px)))
 
 
 def _cut(pts, f0, f1):
@@ -968,9 +787,9 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     S.append(f'<g transform="translate({CHART_DX},{CHART_DY})">')
     S.append('<ellipse cx="500" cy="700" rx="430" ry="560" fill="url(#halo)" opacity="0.75"/>')
 
-    W = 15.5                      # bề rộng kênh định nghĩa
-    W_OPEN = 3.2                  # bề rộng kênh mở (nét mảnh)
-    W_STUB = 14.0                 # bề rộng nhánh cổng treo
+    W = 12.0                      # bề rộng kênh định nghĩa
+    W_OPEN = 2.6                  # bề rộng kênh mở (nét mảnh chìm)
+    W_STUB = 10.0                 # bề rộng nhánh cổng treo
     ROUTES = {ch: _route(*ch) for ch in CHANNELS_36}
     BADGE_R = {k: v.get("badge", 12) for k, v in CENTERS.items()}
 
@@ -996,14 +815,17 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
         cname = CHANNEL_NAMES.get((g1, g2)) or CHANNEL_NAMES.get((g2, g1), "")
         segs = []
         if key in defined_ch:
-            segs = [(0.0, 0.5, a1 or "P", g1, False), (0.5, 1.0, a2 or "P", g2, False)]
+            # 2 nửa cùng 1 hình học, chỉ khác màu theo nguồn kích hoạt.
+            segs = [(_cut(pts, 0.0, 0.5), a1 or "P", g1, False),
+                    (_cut(pts, 0.5, 1.0), a2 or "P", g2, False)]
         else:
+            total = _cum(pts)[-1]
+            stub = min(STUB_LEN, total * 0.38)
             if a1:
-                segs.append((0.0, 0.38, a1, g1, True))
+                segs.append((_head(pts, stub), a1, g1, True))
             if a2:
-                segs.append((0.62, 1.0, a2, g2, True))
-        for f0, f1, act, gate, is_stub in segs:
-            sub = _cut(pts, f0, f1)
+                segs.append((_tail(pts, stub), a2, g2, True))
+        for sub, act, gate, is_stub in segs:
             if len(sub) < 2:
                 continue
             lbl = "Personality" if act == "P" else ("Design" if act == "D" else "Personality + Design")
@@ -1104,7 +926,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     S.append(f'<text x="{PAGE_W / 2}" y="{ly + 58}" text-anchor="middle" font-size="12.5" fill="#A29C8E">'
              f'Human Design System · Tính bằng Swiss Ephemeris · "Đừng tin, hãy thử nghiệm" — Ra Uru Hu</text>')
     S.append(f'<text x="{PAGE_W / 2}" y="{ly + 80}" text-anchor="middle" font-size="11" fill="#BDB7A9">'
-             f'BodyGraph Engine v4.0 (mandala routing) · {chart.get("definition", "")} · {len(defined_ch)}/36 kênh định nghĩa · '
+             f'BodyGraph Engine v5.0 (template routing) · {chart.get("definition", "")} · {len(defined_ch)}/36 kênh định nghĩa · '
              f'{len(defined_centers)}/9 trung tâm định nghĩa</text>')
     S.append('</svg>')
     return "\n".join(S)
@@ -1112,7 +934,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Vẽ BodyGraph SVG (v4.0 mandala routing)")
+    ap = argparse.ArgumentParser(description="Vẽ BodyGraph SVG (v5.0 template routing)")
     ap.add_argument("--date", required=True)
     ap.add_argument("--time", required=True)
     ap.add_argument("--tz", default="+07:00")
