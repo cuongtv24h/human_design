@@ -513,6 +513,12 @@ def _ribbon(pts, kind, w, act=None, stub=False):
         # Kênh mở chỉ là nét mảnh chìm để dải màu (định nghĩa/cổng treo) nổi rõ.
         o.append(_stroke(d, "#D3CEC0", w, 1.0))
         return o
+    if kind == "white":
+        # Dải trắng kênh treo (kiểu app mẫu): nổi rõ nhưng trung tính.
+        o.append(_stroke(d, "#000000", w + 3.0, 0.08))
+        o.append(_stroke(d, "#DCD6C4", w + 1.2, 1.0))
+        o.append(_stroke(d, "#FFFFFF", w, 1.0))
+        return o
     base = INK if kind == "P" else RED
     if stub:
         o.append(_stroke(d, _darken(base, 0.40), w + 1.6, 1.0))
@@ -587,7 +593,7 @@ def _shape_path(cfg):
 
 
 def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
-                           place_str="", mode="full"):
+                           place_str="", mode="full", open_mode="white"):
     defined_centers = set(chart["defined_centers"])
     defined_ch = {(min(a, b), max(a, b)) for a, b in chart["defined_channels"]}
     p_gates = {d["gate"] for d in chart["personality_gates"].values()}
@@ -789,21 +795,34 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
 
     W = 12.0                      # bề rộng kênh định nghĩa
     W_OPEN = 2.6                  # bề rộng kênh mở (nét mảnh chìm)
+    W_WHITE = 11.0                # bề rộng dải trắng kênh treo (kiểu app mẫu)
     W_STUB = 10.0                 # bề rộng nhánh cổng treo
     ROUTES = {ch: _route(*ch) for ch in CHANNELS_36}
     BADGE_R = {k: v.get("badge", 12) for k, v in CENTERS.items()}
 
     # ---------- Lớp 1: kênh mở (dải trắng đan nhau) ----------
+    # open_mode: "gray" = nét xám mọi kênh mở; "gray_hanging" = nét xám chỉ
+    # kênh treo; "white" = dải trắng chỉ kênh treo (kiểu app mẫu); "none" = bỏ.
     S.append('<g id="channels-open">')
-    for g1, g2 in CHANNELS_36:
-        key = (min(g1, g2), max(g1, g2))
-        if key in defined_ch:
-            continue
-        cname = CHANNEL_NAMES.get((g1, g2)) or CHANNEL_NAMES.get((g2, g1), "")
-        S.append(f'<g><title>Kênh {g1}–{g2} • {cname} (mở)</title>')
-        for line in _ribbon(ROUTES[(g1, g2)], "open", W_OPEN if mode == "full" else W_OPEN * 0.8):
-            S.append(line)
-        S.append('</g>')
+    if open_mode != "none":
+        for g1, g2 in CHANNELS_36:
+            key = (min(g1, g2), max(g1, g2))
+            if key in defined_ch:
+                continue
+            hanging = act_of(g1) or act_of(g2)
+            if open_mode in ("white", "gray_hanging") and not hanging:
+                continue
+            cname = CHANNEL_NAMES.get((g1, g2)) or CHANNEL_NAMES.get((g2, g1), "")
+            tag = "(cổng treo)" if hanging else "(mở)"
+            S.append(f'<g><title>Kênh {g1}–{g2} • {cname} {tag}</title>')
+            if open_mode == "white":
+                lines = _ribbon(ROUTES[(g1, g2)], "white", W_WHITE)
+            else:
+                lines = _ribbon(ROUTES[(g1, g2)], "open",
+                                W_OPEN if mode == "full" else W_OPEN * 0.8)
+            for line in lines:
+                S.append(line)
+            S.append('</g>')
     S.append('</g>')
 
     # ---------- Lớp 2: kênh định nghĩa + cổng treo ----------
@@ -926,7 +945,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
     S.append(f'<text x="{PAGE_W / 2}" y="{ly + 58}" text-anchor="middle" font-size="12.5" fill="#A29C8E">'
              f'Human Design System · Tính bằng Swiss Ephemeris · "Đừng tin, hãy thử nghiệm" — Ra Uru Hu</text>')
     S.append(f'<text x="{PAGE_W / 2}" y="{ly + 80}" text-anchor="middle" font-size="11" fill="#BDB7A9">'
-             f'BodyGraph Engine v5.0 (template routing) · {chart.get("definition", "")} · {len(defined_ch)}/36 kênh định nghĩa · '
+             f'BodyGraph Engine v5.1 (template routing) · {chart.get("definition", "")} · {len(defined_ch)}/36 kênh định nghĩa · '
              f'{len(defined_centers)}/9 trung tâm định nghĩa</text>')
     S.append('</svg>')
     return "\n".join(S)
@@ -934,7 +953,7 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Vẽ BodyGraph SVG (v5.0 template routing)")
+    ap = argparse.ArgumentParser(description="Vẽ BodyGraph SVG (v5.1)")
     ap.add_argument("--date", required=True)
     ap.add_argument("--time", required=True)
     ap.add_argument("--tz", default="+07:00")

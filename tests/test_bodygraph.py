@@ -146,7 +146,19 @@ def test_activation_does_not_change_geometry():
 
 
 def test_svg_mentions_all_channels():
-    svg = B.generate_bodygraph_svg(_synth_chart(), name="T")
+    svg = B.generate_bodygraph_svg(_synth_chart(), name="T", open_mode="gray")
     assert svg.startswith("<svg") and svg.rstrip().endswith("</svg>")
     for g1, g2 in B.CHANNELS_36:
         assert f"Kênh {g1}–{g2}" in svg or f"Kênh {g2}–{g1}" in svg or f"Cổng {g1}" in svg
+
+
+def test_open_modes_only_draw_hanging():
+    # 1 kênh định nghĩa (10-20) -> 4 kênh treo chạm 10/20, còn lại tắt hẳn.
+    for mode, white in (("white", True), ("gray_hanging", False), ("none", False)):
+        svg = B.generate_bodygraph_svg(_synth_chart(((10, 20),)), name="T", open_mode=mode)
+        if mode == "none":
+            assert "<title>Kênh" not in svg
+        else:
+            assert svg.count("(cổng treo)") == 4
+            assert "(mở)" not in svg
+        assert ('stroke="#FFFFFF"' in svg) == white
