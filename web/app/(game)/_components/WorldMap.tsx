@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
   modeMeta,
@@ -54,7 +55,7 @@ export default function WorldMap({
       {world.chapters.map((ch, ci) => {
         if (ch.nodes.length === 0) return null;
         return (
-          <section key={ci} className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+          <motion.section key={ci} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.35 }} className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
             <div className="flex items-center gap-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-2xl">
                 {ch.icon}
@@ -79,7 +80,7 @@ export default function WorldMap({
                       <span
                         aria-hidden
                         className={`h-0.5 min-w-2 flex-1 rounded-full sm:min-w-4 ${
-                          n.index <= progress.unlocked ? "bg-amber-300/70" : "bg-white/10"
+                          n.index <= progress.unlocked ? "bg-amber-300/70 shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-white/10"
                         }`}
                       />
                     )}
@@ -112,7 +113,7 @@ export default function WorldMap({
                 );
               })}
             </div>
-          </section>
+          </motion.section>
         );
       })}
     </div>

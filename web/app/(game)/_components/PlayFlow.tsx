@@ -1,6 +1,12 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { BANKS, type BankQuestion } from "@/lib/game/bank";
@@ -11,8 +17,10 @@ import {
   sampleQuestions,
   styleName,
   toPlayQuestion,
+  type PlayOption,
   type PlayQuestion,
 } from "@/lib/game/engine";
+import { sfx } from "@/lib/game/sound";
 import { COMBO_THRESHOLD_S, HELPERS_PER_NODE } from "@/lib/game/stages";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -21,6 +29,103 @@ export interface PlayDoneInfo {
   weights: number[];
   maxCombo: number;
   helpersUsed: number;
+}
+
+const DOT_PATTERN = "radial-gradient(rgba(251,191,36,0.28) 1px, transparent 1.6px)";
+
+/** 1 lá đáp án: phát bài 3D → lơ lửng → nghiêng theo tay → lật úp khi chọn. */
+function AnswerCard({
+  o,
+  i,
+  dim,
+  isPicked,
+  revealedStyle,
+  onPick,
+}: {
+  o: PlayOption;
+  i: number;
+  dim: boolean;
+  isPicked: boolean;
+  revealedStyle: string | null;
+  onPick: () => void;
+}) {
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const tiltX = useSpring(useTransform(my, [0, 1], [6, -6]), { stiffness: 260, damping: 18 });
+  const tiltY = useSpring(useTransform(mx, [0, 1], [-8, 8]), { stiffness: 260, damping: 18 });
+  return (
+    <motion.button
+      type="button"
+      initial={{ opacity: 0, y: 110, rotateX: 55 }}
+      animate={{
+        opacity: dim ? 0.2 : 1,
+        y: 0,
+        rotateX: 0,
+        rotateY: isPicked ? 180 : 0,
+        scale: isPicked ? 1.03 : 1,
+      }}
+      transition={{
+        rotateY: { duration: 0.45, ease: [0.3, 1.4, 0.5, 1] },
+        default: { delay: 0.06 + i * 0.08, type: "spring", stiffness: 300, damping: 25 },
+      }}
+      whileTap={{ scale: 0.96 }}
+      onPointerMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        mx.set((e.clientX - r.left) / r.width);
+        my.set((e.clientY - r.top) / r.height);
+      }}
+      onPointerLeave={() => {
+        mx.set(0.5);
+        my.set(0.5);
+      }}
+      onClick={onPick}
+      style={{ transformStyle: "preserve-3d", perspective: 900 }}
+      className="relative block w-full text-left"
+      aria-label={`Đáp án ${LETTERS[i] ?? i + 1}: ${o.label}`}
+    >
+      <motion.span
+        animate={{ y: isPicked ? 0 : [0, -4, 0] }}
+        transition={isPicked ? { duration: 0.2 } : { repeat: Infinity, duration: 2.6, delay: i * 0.35 }}
+        style={{ rotateX: tiltX, rotateY: tiltY, transformStyle: "preserve-3d" }}
+        className="relative block"
+      >
+        {/* mặt trước */}
+        <span
+          style={{ backfaceVisibility: "hidden" }}
+          className="relative flex items-start gap-3 overflow-hidden rounded-2xl border border-amber-200/30 bg-gradient-to-br from-violet-900/90 via-[#232052] to-[#14122b] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_12px_32px_rgba(0,0,0,0.5)]"
+        >
+          <span
+            aria-hidden
+            style={{ backgroundImage: DOT_PATTERN, backgroundSize: "14px 14px" }}
+            className="pointer-events-none absolute inset-0 opacity-25"
+          />
+          <span className="relative flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 to-amber-500 text-sm font-black text-[#14122b] shadow">
+            {LETTERS[i] ?? i + 1}
+          </span>
+          <span className="relative min-w-0 flex-1">
+            <span className="block text-[15px] font-medium leading-snug text-white">{o.label}</span>
+            {revealedStyle && (
+              <span className="mt-1.5 inline-block rounded-full bg-amber-300/20 px-2.5 py-0.5 text-xs font-bold text-amber-200">
+                {revealedStyle}
+              </span>
+            )}
+          </span>
+        </span>
+        {/* mặt sau: đã chọn */}
+        <span
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+          className="absolute inset-0 flex items-center justify-center gap-2 overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 shadow-[0_0_36px_rgba(251,191,36,0.45)]"
+        >
+          <span
+            aria-hidden
+            style={{ backgroundImage: DOT_PATTERN, backgroundSize: "12px 12px" }}
+            className="pointer-events-none absolute inset-0 opacity-30"
+          />
+          <span className="relative text-2xl font-black text-[#14122b]">✓ ĐÃ CHỌN</span>
+        </span>
+      </motion.span>
+    </motion.button>
+  );
 }
 
 /** Luồng trả lời dạng lá bài — dùng chung cho màn, chơi tự do, đề hôm nay và so bài. */
@@ -73,12 +178,15 @@ export default function PlayFlow({
   const [pickedId, setPickedId] = useState<string | null>(null);
   const qStart = useRef(0);
   const doneRef = useRef(false);
+  const expiredRef = useRef(false);
 
   useEffect(() => {
     qStart.current = Date.now();
+    expiredRef.current = false;
     setDoubled(false);
     setRevealed(false);
     setPickedId(null);
+    sfx.flip();
     if (!timeLimit) return;
     setLeft(timeLimit);
     const t0 = Date.now();
@@ -87,6 +195,10 @@ export default function PlayFlow({
       if (remain <= 0) {
         setLeft(0);
         setCombo(0);
+        if (!expiredRef.current) {
+          expiredRef.current = true;
+          sfx.timeout();
+        }
         clearInterval(t);
       } else {
         setLeft(remain);
@@ -122,6 +234,7 @@ export default function PlayFlow({
     setCombo(nc);
     const nm = Math.max(maxCombo, nc);
     setMaxCombo(nm);
+    sfx.pick(nc);
     const w = doubled ? 2 : 1;
     setTimeout(() => {
       const nextA = [...answers, id];
@@ -136,7 +249,7 @@ export default function PlayFlow({
       } else {
         setStep(step + 1);
       }
-    }, 280);
+    }, 480);
   };
 
   const useHelper = (kind: "swap" | "reveal" | "double") => {
@@ -156,12 +269,14 @@ export default function PlayFlow({
       setQueue((qq) => qq.map((x, i) => (i === step ? pq : x)));
       setRound((r) => r + 1);
     }
+    sfx.click();
     setUsesLeft((u) => u - 1);
     setUsedCount((c) => c + 1);
   };
 
   const ring = timeLimit ? Math.max(0, left / timeLimit) : 0;
   const danger = !!timeLimit && left <= 3;
+  const hot = combo >= 4;
 
   return (
     <div className="space-y-5">
@@ -171,14 +286,19 @@ export default function PlayFlow({
             {title ? `${title} · ` : ""}Câu {step + 1}/{queue.length}
           </span>
           <span className="flex items-center gap-2">
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
               {combo >= 2 && (
                 <motion.span
                   key={combo}
-                  initial={{ scale: 0.4, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="rounded-full bg-orange-500/25 px-3 py-1 text-xs font-black text-orange-200"
+                  initial={{ scale: 0.3, rotate: -10, opacity: 0 }}
+                  animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 16 }}
+                  className={`rounded-full px-3 py-1 text-xs font-black ${
+                    hot
+                      ? "bg-gradient-to-r from-orange-500 to-amber-400 text-[#14122b] shadow-[0_0_20px_rgba(251,146,60,0.6)]"
+                      : "bg-orange-500/25 text-orange-200"
+                  }`}
                 >
                   🔥 Combo ×{combo}
                 </motion.span>
@@ -187,7 +307,7 @@ export default function PlayFlow({
             {timeLimit ? (
               <span
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black ${
-                  danger ? "bg-rose-500/25 text-rose-200" : "bg-white/10 text-white/80"
+                  danger ? "animate-shake bg-rose-500/30 text-rose-100" : "bg-white/10 text-white/80"
                 }`}
               >
                 <svg viewBox="0 0 20 20" className="size-4 -rotate-90">
@@ -230,7 +350,13 @@ export default function PlayFlow({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -48 }}
           transition={{ duration: 0.22 }}
-          className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8"
+          className={`rounded-3xl border bg-white/5 p-6 sm:p-8 ${
+            boss
+              ? "border-rose-400/40"
+              : hot
+                ? "border-amber-300/60 shadow-[0_0_32px_rgba(251,191,36,0.25)]"
+                : "border-white/10"
+          }`}
         >
           <div className="flex items-start justify-between gap-2">
             <h1 className="text-xl font-black sm:text-2xl">{sc.title}</h1>
@@ -244,44 +370,19 @@ export default function PlayFlow({
         </motion.div>
       </AnimatePresence>
 
-      <div className="grid gap-2 [perspective:900px]">
+      <div className="grid gap-3">
         {sc.options.map((o, i) => {
           const st = revealed ? optionStyle(o.id) : null;
-          const isPicked = pickedId === o.id;
-          const dim = pickedId !== null && !isPicked;
           return (
-            <motion.button
+            <AnswerCard
               key={o.id}
-              type="button"
-              initial={{ opacity: 0, y: 20, rotateX: 50 }}
-              animate={{
-                opacity: dim ? 0.35 : 1,
-                y: 0,
-                rotateX: 0,
-                scale: isPicked ? 1.03 : 1,
-              }}
-              transition={{ delay: 0.05 + i * 0.06, type: "spring", stiffness: 320, damping: 24 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => pick(o.id)}
-              style={{ transformStyle: "preserve-3d" }}
-              className={`flex items-start gap-3 rounded-2xl border bg-white/5 p-4 text-left ${
-                isPicked
-                  ? "border-amber-300 bg-amber-300/15 shadow-lg shadow-amber-300/20"
-                  : "border-white/10 hover:border-amber-300/60 hover:bg-white/10"
-              }`}
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-black">
-                {LETTERS[i] ?? i + 1}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[15px] leading-snug">{o.label}</span>
-                {st && (
-                  <span className="mt-1.5 inline-block rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-bold text-amber-200">
-                    {STYLES[st].icon} {styleName(st)}
-                  </span>
-                )}
-              </span>
-            </motion.button>
+              o={o}
+              i={i}
+              dim={pickedId !== null && pickedId !== o.id}
+              isPicked={pickedId === o.id}
+              revealedStyle={st ? `${STYLES[st].icon} ${styleName(st)}` : null}
+              onPick={() => pick(o.id)}
+            />
           );
         })}
       </div>

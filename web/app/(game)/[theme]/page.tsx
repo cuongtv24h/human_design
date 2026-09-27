@@ -37,7 +37,9 @@ import {
 import { useGameConfig } from "@/lib/game/use-game-config";
 import { FreshBadges } from "../_components/BadgesShelf";
 import PlayFlow, { type PlayDoneInfo } from "../_components/PlayFlow";
+import StageSplash from "../_components/StageSplash";
 import WorldMap from "../_components/WorldMap";
+import { sfx } from "@/lib/game/sound";
 import { ShareRow, StyleCard } from "../_components/cards";
 
 type Mode = { kind: "free"; daily: boolean } | { kind: "node"; node: StageNode };
@@ -66,6 +68,8 @@ export default function PlayPage() {
   const [streak, setStreak] = useState(0);
   const [fresh, setFresh] = useState<BadgeDef[]>([]);
   const started = useRef(false);
+  const [splash, setSplash] = useState<StageNode | null>(null);
+  const pendingNode = useRef<StageNode | null>(null);
 
   const freeSeed = useMemo(
     () => (mode.kind === "free" && mode.daily ? `${dailySeed()}-${slug}` : playSeed),
@@ -140,12 +144,24 @@ export default function PlayPage() {
     setPhase("playing");
   };
 
-  const startNode = (node: StageNode) => {
+  const launchNode = (node: StageNode) => {
+    pendingNode.current = null;
+    setSplash(null);
     setMode({ kind: "node", node });
     setAnswers([]);
     setWeights([]);
     trackGameEvent("game_start", theme.slug);
     setPhase("playing");
+  };
+
+  const startNode = (node: StageNode) => {
+    sfx.click();
+    pendingNode.current = node;
+    setSplash(node);
+    window.setTimeout(() => {
+      const pend = pendingNode.current;
+      if (pend) launchNode(pend);
+    }, 2100);
   };
 
   const handleDone = async (a: string[], inf: PlayDoneInfo) => {
@@ -163,7 +179,10 @@ export default function PlayPage() {
     if (mode.kind === "node") {
       const st = starsFor(inf.maxCombo, inf.helpersUsed);
       setStars(st);
+      if (st >= 1) sfx.win();
+      for (let i = 0; i < st; i++) window.setTimeout(() => sfx.star(i), 500 + i * 240);
       const res = completeNode(runtime.slug, mode.node.index, st);
+      if (res.newUnlock) window.setTimeout(() => sfx.unlock(), 1300);
       setTick((t) => t + 1);
       if (res.newUnlock || st >= 3) {
         confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
@@ -192,7 +211,25 @@ export default function PlayPage() {
       );
     }
     return (
-      <div className="space-y-6">
+      <>
+        {splash &&
+          (() => {
+            const ch = world.chapters[splash.chapter];
+            return (
+              <StageSplash
+                icon={ch?.icon ?? "🗺️"}
+                chapterLabel={`Chương ${splash.chapter + 1}`}
+                chapterName={ch?.name ?? ""}
+                nodeIndex={splash.index}
+                mode={splash.mode}
+                onDone={() => {
+                  const pend = pendingNode.current;
+                  if (pend) launchNode(pend);
+                }}
+              />
+            );
+          })()}
+        <div className="space-y-6">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center sm:p-8">
           <div className="text-5xl sm:text-6xl">{theme.icon}</div>
           <p className="mt-3 text-xs font-bold uppercase tracking-widest text-amber-200">
@@ -223,7 +260,8 @@ export default function PlayPage() {
             ← Trang chủ
           </Link>
         </p>
-      </div>
+        </div>
+      </>
     );
   }
 

@@ -2,12 +2,15 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { dailyRuntimeSlug, getRuntimeConcepts } from "@/lib/game/runtime";
 import { fetchServerConfig } from "@/lib/game/server-config";
+import FxBackground from "./_components/FxBackground";
+import SoundToggle from "./_components/SoundToggle";
 
 export default async function GameLayout({ children }: { children: ReactNode }) {
   const config = await fetchServerConfig();
   const dailySlug = dailyRuntimeSlug(getRuntimeConcepts(config));
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#14122b] text-white">
+    <div className="relative min-h-screen overflow-x-clip bg-[#14122b] text-white">
+      <FxBackground />
       <header className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
         <Link href="/" className="text-lg font-bold tracking-tight">
           🧭 Đúng Thiết Kế
@@ -20,12 +23,15 @@ export default async function GameLayout({ children }: { children: ReactNode }) 
             Huy hiệu
           </Link>
         </nav>
-        <Link
-          href={`/${dailySlug}?daily=1`}
-          className="rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
-        >
-          Chơi ngay
-        </Link>
+        <div className="flex items-center gap-2">
+          <SoundToggle />
+          <Link
+            href={`/${dailySlug}?daily=1`}
+            className="rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
+          >
+            Chơi ngay
+          </Link>
+        </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-16">{children}</main>
       <footer className="border-t border-white/10 px-4 py-6 text-center text-xs leading-relaxed text-white/50">
