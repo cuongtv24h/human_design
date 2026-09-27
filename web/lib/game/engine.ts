@@ -121,28 +121,31 @@ export function registerCustomOptions(custom: Record<string, BankQuestion[]>): v
   }
 }
 
-export function scoreQuiz(theme: GameTheme, answers: string[]): QuizResult {
+export function scoreQuiz(theme: GameTheme, answers: string[], weights?: number[]): QuizResult {
   const map = getOptionMap();
   const totals: Record<StyleId, number> = { khoi_xuong: 0, kien_tao: 0, dan_duong: 0, tam_guong: 0 };
   let energy = 0;
   let pace = 0;
   let matched = 0;
+  let weightSum = 0;
   const votes: Record<DecisionId, number> = { truc_giac: 0, cam_xuc: 0, logic: 0, hoi_han: 0 };
   const firstSeen: DecisionId[] = [];
-  for (const id of answers) {
-    const opt = map.get(id);
+  for (let ai = 0; ai < answers.length; ai++) {
+    const opt = map.get(answers[ai]);
     if (!opt || opt.theme !== theme.slug) continue;
+    const w = weights?.[ai] ?? 1;
     matched += 1;
-    for (const st of STYLE_ORDER) totals[st] += opt.points[st] ?? 0;
-    energy += opt.energy;
-    pace += opt.pace;
+    weightSum += w;
+    for (const st of STYLE_ORDER) totals[st] += (opt.points[st] ?? 0) * w;
+    energy += opt.energy * w;
+    pace += opt.pace * w;
     if (opt.decision) {
-      votes[opt.decision] += 1;
+      votes[opt.decision] += w;
       if (!firstSeen.includes(opt.decision)) firstSeen.push(opt.decision);
     }
   }
   const ranked = [...STYLE_ORDER].sort((a, b) => totals[b] - totals[a]);
-  const n = Math.max(1, matched);
+  const n = Math.max(1, weightSum);
   let decision: DecisionId = "truc_giac";
   let best = 0;
   for (const d of firstSeen) {
@@ -185,6 +188,17 @@ function shuffled<T>(arr: T[], rand: () => number): T[] {
   return a;
 }
 
+/** 1 câu kho -> câu chơi (xáo đáp án theo seed) — màn nào seed nấy, đề cố định. */
+export function toPlayQuestion(themeSlug: string, seed: string, q: BankQuestion): PlayQuestion {
+  const order = shuffled([0, 1, 2, 3], mulberry32(hashSeed(`o:${seed}:${q.id}`)));
+  return {
+    qid: q.id,
+    title: q.title,
+    situation: q.sit,
+    options: order.map((oi) => ({ id: `${q.id}${"abcd"[oi]}`, label: q.opts[oi].t })),
+  };
+}
+
 /** Rút n câu khác nhau từ kho + xáo thứ tự đáp án — cùng seed ra cùng đề. */
 export function sampleQuestions(
   themeSlug: string,
@@ -197,15 +211,7 @@ export function sampleQuestions(
     0,
     Math.min(n, bank.length),
   );
-  return picked.map((q) => {
-    const order = shuffled([0, 1, 2, 3], mulberry32(hashSeed(`o:${seed}:${q.id}`)));
-    return {
-      qid: q.id,
-      title: q.title,
-      situation: q.sit,
-      options: order.map((oi) => ({ id: `${q.id}${"abcd"[oi]}`, label: q.opts[oi].t })),
-    };
-  });
+  return picked.map((q) => toPlayQuestion(themeSlug, seed, q));
 }
 
 export function randomSeed(): string {
@@ -233,6 +239,22 @@ export function decodeResultParam(
   } catch {
     return null;
   }
+}
+
+/** Phong cách của 1 đáp án (thẻ Soi Gương) — đáp án bank luôn thuộc đúng 1 style. */
+export function optionStyle(id: string): StyleId | null {
+  const opt = getOptionMap().get(id);
+  if (!opt) return null;
+  let best: StyleId = STYLE_ORDER[0];
+  let bestV = -Infinity;
+  for (const st of STYLE_ORDER) {
+    const v = opt.points[st] ?? 0;
+    if (v > bestV) {
+      bestV = v;
+      best = st;
+    }
+  }
+  return best;
 }
 
 export function styleName(id: StyleId): string {
@@ -426,7 +448,7 @@ export function trackGameEvent(name: GameEventName, theme = ""): void {
 
 /* G3: đề hôm nay + bảng vàng + nhắc chơi lại */
 
-function hashSeed(str: string): number {
+export function hashSeed(str: string): number {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
@@ -435,7 +457,7 @@ function hashSeed(str: string): number {
   return h >>> 0;
 }
 
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a |= 0;
