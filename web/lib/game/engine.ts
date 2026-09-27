@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import {
   DECISIONS,
   STYLES,
+  THEMES,
   type DecisionId,
   type GameScenario,
   type GameTheme,
@@ -269,5 +270,104 @@ export function trackGameEvent(name: GameEventName, theme = ""): void {
       .catch(() => undefined);
   } catch {
     /* bỏ qua — analytics không được làm hỏng trải nghiệm */
+  }
+}
+
+/* G3: đề hôm nay + bảng vàng + nhắc chơi lại */
+
+function hashSeed(str: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Chọn biến thể theo seed — cùng seed thì cả cộng đồng ra cùng đề. */
+export function pickSeededVariants(theme: GameTheme, seed: string): GameScenario[] {
+  const rand = mulberry32(hashSeed(seed));
+  return theme.scenarios.map((slot) => slot.variants[Math.floor(rand() * slot.variants.length)]);
+}
+
+export function dailySeed(date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Mỗi ngày 1 theme, xoay vòng — đề hôm nay của cả cộng đồng. */
+export function dailyTheme(date = new Date()): GameTheme {
+  const slugs = Object.keys(THEMES);
+  const start = new Date(date.getFullYear(), 0, 0);
+  const day = Math.floor((date.getTime() - start.getTime()) / 86400000);
+  return THEMES[slugs[day % slugs.length]];
+}
+
+export function dailyLabel(date = new Date()): string {
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+const PLAYED_KEY = "ddtk-played";
+
+export interface PlayedState {
+  themes: string[];
+  lastStyle: StyleId | null;
+}
+
+export function getPlayed(): PlayedState {
+  if (typeof window === "undefined") return { themes: [], lastStyle: null };
+  try {
+    const raw = window.localStorage.getItem(PLAYED_KEY);
+    if (!raw) return { themes: [], lastStyle: null };
+    const parsed = JSON.parse(raw) as Partial<PlayedState>;
+    return {
+      themes: Array.isArray(parsed.themes) ? parsed.themes.filter((t) => typeof t === "string") : [],
+      lastStyle: typeof parsed.lastStyle === "string" ? (parsed.lastStyle as StyleId) : null,
+    };
+  } catch {
+    return { themes: [], lastStyle: null };
+  }
+}
+
+export function recordPlayed(theme: string, style: StyleId): void {
+  if (typeof window === "undefined") return;
+  const cur = getPlayed();
+  const themes = cur.themes.includes(theme) ? cur.themes : [...cur.themes, theme];
+  try {
+    window.localStorage.setItem(PLAYED_KEY, JSON.stringify({ themes, lastStyle: style }));
+  } catch {
+    /* đầy bộ nhớ thì bỏ qua */
+  }
+}
+
+/** Ghi điểm lên bảng vàng tuần, trả về thứ hạng (null nếu lỗi mạng). */
+export async function submitScore(
+  theme: string,
+  style: StyleId,
+  deviation: number,
+): Promise<number | null> {
+  try {
+    const out = await api.post<{ ok: boolean; rank: number }>("/public/game/scores", {
+      theme,
+      style,
+      deviation,
+      session_id: gameSessionId(),
+    });
+    return typeof out.rank === "number" ? out.rank : null;
+  } catch {
+    return null;
   }
 }

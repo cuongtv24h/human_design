@@ -907,3 +907,19 @@ class GameFunnelStat(BaseModel):
     theme: str
     name: str
     count: int
+
+
+class GameScoreIn(BaseModel):
+    theme: str = ""
+    style: str = ""
+    deviation: int = -1
+    session_id: str = ""
+
+
+class GameScoreOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    theme: str
+    style: str
+    deviation: int
+    created_at: datetime

@@ -8,6 +8,7 @@ import {
   compatibility,
   decodeResultParam,
   encodeResult,
+  recordPlayed,
   scoreQuiz,
   styleName,
   trackGameEvent,
@@ -79,6 +80,7 @@ export default function SoBaiFlow() {
           onDone={(answers) => {
             setMine(answers);
             const myResult = scoreQuiz(challenger.theme, answers);
+            recordPlayed(challenger.theme.slug, myResult.style);
             trackGameEvent("compare_done", challenger.theme.slug);
             router.replace(`/choi/so-bai?d=${d}&e=${encodeResult(myResult)}`);
           }}

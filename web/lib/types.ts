@@ -426,3 +426,10 @@ export interface GameFunnelStat {
   name: string;
   count: number;
 }
+
+export interface GameScoreOut {
+  theme: string;
+  style: string;
+  deviation: number;
+  created_at: string;
+}

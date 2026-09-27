@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import type { GameTheme } from "@/lib/game/content";
-import { pickVariants } from "@/lib/game/engine";
+import { pickSeededVariants, pickVariants } from "@/lib/game/engine";
 
 const LETTERS = ["A", "B", "C", "D"];
 
-/** Luồng trả lời câu hỏi (dùng chung cho chơi thường và so bài). */
+/** Luồng trả lời câu hỏi (dùng chung cho chơi thường và so bài). Có seed → cả cộng đồng cùng đề. */
 export default function PlayFlow({
   theme,
+  seed,
   onDone,
 }: {
   theme: GameTheme;
+  seed?: string;
   onDone: (answers: string[]) => void;
 }) {
-  const [picked] = useState(() => pickVariants(theme));
+  const [picked] = useState(() => (seed ? pickSeededVariants(theme, seed) : pickVariants(theme)));
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const sc = picked[step];

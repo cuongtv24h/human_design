@@ -11,6 +11,7 @@ import {
   deviationPct,
   encodeResult,
   scoreQuiz,
+  submitScore,
   trackGameEvent,
   type GameChartOut,
 } from "@/lib/game/engine";
@@ -41,7 +42,9 @@ function PageInner() {
   const [contact, setContact] = useState("");
   const [leadDone, setLeadDone] = useState(false);
   const [leadError, setLeadError] = useState("");
+  const [rank, setRank] = useState<number | null>(null);
   const viewed = useRef(false);
+  const scored = useRef(false);
 
   useEffect(() => {
     if (!viewed.current && result) {
@@ -49,6 +52,15 @@ function PageInner() {
       trackGameEvent("bridge_view", result.theme);
     }
   }, [result]);
+
+  useEffect(() => {
+    if (!scored.current && result && chart) {
+      scored.current = true;
+      submitScore(result.theme, result.style, deviationPct(result, chart.summary.type)).then(
+        setRank,
+      );
+    }
+  }, [result, chart]);
 
   if (!result || !theme) {
     return (
@@ -222,6 +234,14 @@ function PageInner() {
           <span className="text-3xl font-black">{deviation}%</span>
         </div>
         <p className="mt-1 text-xs text-white/50">độ lệch khỏi thiết kế gốc</p>
+        {rank !== null && (
+          <Link
+            href="/choi#bang-vang"
+            className="mt-2 inline-block rounded-full bg-amber-300/20 px-4 py-1 text-sm font-bold text-amber-200 hover:bg-amber-300/30"
+          >
+            🏆 Bạn đứng #{rank} bảng {theme.name} tuần này
+          </Link>
+        )}
         <h1 className="mx-auto mt-3 max-w-lg text-2xl font-black">{contrast.headline}</h1>
         <p className="mx-auto mt-2 max-w-lg text-sm text-white/70">{contrast.body}</p>
       </div>

@@ -1,18 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { STYLES, THEMES } from "@/lib/game/content";
-import { encodeResult, scoreQuiz, trackGameEvent } from "@/lib/game/engine";
+import {
+  dailyLabel,
+  dailySeed,
+  encodeResult,
+  recordPlayed,
+  scoreQuiz,
+  trackGameEvent,
+} from "@/lib/game/engine";
 import PlayFlow from "../_components/PlayFlow";
 import { ShareRow, StyleCard } from "../_components/cards";
 
 export default function PlayPage() {
   const { theme: slug } = useParams<{ theme: string }>();
+  const params = useSearchParams();
+  const daily = params.get("daily") === "1";
   const theme = THEMES[slug];
   const [phase, setPhase] = useState<"intro" | "playing" | "done">("intro");
   const [answers, setAnswers] = useState<string[]>([]);
+  const seed = useMemo(
+    () => (daily && theme ? `${dailySeed()}-${theme.slug}` : undefined),
+    [daily, theme],
+  );
 
   const result = useMemo(
     () => (theme && phase === "done" ? scoreQuiz(theme, answers) : null),
@@ -39,6 +52,11 @@ export default function PlayPage() {
   if (phase === "intro") {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center sm:p-12">
+        {daily && (
+          <p className="mb-4 inline-block rounded-full border border-amber-300/40 bg-amber-300/10 px-4 py-1 text-xs font-bold tracking-widest text-amber-200">
+            📅 ĐỀ HÔM NAY · {dailyLabel()} · CẢ CỘNG ĐỒNG CÙNG 1 ĐỀ
+          </p>
+        )}
         <div className="text-6xl">{theme.icon}</div>
         <p className="mt-4 text-xs font-bold uppercase tracking-widest text-amber-200">{theme.name}</p>
         <h1 className="mt-1 text-3xl font-black">{theme.entryLabel}</h1>
@@ -54,7 +72,8 @@ export default function PlayPage() {
           Bắt đầu →
         </button>
         <p className="mt-3 text-xs text-white/50">
-          {theme.scenarios.length} tình huống · khoảng 1 phút · mỗi lượt ra đề khác nhau
+          {theme.scenarios.length} tình huống · khoảng 1 phút
+          {daily ? " · đề chung cả cộng đồng" : " · mỗi lượt ra đề khác nhau"}
         </p>
       </div>
     );
@@ -64,8 +83,11 @@ export default function PlayPage() {
     return (
       <PlayFlow
         theme={theme}
+        seed={seed}
         onDone={(a) => {
           setAnswers(a);
+          const r = scoreQuiz(theme, a);
+          recordPlayed(theme.slug, r.style);
           trackGameEvent("game_complete", theme.slug);
           setPhase("done");
         }}
@@ -77,6 +99,9 @@ export default function PlayPage() {
   const style = STYLES[result.style];
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}/choi/ket-qua?d=${code}` : "";
+  const shareText = daily
+    ? `Đề hôm nay (${dailyLabel()}): tôi là “${style.name}” — bạn có dám thử?`
+    : `Tôi vừa khám phá ra mình là “${style.name}” — bạn thì sao?`;
   return (
     <div className="space-y-4">
       <StyleCard result={result} />
@@ -92,11 +117,7 @@ export default function PlayPage() {
       </Link>
 
       <div className="flex flex-wrap gap-2">
-        <ShareRow
-          url={shareUrl}
-          text={`Tôi vừa khám phá ra mình là “${style.name}” — bạn thì sao?`}
-          theme={theme.slug}
-        />
+        <ShareRow url={shareUrl} text={shareText} theme={theme.slug} />
         <Link
           href={`/choi/so-bai?d=${code}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"

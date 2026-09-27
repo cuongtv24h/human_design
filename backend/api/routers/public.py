@@ -7,10 +7,10 @@ payloads never include internal warnings, UTC datetimes or coach notes.
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from pydantic import ValidationError
@@ -20,9 +20,9 @@ from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, get_db
 from ..files import file_response
-from ..models import GameEvent, GameLead, Organization, Report, ShareLink
-from ..schemas import (GameChartIn, GameChartOut, GameEventIn, GameLeadIn, PublicReportOut,
-                       PublicSection)
+from ..models import GameEvent, GameLead, GameScore, Organization, Report, ShareLink
+from ..schemas import (GameChartIn, GameChartOut, GameEventIn, GameLeadIn, GameScoreIn,
+                       GameScoreOut, PublicReportOut, PublicSection)
 from ..security import hash_token, verify_token
 from ..services import audit, chart_summary, load_document
 from .shares import share_status
@@ -178,3 +178,59 @@ def game_lead(payload: GameLeadIn, db: Session = Depends(get_db),
         theme=payload.theme[:32], quiz=dict(payload.quiz or {}), note=payload.note.strip()[:500]))
     db.commit()
     return {"ok": True}
+
+_GAME_THEMES = frozenset({"nguoc-dong", "thuong-vu", "linh-thu"})
+_GAME_STYLES = frozenset({"khoi-xuong", "kien-tao", "dan-duong", "tam-guong"})
+
+
+def _week_start() -> datetime:
+    """0h thứ Hai đầu tuần (UTC) — bảng vàng tính theo tuần."""
+    now = datetime.now(timezone.utc)
+    monday = now - timedelta(days=now.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+@router.post("/public/game/scores")
+def game_score(payload: GameScoreIn, db: Session = Depends(get_db),
+               _rl: None = Depends(_ratelimit("game_scores", 30))) -> dict:
+    """Ghi điểm ẩn danh lên bảng vàng tuần (G3). Trả về thứ hạng hiện tại."""
+    if payload.theme not in _GAME_THEMES:
+        raise HTTPException(status_code=422, detail="Theme không hợp lệ.")
+    if payload.style not in _GAME_STYLES:
+        raise HTTPException(status_code=422, detail="Phong cách không hợp lệ.")
+    if not 0 <= payload.deviation <= 100:
+        raise HTTPException(status_code=422, detail="Độ lệch phải từ 0 đến 100.")
+    if not payload.session_id.strip():
+        raise HTTPException(status_code=422, detail="Thiếu session.")
+    start = _week_start()
+    db.add(GameScore(theme=payload.theme, style=payload.style, deviation=payload.deviation,
+                     session_id=payload.session_id.strip()[:64]))
+    db.commit()
+    best = select(GameScore.session_id, func.min(GameScore.deviation).label("dev")).where(
+        GameScore.theme == payload.theme, GameScore.created_at >= start).group_by(
+        GameScore.session_id).subquery()
+    better = db.scalar(select(func.count()).select_from(best).where(
+        best.c.dev < payload.deviation)) or 0
+    return {"ok": True, "rank": better + 1}
+
+
+@router.get("/public/game/scores", response_model=list[GameScoreOut])
+def game_scores(theme: str = "", limit: int = 10, db: Session = Depends(get_db)) -> list[GameScoreOut]:
+    """Top bảng vàng tuần, mỗi session chỉ tính điểm tốt nhất (G3)."""
+    if theme and theme not in _GAME_THEMES:
+        raise HTTPException(status_code=422, detail="Theme không hợp lệ.")
+    take = max(1, min(limit, 50))
+    q = select(GameScore).where(GameScore.created_at >= _week_start())
+    if theme:
+        q = q.where(GameScore.theme == theme)
+    q = q.order_by(GameScore.deviation.asc(), GameScore.id.asc()).limit(take * 5)
+    seen: set[str] = set()
+    out: list[GameScoreOut] = []
+    for row in db.scalars(q):
+        if row.session_id in seen:
+            continue
+        seen.add(row.session_id)
+        out.append(GameScoreOut.model_validate(row, from_attributes=True))
+        if len(out) >= take:
+            break
+    return out

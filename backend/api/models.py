@@ -324,3 +324,16 @@ class GameLead(Base):
     note: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(16), default="new", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class GameScore(Base):
+    """Điểm ẩn danh trên bảng vàng tuần (G3)."""
+
+    __tablename__ = "game_scores"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    theme: Mapped[str] = mapped_column(String(32), default="", index=True)
+    style: Mapped[str] = mapped_column(String(16), default="")
+    deviation: Mapped[int] = mapped_column(Integer, default=100)
+    session_id: Mapped[str] = mapped_column(String(64), default="", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LOCKED_THEMES, THEMES } from "@/lib/game/content";
+import { dailyLabel, dailyTheme } from "@/lib/game/engine";
+import Leaderboard from "./_components/Leaderboard";
+import PlayedProgress from "./_components/PlayedProgress";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Đúng Thiết Kế — Bạn là ai khi trút bỏ mọi kỳ vọng?",
@@ -52,6 +57,8 @@ const FAQS = [
 
 export default function GameLandingPage() {
   const first = Object.values(THEMES)[0];
+  const daily = dailyTheme();
+  const label = dailyLabel();
   return (
     <div className="space-y-12 pt-8">
       <section className="text-center">
@@ -76,6 +83,8 @@ export default function GameLandingPage() {
         </div>
       </section>
 
+      <PlayedProgress />
+
       <section className="grid gap-3 sm:grid-cols-3">
         {STEPS.map((s) => (
           <div key={s.n} className="rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -86,6 +95,31 @@ export default function GameLandingPage() {
             <p className="mt-1 text-sm text-white/60">{s.desc}</p>
           </div>
         ))}
+      </section>
+
+      <section>
+        <Link
+          href={`/choi/${daily.slug}?daily=1`}
+          className="group block rounded-2xl border border-amber-300/40 bg-gradient-to-r from-amber-300/20 to-transparent p-5 hover:border-amber-300"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">📅</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold uppercase tracking-widest text-amber-200">
+                Đề hôm nay · {label}
+              </div>
+              <div className="text-lg font-bold">
+                {daily.icon} {daily.name}: {daily.entryLabel}
+              </div>
+              <p className="text-sm text-white/60">
+                Cả cộng đồng cùng 1 đề — chơi xong đối chiếu để ghi tên lên bảng vàng.
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b]">
+              Chơi →
+            </span>
+          </div>
+        </Link>
       </section>
 
       <section>
@@ -132,6 +166,10 @@ export default function GameLandingPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section id="bang-vang" className="scroll-mt-24">
+        <Leaderboard />
       </section>
 
       <section>
