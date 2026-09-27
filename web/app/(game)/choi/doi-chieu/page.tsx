@@ -13,8 +13,10 @@ import {
   scoreQuiz,
   submitScore,
   trackGameEvent,
+  unlockBadge,
   type GameChartOut,
 } from "@/lib/game/engine";
+import { ShareRow } from "../_components/cards";
 
 const TIMEZONES = Array.from({ length: 27 }, (_, i) => {
   const h = i - 12;
@@ -56,9 +58,11 @@ function PageInner() {
   useEffect(() => {
     if (!scored.current && result && chart) {
       scored.current = true;
-      submitScore(result.theme, result.style, deviationPct(result, chart.summary.type)).then(
-        setRank,
-      );
+      unlockBadge("mirror");
+      submitScore(result.theme, result.style, deviationPct(result, chart.summary.type)).then((rk) => {
+        setRank(rk);
+        if (rk !== null && rk <= 3) unlockBadge("top3");
+      });
     }
   }, [result, chart]);
 
@@ -216,6 +220,10 @@ function PageInner() {
   const contrast = contrastFor(result, chart.summary);
   const style = STYLES[result.style];
   const shareCode = encodeResult(result);
+  const boardUrl =
+    typeof window !== "undefined" && rank !== null
+      ? `${window.location.origin}/choi/ket-qua?d=${shareCode}&rank=${rank}`
+      : "";
   const facts = [
     ["Loại năng lượng", chart.summary.type_vn || chart.summary.type],
     ["Chiến lược", chart.summary.strategy],
@@ -317,6 +325,14 @@ function PageInner() {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        {rank !== null && (
+          <ShareRow
+            url={boardUrl}
+            text={`Tôi đang đứng #${rank} bảng ${theme.name} tuần này — bạn có dám thách?`}
+            theme={theme.slug}
+            label={`🏆 Khoe hạng #${rank}`}
+          />
+        )}
         <Link
           href={`/choi/ket-qua?d=${shareCode}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"

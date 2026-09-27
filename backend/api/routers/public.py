@@ -7,7 +7,7 @@ payloads never include internal warnings, UTC datetimes or coach notes.
 from __future__ import annotations
 
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import func, select
@@ -20,9 +20,11 @@ from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, get_db
 from ..files import file_response
-from ..models import GameEvent, GameLead, GameScore, Organization, Report, ShareLink
+from ..models import (GameEvent, GameLead, GameScore, GameStreakDay, Organization,
+                                Report, ShareLink)
 from ..schemas import (GameChartIn, GameChartOut, GameEventIn, GameLeadIn, GameScoreIn,
-                       GameScoreOut, PublicReportOut, PublicSection)
+                       GameScoreOut, GameStreakIn, GameStreakOut, PublicReportOut,
+                       PublicSection)
 from ..security import hash_token, verify_token
 from ..services import audit, chart_summary, load_document
 from .shares import share_status
@@ -180,7 +182,7 @@ def game_lead(payload: GameLeadIn, db: Session = Depends(get_db),
     return {"ok": True}
 
 _GAME_THEMES = frozenset({"nguoc-dong", "thuong-vu", "linh-thu"})
-_GAME_STYLES = frozenset({"khoi-xuong", "kien-tao", "dan-duong", "tam-guong"})
+_GAME_STYLES = frozenset({"khoi_xuong", "kien_tao", "dan_duong", "tam_guong"})
 
 
 def _week_start() -> datetime:
@@ -234,3 +236,45 @@ def game_scores(theme: str = "", limit: int = 10, db: Session = Depends(get_db))
         if len(out) >= take:
             break
     return out
+
+VN_TZ = timezone(timedelta(hours=7))
+
+
+def _today_vn() -> date:
+    return datetime.now(timezone.utc).astimezone(VN_TZ).date()
+
+
+def _streak_of(db: Session, sid: str) -> GameStreakOut:
+    today = _today_vn()
+    days = db.scalars(select(GameStreakDay.day).where(
+        GameStreakDay.session_id == sid, GameStreakDay.day <= today
+    ).order_by(GameStreakDay.day.desc()).limit(400)).all()
+    streak = 0
+    expect = today
+    for d in days:
+        if d == expect:
+            streak += 1
+            expect -= timedelta(days=1)
+        elif d < expect:
+            break
+    return GameStreakOut(streak=streak, today_done=today in days)
+
+
+@router.post("/public/game/streak", response_model=GameStreakOut)
+def game_streak(payload: GameStreakIn, db: Session = Depends(get_db),
+                _rl: None = Depends(_ratelimit("game_streak", 30))) -> GameStreakOut:
+    """Điểm danh đề hôm nay (G4). Ngày tính theo giờ VN. Trả về chuỗi ngày liên tiếp."""
+    sid = payload.session_id.strip()[:64]
+    if not sid:
+        raise HTTPException(status_code=422, detail="Thiếu session.")
+    if db.scalar(select(GameStreakDay.id).where(
+            GameStreakDay.session_id == sid, GameStreakDay.day == _today_vn())) is None:
+        db.add(GameStreakDay(session_id=sid, day=_today_vn()))
+        db.commit()
+    return _streak_of(db, sid)
+
+
+@router.get("/public/game/streak", response_model=GameStreakOut)
+def get_streak(session_id: str = "", db: Session = Depends(get_db)) -> GameStreakOut:
+    """Xem streak hiện tại mà không điểm danh (G4)."""
+    return _streak_of(db, session_id.strip()[:64])

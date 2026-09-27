@@ -3,12 +3,22 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { STYLES, THEMES } from "@/lib/game/content";
-import { dailyTheme, getPlayed, type PlayedState } from "@/lib/game/engine";
+import {
+  dailyTheme,
+  fetchStreak,
+  getPlayed,
+  type PlayedState,
+  type StreakOut,
+} from "@/lib/game/engine";
 
 export default function PlayedProgress() {
   const [played, setPlayed] = useState<PlayedState | null>(null);
+  const [streak, setStreak] = useState<StreakOut | null>(null);
   useEffect(() => {
     setPlayed(getPlayed());
+    fetchStreak().then((s) => {
+      if (s && s.streak > 0) setStreak(s);
+    });
   }, []);
   if (!played || played.themes.length === 0) return null;
 
@@ -18,7 +28,7 @@ export default function PlayedProgress() {
   const daily = dailyTheme();
 
   return (
-    <section className="rounded-2xl border border-amber-300/40 bg-gradient-to-r from-amber-300/15 to-transparent p-5">
+    <section className="space-y-2 rounded-2xl border border-amber-300/40 bg-gradient-to-r from-amber-300/15 to-transparent p-5">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="text-sm">
           <span className="font-black">
@@ -53,6 +63,13 @@ export default function PlayedProgress() {
           </Link>
         )}
       </div>
+      {streak && (
+        <div>
+          <span className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-bold text-amber-200">
+            🔥 Streak {streak.streak} ngày{!streak.today_done ? " · chơi đề hôm nay để giữ lửa" : ""}
+          </span>
+        </div>
+      )}
     </section>
   );
 }

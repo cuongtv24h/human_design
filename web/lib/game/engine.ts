@@ -324,21 +324,26 @@ const PLAYED_KEY = "ddtk-played";
 
 export interface PlayedState {
   themes: string[];
+  styles: StyleId[];
   lastStyle: StyleId | null;
 }
 
 export function getPlayed(): PlayedState {
-  if (typeof window === "undefined") return { themes: [], lastStyle: null };
+  const empty: PlayedState = { themes: [], styles: [], lastStyle: null };
+  if (typeof window === "undefined") return empty;
   try {
     const raw = window.localStorage.getItem(PLAYED_KEY);
-    if (!raw) return { themes: [], lastStyle: null };
+    if (!raw) return empty;
     const parsed = JSON.parse(raw) as Partial<PlayedState>;
     return {
       themes: Array.isArray(parsed.themes) ? parsed.themes.filter((t) => typeof t === "string") : [],
+      styles: Array.isArray(parsed.styles)
+        ? parsed.styles.filter((t): t is StyleId => typeof t === "string")
+        : [],
       lastStyle: typeof parsed.lastStyle === "string" ? (parsed.lastStyle as StyleId) : null,
     };
   } catch {
-    return { themes: [], lastStyle: null };
+    return empty;
   }
 }
 
@@ -346,8 +351,9 @@ export function recordPlayed(theme: string, style: StyleId): void {
   if (typeof window === "undefined") return;
   const cur = getPlayed();
   const themes = cur.themes.includes(theme) ? cur.themes : [...cur.themes, theme];
+  const styles = cur.styles.includes(style) ? cur.styles : [...cur.styles, style];
   try {
-    window.localStorage.setItem(PLAYED_KEY, JSON.stringify({ themes, lastStyle: style }));
+    window.localStorage.setItem(PLAYED_KEY, JSON.stringify({ themes, styles, lastStyle: style }));
   } catch {
     /* đầy bộ nhớ thì bỏ qua */
   }
@@ -367,6 +373,116 @@ export async function submitScore(
       session_id: gameSessionId(),
     });
     return typeof out.rank === "number" ? out.rank : null;
+  } catch {
+    return null;
+  }
+}
+
+/* G4: huy hiệu + streak điểm danh */
+
+export interface BadgeDef {
+  id: string;
+  icon: string;
+  name: string;
+  desc: string;
+}
+
+export const BADGES: BadgeDef[] = [
+  { id: "explorer", icon: "🧭", name: "Nhà Thám Hiểm", desc: "Chơi đủ 3 cửa" },
+  { id: "chameleon", icon: "🦎", name: "Tắc Kè Hoa", desc: "Ra đủ 4 phong cách" },
+  { id: "daily", icon: "📅", name: "Đúng Giờ", desc: "Hoàn thành đề hôm nay" },
+  { id: "streak3", icon: "🔥", name: "Lửa Bền", desc: "Streak 3 ngày liên tiếp" },
+  { id: "streak7", icon: "🌋", name: "Bất Diệt", desc: "Streak 7 ngày liên tiếp" },
+  { id: "challenger", icon: "⚔️", name: "Thách Đấu", desc: "So bài với bạn bè" },
+  { id: "mirror", icon: "🪞", name: "Soi Gương", desc: "Đối chiếu thiết kế gốc" },
+  { id: "top3", icon: "🏆", name: "Top Vàng", desc: "Lọt top 3 bảng tuần" },
+];
+
+const BADGE_KEY = "ddtk-badges";
+
+function readBadges(): { unlocked: string[]; fresh: string[] } {
+  if (typeof window === "undefined") return { unlocked: [], fresh: [] };
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(BADGE_KEY) ?? "{}") as {
+      unlocked?: unknown;
+      fresh?: unknown;
+    };
+    const clean = (v: unknown) => (Array.isArray(v) ? v.filter((t) => typeof t === "string") : []);
+    return { unlocked: clean(parsed.unlocked), fresh: clean(parsed.fresh) };
+  } catch {
+    return { unlocked: [], fresh: [] };
+  }
+}
+
+export function getBadges(): string[] {
+  return readBadges().unlocked;
+}
+
+export function peekFreshBadges(): string[] {
+  return readBadges().fresh;
+}
+
+/** Mở huy hiệu, trả true nếu vừa mở mới (để khoe). */
+export function unlockBadge(id: string): boolean {
+  if (typeof window === "undefined") return false;
+  const cur = readBadges();
+  if (cur.unlocked.includes(id)) return false;
+  try {
+    window.localStorage.setItem(
+      BADGE_KEY,
+      JSON.stringify({ unlocked: [...cur.unlocked, id], fresh: [...cur.fresh, id] }),
+    );
+  } catch {
+    /* đầy bộ nhớ thì bỏ qua */
+  }
+  return true;
+}
+
+/** Lấy + xóa danh sách vừa mở (để hiện 1 lần trên màn hình done). */
+export function takeFreshBadges(): BadgeDef[] {
+  const cur = readBadges();
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(BADGE_KEY, JSON.stringify({ unlocked: cur.unlocked, fresh: [] }));
+    } catch {
+      /* bỏ qua */
+    }
+  }
+  return BADGES.filter((b) => cur.fresh.includes(b.id));
+}
+
+/** Gọi sau recordPlayed khi xong 1 ván chơi/so bài. */
+export function checkPlayBadges(opts: { daily?: boolean; streak?: number; compare?: boolean }): void {
+  const p = getPlayed();
+  if (p.themes.length >= Object.keys(THEMES).length) unlockBadge("explorer");
+  if (p.styles.length >= Object.keys(STYLES).length) unlockBadge("chameleon");
+  if (opts.daily) unlockBadge("daily");
+  const streak = opts.streak ?? 0;
+  if (streak >= 7) unlockBadge("streak7");
+  else if (streak >= 3) unlockBadge("streak3");
+  if (opts.compare) unlockBadge("challenger");
+}
+
+export interface StreakOut {
+  streak: number;
+  today_done: boolean;
+}
+
+/** Điểm danh đề hôm nay (null nếu lỗi mạng). */
+export async function submitStreak(): Promise<StreakOut | null> {
+  try {
+    return await api.post<StreakOut>("/public/game/streak", { session_id: gameSessionId() });
+  } catch {
+    return null;
+  }
+}
+
+/** Xem streak mà không điểm danh (null nếu lỗi mạng). */
+export async function fetchStreak(): Promise<StreakOut | null> {
+  try {
+    return await api.get<StreakOut>(
+      `/public/game/streak?session_id=${encodeURIComponent(gameSessionId())}`,
+    );
   } catch {
     return null;
   }

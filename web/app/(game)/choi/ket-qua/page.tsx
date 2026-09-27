@@ -3,12 +3,17 @@ import Link from "next/link";
 import { STYLES, THEMES } from "@/lib/game/content";
 import { decodeResultParam, scoreQuiz } from "@/lib/game/engine";
 
+function parseRank(v: string | undefined): number | null {
+  const n = Number.parseInt(v ?? "", 10);
+  return Number.isInteger(n) && n >= 1 && n <= 9999 ? n : null;
+}
+
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ d?: string }>;
+  searchParams: Promise<{ d?: string; rank?: string }>;
 }): Promise<Metadata> {
-  const { d } = await searchParams;
+  const { d, rank: rankRaw } = await searchParams;
   const decoded = decodeResultParam(d ?? null);
   const theme = decoded ? THEMES[decoded.theme] : undefined;
   if (!theme || !decoded) {
@@ -16,6 +21,19 @@ export async function generateMetadata({
   }
   const result = scoreQuiz(theme, decoded.answers);
   const style = STYLES[result.style];
+  const rank = parseRank(rankRaw);
+  if (rank !== null) {
+    const title = `Hạng #${rank} bảng vàng ${theme.name} — Bạn có dám thách? | Đúng Thiết Kế`;
+    return {
+      title,
+      description: `${style.icon} ${style.name} đang giữ hạng #${rank} tuần này. Chơi 60 giây để vượt qua.`,
+      openGraph: {
+        title,
+        description: "Bảng vàng tuần · ẩn danh · reset mỗi thứ Hai.",
+        images: [`/api/og/game?board=1&theme=${theme.slug}&rank=${rank}&style=${result.style}`],
+      },
+    };
+  }
   const title = `Tôi là “${style.name}” — Bạn thì sao? | Đúng Thiết Kế`;
   return {
     title,
@@ -31,9 +49,9 @@ export async function generateMetadata({
 export default async function SharedResultPage({
   searchParams,
 }: {
-  searchParams: Promise<{ d?: string }>;
+  searchParams: Promise<{ d?: string; rank?: string }>;
 }) {
-  const { d } = await searchParams;
+  const { d, rank: rankRaw } = await searchParams;
   const decoded = decodeResultParam(d ?? null);
   const theme = decoded ? THEMES[decoded.theme] : undefined;
   if (!theme || !decoded || decoded.answers.length === 0) {
@@ -53,6 +71,7 @@ export default async function SharedResultPage({
   }
   const result = scoreQuiz(theme, decoded.answers);
   const style = STYLES[result.style];
+  const rank = parseRank(rankRaw);
   return (
     <div className="space-y-4">
       <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-8 text-center">
@@ -65,6 +84,11 @@ export default async function SharedResultPage({
         <p className="mx-auto mt-3 max-w-md text-sm text-white/70">{style.desc}</p>
         <p className="mt-2 text-xs text-white/40">Theme: {theme.name}</p>
       </div>
+      {rank !== null && (
+        <div className="rounded-2xl border border-amber-300/40 bg-amber-300/10 p-4 text-center text-sm font-bold text-amber-200">
+          🏆 Người chơi này đang đứng #{rank} bảng {theme.name} tuần này — vượt qua không?
+        </div>
+      )}
       <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
         <div className="text-xl font-black">Còn bạn là ai?</div>
         <p className="mt-1 text-sm text-white/60">

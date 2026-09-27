@@ -60,17 +60,27 @@ def test_funnel_counts(app):
 def test_scores_flow(app):
     c = login(app)
     post = lambda **kw: c.post("/api/v1/public/game/scores", json=kw, headers=H)
-    assert post(theme="nope", style="dan-duong", deviation=10, session_id="s").status_code == 422
+    assert post(theme="nope", style="dan_duong", deviation=10, session_id="s").status_code == 422
     assert post(theme="nguoc-dong", style="guide", deviation=10, session_id="s").status_code == 422
-    assert post(theme="nguoc-dong", style="dan-duong", deviation=101, session_id="s").status_code == 422
-    assert post(theme="nguoc-dong", style="dan-duong", deviation=10, session_id=" ").status_code == 422
-    r1 = post(theme="nguoc-dong", style="dan-duong", deviation=30, session_id="alice").json()
+    assert post(theme="nguoc-dong", style="dan-duong", deviation=10, session_id="s").status_code == 422
+    assert post(theme="nguoc-dong", style="dan_duong", deviation=101, session_id="s").status_code == 422
+    assert post(theme="nguoc-dong", style="dan_duong", deviation=10, session_id=" ").status_code == 422
+    r1 = post(theme="nguoc-dong", style="dan_duong", deviation=30, session_id="alice").json()
     assert r1["rank"] == 1
-    r2 = post(theme="nguoc-dong", style="tam-guong", deviation=10, session_id="bob").json()
+    r2 = post(theme="nguoc-dong", style="tam_guong", deviation=10, session_id="bob").json()
     assert r2["rank"] == 1
-    r3 = post(theme="nguoc-dong", style="dan-duong", deviation=50, session_id="alice").json()
+    r3 = post(theme="nguoc-dong", style="dan_duong", deviation=50, session_id="alice").json()
     assert r3["rank"] == 3  # alice chỉ tính điểm tốt nhất (30): bob 10, alice 30, lượt 50 đứng 3
     top = TestClient(app).get("/api/v1/public/game/scores?theme=nguoc-dong&limit=10").json()
-    assert [(x["deviation"], x["style"]) for x in top] == [(10, "tam-guong"), (30, "dan-duong")]
+    assert [(x["deviation"], x["style"]) for x in top] == [(10, "tam_guong"), (30, "dan_duong")]
     assert "session_id" not in top[0]  # ẩn danh: không lộ session
     assert c.get("/api/v1/public/game/scores?theme=nope").status_code == 422
+
+def test_streak_flow(app):
+    c = login(app)
+    post = lambda sid: c.post("/api/v1/public/game/streak", json={"session_id": sid}, headers=H)
+    assert post(" ").status_code == 422
+    assert post("streaky").json() == {"streak": 1, "today_done": True}
+    assert post("streaky").json() == {"streak": 1, "today_done": True}  # cùng ngày không tăng
+    assert c.get("/api/v1/public/game/streak?session_id=streaky").json() == {"streak": 1, "today_done": True}
+    assert c.get("/api/v1/public/game/streak?session_id=nobody").json() == {"streak": 0, "today_done": False}

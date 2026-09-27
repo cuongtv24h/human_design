@@ -433,3 +433,8 @@ export interface GameScoreOut {
   deviation: number;
   created_at: string;
 }
+
+export interface GameStreakOut {
+  streak: number;
+  today_done: boolean;
+}

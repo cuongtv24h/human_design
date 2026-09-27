@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LOCKED_THEMES, THEMES } from "@/lib/game/content";
 import { dailyLabel, dailyTheme } from "@/lib/game/engine";
+import BadgesShelf from "./_components/BadgesShelf";
 import Leaderboard from "./_components/Leaderboard";
 import PlayedProgress from "./_components/PlayedProgress";
 
@@ -170,6 +171,10 @@ export default function GameLandingPage() {
 
       <section id="bang-vang" className="scroll-mt-24">
         <Leaderboard />
+      </section>
+
+      <section>
+        <BadgesShelf />
       </section>
 
       <section>

@@ -5,14 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { STYLES, THEMES } from "@/lib/game/content";
 import {
+  checkPlayBadges,
   compatibility,
   decodeResultParam,
   encodeResult,
   recordPlayed,
   scoreQuiz,
   styleName,
+  takeFreshBadges,
   trackGameEvent,
+  type BadgeDef,
 } from "@/lib/game/engine";
+import { FreshBadges } from "./BadgesShelf";
 import PlayFlow from "./PlayFlow";
 import { ShareRow, StyleCard } from "./cards";
 
@@ -37,6 +41,7 @@ export default function SoBaiFlow() {
     if (!theme) return null;
     return decoded.answers;
   });
+  const [fresh, setFresh] = useState<BadgeDef[]>([]);
   const viewed = useRef(false);
 
   useEffect(() => {
@@ -81,6 +86,8 @@ export default function SoBaiFlow() {
             setMine(answers);
             const myResult = scoreQuiz(challenger.theme, answers);
             recordPlayed(challenger.theme.slug, myResult.style);
+            checkPlayBadges({ compare: true });
+            setFresh(takeFreshBadges());
             trackGameEvent("compare_done", challenger.theme.slug);
             router.replace(`/choi/so-bai?d=${d}&e=${encodeResult(myResult)}`);
           }}
@@ -105,6 +112,8 @@ export default function SoBaiFlow() {
         <h1 className="mx-auto mt-3 max-w-lg text-xl font-black">{c.verdict}</h1>
         <p className="mx-auto mt-2 max-w-lg text-sm text-white/70">{c.note}</p>
       </div>
+
+      <FreshBadges badges={fresh} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>

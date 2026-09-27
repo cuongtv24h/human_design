@@ -923,3 +923,12 @@ class GameScoreOut(BaseModel):
     style: str
     deviation: int
     created_at: datetime
+
+
+class GameStreakIn(BaseModel):
+    session_id: str = ""
+
+
+class GameStreakOut(BaseModel):
+    streak: int
+    today_done: bool

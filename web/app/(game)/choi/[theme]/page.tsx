@@ -5,13 +5,18 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { STYLES, THEMES } from "@/lib/game/content";
 import {
+  checkPlayBadges,
   dailyLabel,
   dailySeed,
   encodeResult,
   recordPlayed,
   scoreQuiz,
+  submitStreak,
+  takeFreshBadges,
   trackGameEvent,
+  type BadgeDef,
 } from "@/lib/game/engine";
+import { FreshBadges } from "../_components/BadgesShelf";
 import PlayFlow from "../_components/PlayFlow";
 import { ShareRow, StyleCard } from "../_components/cards";
 
@@ -22,6 +27,8 @@ export default function PlayPage() {
   const theme = THEMES[slug];
   const [phase, setPhase] = useState<"intro" | "playing" | "done">("intro");
   const [answers, setAnswers] = useState<string[]>([]);
+  const [streak, setStreak] = useState(0);
+  const [fresh, setFresh] = useState<BadgeDef[]>([]);
   const seed = useMemo(
     () => (daily && theme ? `${dailySeed()}-${theme.slug}` : undefined),
     [daily, theme],
@@ -84,10 +91,18 @@ export default function PlayPage() {
       <PlayFlow
         theme={theme}
         seed={seed}
-        onDone={(a) => {
+        onDone={async (a) => {
           setAnswers(a);
           const r = scoreQuiz(theme, a);
           recordPlayed(theme.slug, r.style);
+          let n = 0;
+          if (daily) {
+            const s = await submitStreak();
+            n = s?.streak ?? 0;
+            setStreak(n);
+          }
+          checkPlayBadges({ daily, streak: n });
+          setFresh(takeFreshBadges());
           trackGameEvent("game_complete", theme.slug);
           setPhase("done");
         }}
@@ -104,6 +119,12 @@ export default function PlayPage() {
     : `Tôi vừa khám phá ra mình là “${style.name}” — bạn thì sao?`;
   return (
     <div className="space-y-4">
+      {daily && streak > 0 && (
+        <p className="rounded-2xl border border-amber-300/40 bg-amber-300/10 p-3 text-center text-sm font-bold text-amber-200">
+          🔥 Streak {streak} ngày — mai quay lại giữ lửa nhé
+        </p>
+      )}
+      <FreshBadges badges={fresh} />
       <StyleCard result={result} />
 
       <Link
