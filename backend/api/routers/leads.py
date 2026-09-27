@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..deps import current_user, get_db
-from ..models import GameLead, User
-from ..schemas import GameLeadOut, GameLeadStatusIn
+from ..models import GameEvent, GameLead, User
+from ..schemas import GameFunnelStat, GameLeadOut, GameLeadStatusIn
 
 router = APIRouter(prefix="/game/leads", tags=["leads"])
 
@@ -44,3 +44,11 @@ def update_lead(lead_id: int, payload: GameLeadStatusIn, user: User = Depends(cu
     lead.status = payload.status
     db.commit()
     return GameLeadOut.model_validate(lead, from_attributes=True)
+
+@router.get("/funnel", response_model=list[GameFunnelStat])
+def lead_funnel(user: User = Depends(current_user), db: Session = Depends(get_db)) -> list[GameFunnelStat]:
+    """Đếm sự kiện funnel game theo theme (đo A/B, G2)."""
+    _admin(user)
+    rows = db.execute(select(GameEvent.theme, GameEvent.name, func.count()).group_by(
+        GameEvent.theme, GameEvent.name)).all()
+    return [GameFunnelStat(theme=t or "", name=n, count=c) for t, n, c in rows]

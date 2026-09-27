@@ -43,3 +43,16 @@ def test_leads_flow(app):
     lid = [x for x in items if x["contact"] == "0901234567"][0]["id"]
     assert c.patch(f"/api/v1/game/leads/{lid}", json={"status": "contacted"}, headers=H).json()["status"] == "contacted"
     assert TestClient(app).get("/api/v1/game/leads").status_code == 401
+
+def test_funnel_counts(app):
+    c = login(app)
+    for name in ("game_start", "game_complete", "compare_view"):
+        r = c.post("/api/v1/public/game/events",
+                   json={"name": name, "theme": "nguoc-dong", "session_id": "s1"}, headers=H)
+        assert r.status_code == 200, r.text
+    rows = c.get("/api/v1/game/leads/funnel", headers=H).json()
+    got = {(x["theme"], x["name"]): x["count"] for x in rows}
+    assert got.get(("nguoc-dong", "game_start")) == 1
+    assert got.get(("nguoc-dong", "compare_view")) == 1
+    from fastapi.testclient import TestClient
+    assert TestClient(app).get("/api/v1/game/leads/funnel").status_code == 401

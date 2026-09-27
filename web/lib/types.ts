@@ -420,3 +420,9 @@ export interface GameLeadOut {
   status: string;
   created_at: string;
 }
+
+export interface GameFunnelStat {
+  theme: string;
+  name: string;
+  count: number;
+}

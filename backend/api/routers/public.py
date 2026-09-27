@@ -111,7 +111,8 @@ def signed_file(token: str, request: Request, db: Session = Depends(get_db)) -> 
 # --- game landing công khai (G1) ------------------------------------------------
 
 _GAME_EVENT_NAMES = frozenset({"game_start", "game_complete", "bridge_view", "bridge_submit",
-                               "share_click", "cta_click", "lead_submit"})
+                               "share_click", "cta_click", "lead_submit", "compare_view",
+                               "compare_done"})
 
 _HITS: dict[tuple[str, str], list[float]] = {}
 

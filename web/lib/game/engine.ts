@@ -1,17 +1,19 @@
-// Engine game "Đúng Thiết Kế" (G1): chấm điểm, mã hóa kết quả, đối chiếu, analytics.
+// Engine game "Đúng Thiết Kế" (G2): chấm điểm, xoay biến thể, mã hóa, đối chiếu,
+// so bài bạn bè, analytics.
 
 import { api } from "@/lib/api";
 import {
   DECISIONS,
   STYLES,
   type DecisionId,
+  type GameScenario,
   type GameTheme,
   type StyleId,
 } from "./content";
 
 export interface QuizResult {
   theme: string;
-  /** option id đã chọn theo thứ tự scenario */
+  /** option id đã chọn theo thứ tự slot */
   answers: string[];
   style: StyleId;
   secondary: StyleId;
@@ -46,8 +48,8 @@ export function scoreQuiz(theme: GameTheme, answers: string[]): QuizResult {
   let energy = 0;
   let pace = 0;
   const decisions: DecisionId[] = [];
-  theme.scenarios.forEach((sc, i) => {
-    const opt = sc.options.find((o) => o.id === answers[i]);
+  theme.scenarios.forEach((slot, i) => {
+    const opt = slot.variants.flatMap((v) => v.options).find((o) => o.id === answers[i]);
     if (!opt) return;
     for (const s of STYLE_ORDER) totals[s] += opt.points[s] ?? 0;
     energy += opt.energy;
@@ -65,6 +67,14 @@ export function scoreQuiz(theme: GameTheme, answers: string[]): QuizResult {
     pace: Math.max(-1, Math.min(1, pace / n)),
     decision: decisions[0] ?? "truc_giac",
   };
+}
+
+/** Chọn ngẫu nhiên 1 biến thể cho mỗi slot (mỗi lượt chơi khác nhau). */
+export function pickVariants(theme: GameTheme): GameScenario[] {
+  return theme.scenarios.map((slot) => {
+    const vs = slot.variants.length > 0 ? slot.variants : [];
+    return vs[Math.floor(Math.random() * vs.length)];
+  });
 }
 
 /** Mã hóa kết quả vào URL (?d=...) để share không cần DB. */
@@ -180,6 +190,51 @@ export function contrastFor(result: QuizResult, chart: MiniChart): Contrast {
   };
 }
 
+// --- so bài bạn bè (G2, không cần ngày sinh) ---
+
+const PAIR_VERDICTS: Record<string, string> = {
+  "khoi_xuong|khoi_xuong": "Hai ngọn lửa — bùng nổ hoặc cháy nhà. Phân vai rõ thì bất khả chiến bại.",
+  "kien_tao|kien_tao": "Hai cỗ máy — êm và bền, miễn là đừng cùng kiệt pin một lúc.",
+  "dan_duong|dan_duong": "Hai nhà chiến lược — nhìn ra mọi thứ, trừ việc ai sẽ làm.",
+  "tam_guong|tam_guong": "Hai tấm gương — thấu hiểu nhau sâu, nhưng cần neo ngoài để khỏi trôi.",
+  "khoi_xuong|kien_tao": "Lửa + động cơ: một người mở đường, một người cày — combo kinh điển.",
+  "dan_duong|khoi_xuong": "Người mở đường + người chỉ hướng: đi nhanh mà không lạc.",
+  "khoi_xuong|tam_guong": "Lửa mạnh gặp gương nhạy — truyền cảm hứng hoặc thiêu rụi, tùy tiết chế.",
+  "dan_duong|kien_tao": "Động cơ + hoa tiêu: cày khỏe, đi đúng — cặp bài trùng công việc.",
+  "kien_tao|tam_guong": "Cỗ máy + tấm gương: một bên làm, một bên cảm — cần nói ra nhu cầu.",
+  "dan_duong|tam_guong": "Mắt quan sát + lòng thấu cảm: hiểu nhau không cần nói, nhưng cần người hành động.",
+};
+
+function pairKey(a: StyleId, b: StyleId): string {
+  return [a, b].sort().join("|");
+}
+
+export interface Compatibility {
+  score: number;
+  verdict: string;
+  note: string;
+}
+
+export function compatibility(a: QuizResult, b: QuizResult): Compatibility {
+  const energyFit = 1 - Math.abs(a.energy - b.energy) / 2;
+  const paceFit = 1 - Math.abs(a.pace - b.pace) / 2;
+  let bonus = 2;
+  if (a.style === b.style) bonus = 10;
+  else if (
+    pairKey(a.style, b.style) === "dan_duong|khoi_xuong" ||
+    pairKey(a.style, b.style) === "dan_duong|kien_tao"
+  )
+    bonus = 6;
+  const jitter = hashAnswers([...a.answers, ...b.answers]) % 7;
+  const score = Math.max(38, Math.min(97, Math.round(52 + 18 * energyFit + 14 * paceFit + bonus + jitter - 3)));
+  const verdict = PAIR_VERDICTS[pairKey(a.style, b.style)] ?? "Hai tần số khác nhau — càng hiểu nhau càng mạnh.";
+  const note =
+    a.decision === b.decision
+      ? `Cùng kiểu quyết định (${decisionName(a.decision).toLowerCase()}) nên hai bạn ít cãi vặt, nhưng cũng dễ cùng mù một hướng.`
+      : "Khác kiểu quyết định: một bên muốn chốt nhanh, một bên cần thời gian — chốt deadline chung trước khi bàn tiếp.";
+  return { score, verdict, note };
+}
+
 // --- analytics ẩn danh (fire-and-forget) ---
 
 export function gameSessionId(): string {
@@ -203,7 +258,9 @@ export type GameEventName =
   | "bridge_submit"
   | "share_click"
   | "cta_click"
-  | "lead_submit";
+  | "lead_submit"
+  | "compare_view"
+  | "compare_done";
 
 export function trackGameEvent(name: GameEventName, theme = ""): void {
   try {

@@ -902,3 +902,8 @@ class GameLeadOut(BaseModel):
     note: str
     status: str
     created_at: datetime
+
+class GameFunnelStat(BaseModel):
+    theme: str
+    name: str
+    count: int

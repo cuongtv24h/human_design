@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Badge, Button, Card, ErrorBox, PageHeader, Spinner } from "@/components/ui";
 import { api, qs } from "@/lib/api";
-import { STYLES } from "@/lib/game/content";
+import { STYLES, THEMES } from "@/lib/game/content";
 import { formatTimestamp } from "@/lib/format";
-import type { GameLeadOut } from "@/lib/types";
+import type { GameFunnelStat, GameLeadOut } from "@/lib/types";
 
 const STATUSES = [
   { value: "", label: "Tất cả" },
@@ -22,6 +22,56 @@ const STATUS_TONE: Record<string, "brand" | "gold" | "stone"> = {
   converted: "brand",
   spam: "stone",
 };
+
+const FUNNEL_STEPS = [
+  { key: "game_start", label: "Bắt đầu" },
+  { key: "game_complete", label: "Xong quiz" },
+  { key: "bridge_submit", label: "Nhập ngày sinh" },
+  { key: "lead_submit", label: "Để lại liên hệ" },
+];
+
+function FunnelStrip() {
+  const funnel = useQuery({
+    queryKey: ["game-funnel"],
+    queryFn: () => api.get<GameFunnelStat[]>("/game/leads/funnel"),
+  });
+  if (funnel.isLoading) return <Spinner />;
+  if (funnel.isError || !funnel.data) return null;
+  const byTheme: Record<string, Record<string, number>> = {};
+  for (const r of funnel.data) {
+    if (!byTheme[r.theme]) byTheme[r.theme] = {};
+    byTheme[r.theme][r.name] = r.count;
+  }
+  const slugs = Object.keys(byTheme).sort();
+  if (slugs.length === 0) return null;
+  return (
+    <Card className="mb-4 space-y-3 p-4">
+      <div className="text-sm font-bold text-ink">Phễu theo theme (đo A/B)</div>
+      {slugs.map((slug) => {
+        const counts = byTheme[slug];
+        const start = counts["game_start"] ?? 0;
+        const lead = counts["lead_submit"] ?? 0;
+        return (
+          <div key={slug} className="text-sm">
+            <div className="font-medium text-ink">
+                  {slug ? (THEMES[slug]?.name ?? slug) : "(chung)"}{" "}
+              {start > 0 && (
+                <span className="text-muted">· chốt {Math.round((lead / start) * 100)}%</span>
+              )}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-muted">
+              {FUNNEL_STEPS.map((s) => (
+                <span key={s.key}>
+                  {s.label}: <strong className="text-ink">{counts[s.key] ?? 0}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
 
 export default function LeadsPage() {
   const queryClient = useQueryClient();
@@ -43,6 +93,7 @@ export default function LeadsPage() {
         description="Người chơi game “Đúng Thiết Kế” để lại liên hệ để nhận báo cáo đầy đủ."
       />
       <ErrorBox error={list.error ?? mark.error} className="mb-4" />
+      <FunnelStrip />
       <Card className="mb-4 flex flex-wrap items-center gap-2 p-4">
         {STATUSES.map((s) => (
           <Button
