@@ -47,6 +47,10 @@ const FAQS = [
     a: "Không. Đó là phong cách hành xử hiện tại của bạn. Thiết kế gốc (loại năng lượng, chiến lược, thẩm quyền) chỉ tính được từ ngày giờ nơi sinh — và đó mới là phần hay nhất.",
   },
   {
+    q: "Game chỉ có 4 phong cách, còn Human Design có 5 Type?",
+    a: "Đúng — 4 phong cách là cách game nhóm phản xạ của bạn cho dễ chơi. Còn Type năng lượng (Manifestor, Generator, Manifesting Generator, Projector, Reflector) vẫn được tính đủ 5 loại từ ngày giờ sinh ở bước đối chiếu — nếu bạn là MG, hệ thống nhận diện đúng và so bạn với nhóm Generator đa hướng.",
+  },
+  {
     q: "Mỗi lượt chơi bao nhiêu câu, có lặp lại không?",
     a: "16 câu rút ngẫu nhiên từ kho 300+ tình huống (mỗi concept 100 câu) nên gần như không bao giờ lặp lại. Đề hôm nay thì cả cộng đồng cùng 16 câu giống nhau.",
   },

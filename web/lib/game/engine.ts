@@ -255,7 +255,9 @@ export function paceLabel(v: number): string {
   return "Tùy tình huống";
 }
 
-/** Phong cách hành xử "giống như" Type nào — chỉ dùng để đối chiếu, không phải kết luận. */
+/** Phong cách hành xử "giống như" Type nào — chỉ dùng để đối chiếu, không phải kết luận.
+ * Game có 4 phong cách; MG (Manifesting Generator) thuộc họ Generator (cùng pin Sacral)
+ * nên khớp với phong cách Kiến Tạo — xem typeMatches. */
 const STYLE_LIKE_TYPE: Record<StyleId, string> = {
   khoi_xuong: "Manifestor",
   kien_tao: "Generator",
@@ -270,10 +272,15 @@ function hashAnswers(answers: string[]): number {
   return h;
 }
 
+/** MG thuộc họ Generator (cùng pin Sacral) nên khớp với phong cách Kiến Tạo. */
+function typeMatches(like: string, chartType: string): boolean {
+  return like === chartType || (like === "Generator" && chartType === "Manifesting Generator");
+}
+
 /** % lệch giữa hành xử và thiết kế — chỉ số vui, ổn định theo đáp án. */
 export function deviationPct(result: QuizResult, chartType: string): number {
   const like = STYLE_LIKE_TYPE[result.style];
-  const match = like === chartType || (like === "Generator" && chartType === "Manifesting Generator");
+  const match = typeMatches(like, chartType);
   const h = hashAnswers(result.answers) % 100;
   return match ? 12 + (h % 18) : 52 + (h % 33);
 }
@@ -288,14 +295,17 @@ export interface Contrast {
 export function contrastFor(result: QuizResult, chart: MiniChart): Contrast {
   const style = STYLES[result.style];
   const like = STYLE_LIKE_TYPE[result.style];
-  const match = like === chart.type || (like === "Generator" && chart.type === "Manifesting Generator");
+  const match = typeMatches(like, chart.type);
   const typeVn = chart.type_vn || chart.type;
   if (match) {
     return {
       match: true,
       headline: `Khớp ${100 - deviationPct(result, chart.type)}% — bạn đang sống đúng thiết kế.`,
       body: `Cách bạn hành xử ngoài đời (${style.name.toLowerCase()}) trùng với thiết kế gốc (${typeVn}). Đây là trạng thái mà nhiều người phải mất năm mới tìm lại được — giữ vững nó.`,
-      insight: `Chiến lược của bạn là “${chart.strategy}”. Càng tuân thủ nó, mọi thứ càng trôi. Báo cáo đầy đủ sẽ chỉ bạn áp dụng chiến lược này vào công việc, tiền bạc và các mối quan hệ.`,
+      insight:
+        chart.type === "Manifesting Generator"
+          ? "Bạn thuộc nhóm MG — dòng Generator đa hướng, nhanh nhất trong 5 Type. Chiến lược của bạn là “đáp ứng rồi thông báo”: chờ việc gọi, bung sức làm, và nhớ báo cho người xung quanh mỗi khi bạn bẻ lái. Báo cáo đầy đủ sẽ chỉ bạn dùng tốc độ này mà không đốt cháy mình và người khác."
+          : `Chiến lược của bạn là “${chart.strategy}”. Càng tuân thủ nó, mọi thứ càng trôi. Báo cáo đầy đủ sẽ chỉ bạn áp dụng chiến lược này vào công việc, tiền bạc và các mối quan hệ.`,
     };
   }
   const key = `${result.style}__${chart.type}`;
@@ -304,6 +314,8 @@ export function contrastFor(result: QuizResult, chart: MiniChart): Contrast {
       "Bạn liên tục lao ra khởi xướng, trong khi thiết kế của bạn phát huy mạnh nhất khi được mời đúng chỗ. Càng gồng, càng gặp tường và cay đắng — không phải vì bạn kém, mà vì sai cách dùng lực.",
     khoi_xuong__Reflector:
       "Bạn hành động như người mở đường, nhưng thiết kế của bạn cần thời gian thấm và môi trường đúng. Vội vàng khiến bạn quyết sai rồi đổ lỗi cho bản thân.",
+    khoi_xuong__Manifesting_Generator:
+      "Bạn lao ra mở đường như Manifestor, nhưng pin Sacral của MG cần “đáp ứng” trước khi bung. Khởi xướng đúng việc thì bạn nhanh gấp đôi người thường; khởi xướng bừa thì vừa giận (vì bị cản) vừa kiệt (vì sai việc) — combo mệt nhất trong 5 Type.",
     dan_duong__Generator:
       "Bạn đứng ngoài quan sát và chờ đợi, trong khi động cơ của bạn sinh ra để phản hồi và cày. Nhàn quá lâu khiến bạn bức bối — không phải vì thiếu việc, mà vì thiếu việc đáng làm.",
     dan_duong__Manifesting_Generator:
@@ -312,6 +324,8 @@ export function contrastFor(result: QuizResult, chart: MiniChart): Contrast {
       "Bạn hòa theo cảm xúc và tiêu chuẩn của người xung quanh, trong khi thiết kế của bạn cần không gian riêng để khởi xướng. Càng chiều lòng tất cả, bạn càng mất tiếng nói của mình.",
     tam_guong__Generator:
       "Bạn gật đầu với kỳ vọng của người khác, trong khi pin của bạn chỉ sạc khi làm việc mình thật sự muốn. Kiệt sức của bạn không đến từ việc nhiều — mà từ việc sai.",
+    tam_guong__Manifesting_Generator:
+      "Bạn gật theo kỳ vọng của người khác, trong khi MG sinh ra để đáp ứng rồi bẻ lái theo ý mình. Càng “ngoan”, bạn càng kiệt: pin Sacral chỉ sạc khi bạn được làm thứ mình thật sự muốn, theo cách của mình.",
     kien_tao__Projector:
       "Bạn cày như máy để chứng minh giá trị, trong khi thiết kế của bạn không có pin cày — sức mạnh của bạn nằm ở tầm nhìn. Sập nguồn rồi đổ tại lười là vòng lặp cần phá vỡ đầu tiên.",
     kien_tao__Manifestor:
