@@ -169,16 +169,16 @@ def test_custom_report_end_to_end(app):
     # tạo báo cáo thật bằng mẫu custom
     cid = c.post("/api/v1/clients", json=CLIENT, headers=H).json()["id"]
     payload = {"client_id": cid, "tier": "deep_core", "template": tpl["key"],
-               "content_mode": "standard", "domains": ["money"]}
+               "content_mode": "template", "domains": ["money"]}
     r = c.post("/api/v1/reports/preview", json=payload, headers=H)
     assert r.status_code == 200, r.text
     assert r.json()["sections"][1]["title"] == "Lời chào riêng"
-    assert "1900 6868" in r.json()["sections"][1]["body_markdown"]
 
     r = c.post("/api/v1/reports", json=payload, headers=H)
     assert r.status_code == 201, r.text
     got = c.get(f"/api/v1/reports/{r.json()['id']}").json()
-    assert got["template_name"] == tpl["name"] and len(got["sections"]) == 2
+    assert got["template_name"] == tpl["name"] and len(got["sections"]) == 3
+    assert "1900 6868" in got["markdown"] and "Nguyễn Văn A" in got["markdown"]
 
     # mẫu không tồn tại -> 422
     bad = dict(payload, template="mau-khong-co")
