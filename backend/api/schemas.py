@@ -33,6 +33,8 @@ class UserOut(BaseModel):
     role: Literal["admin", "coach"]
     is_active: bool
     org_name: str = ""
+    created_at: datetime | None = None
+    last_login_at: datetime | None = None
 
 
 class LoginOut(UserOut):
@@ -48,10 +50,15 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    full_name: str | None = None
+    full_name: str | None = Field(default=None, max_length=200)
     role: Literal["admin", "coach"] | None = None
     is_active: bool | None = None
     password: str | None = Field(default=None, min_length=8, max_length=200)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=8, max_length=200)
 
 
 # --- catalog ----------------------------------------------------------------

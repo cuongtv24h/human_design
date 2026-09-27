@@ -1,13 +1,13 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { Bot, FilePlus2, FileText, LayoutDashboard, LogOut, Menu, MessagesSquare, UserCog, Users, X } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Bot, FilePlus2, FileText, KeyRound, LayoutDashboard, LogOut, Menu, MessagesSquare, UserCog, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { AssistantWidget } from "@/components/AssistantWidget";
 import { Logo } from "@/components/Logo";
-import { Spinner, cx } from "@/components/ui";
+import { Button, ErrorBox, Field, Input, Modal, Spinner, cx } from "@/components/ui";
 import { api, ApiError } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { setSessionToken } from "@/lib/session";
@@ -19,12 +19,66 @@ const NAV = [
   { href: "/reports/new", label: "Tạo báo cáo", icon: FilePlus2 },
 ];
 
+function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ current_password: "", new_password: "", confirm: "" });
+  const [done, setDone] = useState(false);
+  const [mismatch, setMismatch] = useState(false);
+  const change = useMutation({
+    mutationFn: () => api.post<void>("/auth/password", {
+      current_password: form.current_password,
+      new_password: form.new_password,
+    }),
+    onSuccess: () => setDone(true),
+  });
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (form.new_password !== form.confirm) {
+      setMismatch(true);
+      return;
+    }
+    setMismatch(false);
+    change.mutate();
+  };
+  return (
+    <Modal title="Đổi mật khẩu" onClose={onClose}>
+      {done ? (
+        <div className="space-y-4">
+          <p className="text-sm text-muted">Đã đổi mật khẩu. Các thiết bị/phiên đăng nhập khác đã bị đăng xuất.</p>
+          <Button onClick={onClose}>Đóng</Button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <Field label="Mật khẩu hiện tại" required htmlFor="pw-cur">
+            <Input id="pw-cur" type="password" required value={form.current_password}
+              onChange={(e) => setForm({ ...form, current_password: e.target.value })} />
+          </Field>
+          <Field label="Mật khẩu mới" required htmlFor="pw-new" hint="Tối thiểu 8 ký tự.">
+            <Input id="pw-new" type="password" required minLength={8} value={form.new_password}
+              onChange={(e) => setForm({ ...form, new_password: e.target.value })} />
+          </Field>
+          <Field label="Nhập lại mật khẩu mới" required htmlFor="pw-confirm"
+            error={mismatch ? "Mật khẩu nhập lại chưa khớp." : undefined}>
+            <Input id="pw-confirm" type="password" required minLength={8} value={form.confirm}
+              onChange={(e) => setForm({ ...form, confirm: e.target.value })} />
+          </Field>
+          <ErrorBox error={change.error} />
+          <div className="flex gap-2">
+            <Button type="submit" loading={change.isPending}>Đổi mật khẩu</Button>
+            <Button type="button" variant="secondary" onClick={onClose}>Hủy</Button>
+          </div>
+        </form>
+      )}
+    </Modal>
+  );
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
   const me = useMe();
   const [open, setOpen] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
 
   useEffect(() => {
     if (me.error instanceof ApiError && me.error.status === 401) {
@@ -91,6 +145,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="truncate text-sm font-medium text-ink">{user.full_name || user.email}</div>
           <div className="truncate text-xs text-muted">{user.role === "admin" ? "Quản trị viên" : "Chuyên viên tư vấn"} · {user.email}</div>
         </div>
+        <button onClick={() => setPwOpen(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-paper hover:text-ink">
+          <KeyRound className="size-4" aria-hidden /> Đổi mật khẩu
+        </button>
         <button onClick={logout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-paper hover:text-ink">
           <LogOut className="size-4" aria-hidden /> Đăng xuất
         </button>
@@ -100,6 +157,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen lg:pl-64">
+      {pwOpen && <ChangePasswordModal onClose={() => setPwOpen(false)} />}
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-line bg-white lg:block">{sidebar}</aside>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">

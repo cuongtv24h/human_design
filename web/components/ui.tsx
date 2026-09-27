@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import { useEffect } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
 import { STATUS_LABEL } from "@/lib/format";
 
@@ -168,5 +169,32 @@ export function Checkbox({ checked, onChange, label, description, disabled }: {
         {description && <span className="mt-0.5 block text-xs text-muted">{description}</span>}
       </span>
     </label>
+  );
+}
+
+export function Modal({ title, onClose, children, wide }: {
+  title: string; onClose: () => void; children: ReactNode; wide?: boolean;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-ink/40" onClick={onClose} aria-hidden />
+      <div role="dialog" aria-modal="true" aria-label={title}
+        className={cx("relative max-h-[90vh] w-full overflow-y-auto rounded-xl bg-white shadow-xl",
+          wide ? "max-w-2xl" : "max-w-md")}>
+        <div className="flex items-center justify-between border-b border-line px-5 py-4">
+          <h2 className="font-semibold text-ink">{title}</h2>
+          <button type="button" onClick={onClose} aria-label="Đóng"
+            className="rounded-md p-1 text-muted hover:bg-paper hover:text-ink">
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
   );
 }

@@ -345,3 +345,84 @@ def test_clients_order_recent(app):
     assert own == [d["id"]]
     recent2 = [x["id"] for x in admin.get("/api/v1/clients", params={"order": "recent"}).json()["items"]]
     assert recent2 == [a["id"], b["id"], d["id"], c["id"]]
+
+
+def test_user_update_and_password_reset(app):
+    admin = login(app)
+    coach = admin.post("/api/v1/users", json={"email": "coach@example.com", "password": PASSWORD,
+                                              "full_name": "Coach B", "role": "coach"}, headers=H).json()
+    assert coach["created_at"] and coach["last_login_at"] is None
+    # Sửa tên + nâng quyền.
+    updated = admin.patch(f"/api/v1/users/{coach['id']}", json={"full_name": "Coach Bee", "role": "admin"},
+                          headers=H)
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["full_name"] == "Coach Bee" and updated.json()["role"] == "admin"
+    # Không được tự khóa / tự hạ quyền.
+    me = admin.get("/api/v1/auth/me").json()
+    assert admin.patch(f"/api/v1/users/{me['id']}", json={"role": "coach"}, headers=H).status_code == 422
+    assert admin.patch(f"/api/v1/users/{me['id']}", json={"is_active": False}, headers=H).status_code == 422
+    # Đặt lại mật khẩu → phiên cũ của coach bị đá, mật khẩu mới dùng được.
+    session = login(app, "coach@example.com")
+    assert session.get("/api/v1/auth/me").status_code == 200
+    reset = admin.patch(f"/api/v1/users/{coach['id']}", json={"password": "mat-khau-moi-456"}, headers=H)
+    assert reset.status_code == 200
+    assert session.get("/api/v1/auth/me").status_code == 401
+    assert login(app, "coach@example.com", "mat-khau-moi-456").get("/api/v1/auth/me").status_code == 200
+    bad = admin.patch(f"/api/v1/users/{coach['id']}", json={"password": "ngan"}, headers=H)
+    assert bad.status_code == 422
+
+
+def test_user_delete(app):
+    admin = login(app)
+    me = admin.get("/api/v1/auth/me").json()
+    mk = lambda email: admin.post("/api/v1/users", json={"email": email, "password": PASSWORD,
+                                                         "full_name": email, "role": "coach"}, headers=H).json()
+    empty, busy, reporter = mk("empty@example.com"), mk("busy@example.com"), mk("rp@example.com")
+    # Không được tự xóa.
+    assert admin.delete(f"/api/v1/users/{me['id']}", headers=H).status_code == 422
+    # Còn khách hàng → 409.
+    other = login(app, "busy@example.com")
+    person = other.post("/api/v1/clients", json=CLIENT, headers=H)
+    assert person.status_code == 201
+    blocked = admin.delete(f"/api/v1/users/{busy['id']}", headers=H)
+    assert blocked.status_code == 409 and "1 khách hàng" in blocked.json()["detail"]
+    # Còn báo cáo → 409.
+    session = login(app, "rp@example.com")
+    person = session.post("/api/v1/clients", json=CLIENT, headers=H).json()
+    made = session.post("/api/v1/reports", json={"client_id": person["id"], "tier": "free_basic",
+                                                 "template": "sections", "domains": []}, headers=H)
+    assert made.status_code == 201
+    blocked = admin.delete(f"/api/v1/users/{reporter['id']}", headers=H)
+    assert blocked.status_code == 409 and "1 báo cáo" in blocked.json()["detail"]
+    # Tài khoản trống xóa được, không đăng nhập lại được.
+    assert admin.delete(f"/api/v1/users/{empty['id']}", headers=H).status_code == 204
+    anon = TestClient(app)
+    gone = anon.post("/api/v1/auth/login", json={"email": "empty@example.com", "password": PASSWORD}, headers=H)
+    assert gone.status_code == 401
+    assert empty["id"] not in [u["id"] for u in admin.get("/api/v1/users").json()]
+    # Admin này xóa admin kia vẫn được vì còn lại chính mình.
+    admin2 = admin.post("/api/v1/users", json={"email": "admin2@example.com", "password": PASSWORD,
+                                               "full_name": "Admin 2", "role": "admin"}, headers=H).json()
+    as_admin2 = login(app, "admin2@example.com")
+    assert as_admin2.delete(f"/api/v1/users/{me['id']}", headers=H).status_code == 204
+    ids = [u["id"] for u in as_admin2.get("/api/v1/users").json()]
+    assert me["id"] not in ids and admin2["id"] in ids
+
+
+def test_change_own_password(app):
+    first = login(app)
+    second = login(app)
+    assert first.post("/api/v1/auth/password", json={"current_password": "sai-mat-khau",
+                                                      "new_password": "mat-khau-moi-789"}, headers=H).status_code == 401
+    changed = first.post("/api/v1/auth/password", json={"current_password": PASSWORD,
+                                                         "new_password": "mat-khau-moi-789"}, headers=H)
+    assert changed.status_code == 204
+    # Phiên hiện tại còn dùng được, phiên kia bị đá.
+    assert first.get("/api/v1/auth/me").status_code == 200
+    assert second.get("/api/v1/auth/me").status_code == 401
+    anon = TestClient(app)
+    old = anon.post("/api/v1/auth/login", json={"email": "admin@example.com", "password": PASSWORD}, headers=H)
+    assert old.status_code == 401
+    new = anon.post("/api/v1/auth/login", json={"email": "admin@example.com", "password": "mat-khau-moi-789"},
+                    headers=H)
+    assert new.status_code == 200
