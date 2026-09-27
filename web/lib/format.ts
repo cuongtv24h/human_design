@@ -112,3 +112,10 @@ export const STYLE_STATUS_LABEL: Record<string, string> = {
   ready: "Sẵn sàng",
   stale: "Cần phân tích lại",
 };
+
+export const STYLE_SOURCE_LABEL: Record<string, string> = {
+  analyze: "Phân tích AI",
+  manual: "Sửa tay",
+  copy: "Sao chép",
+  restore: "Khôi phục",
+};

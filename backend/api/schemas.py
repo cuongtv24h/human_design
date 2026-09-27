@@ -261,6 +261,7 @@ class ReportDetailOut(ReportSummaryOut):
     llm_cost_usd: float | None = None
     style_used: bool = False
     style_rating: int | None = None
+    style_version: int | None = None
 
 
 # --- dashboard --------------------------------------------------------------
@@ -652,10 +653,35 @@ class StyleRatedReport(BaseModel):
     created_at: datetime
 
 
+class StyleVersionStat(BaseModel):
+    version: int
+    up: int
+    down: int
+
+
 class StyleStatsOut(BaseModel):
     up: int
     down: int
     reports: list[StyleRatedReport]
+    by_version: list[StyleVersionStat] = []
+
+
+class StyleHistoryOut(BaseModel):
+    version_no: int
+    source: str
+    created_by_name: str
+    created_at: datetime
+    tone: str
+    excerpt: str
+    sample_count: int
+
+
+class StyleCopyIn(BaseModel):
+    from_template_id: int
+
+
+class ApplyStyleIn(BaseModel):
+    template_key: str | None = None
 
 class StyleRatingIn(BaseModel):
     rating: int = Field(ge=-1, le=1)  # 1 = 👍, -1 = 👎, 0 = gỡ đánh giá

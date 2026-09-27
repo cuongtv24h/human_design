@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Eye, Pencil, Plus, Save, Sparkles, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Eye, History, Pencil, Plus, Save, Sparkles, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,8 +9,8 @@ import { PreviewModal, PublishModal, RejectModal, TemplateStatusPill, useTemplat
 import { Badge, Button, Card, ErrorBox, Field, Input, Modal, PageHeader, Spinner, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useMe } from "@/lib/auth";
-import { BLOCK_KIND_LABEL, SECTION_KIND_LABEL, STYLE_STATUS_LABEL, formatTimestamp } from "@/lib/format";
-import type { BuiltinSection, ResolvedSection, StyleCompareOut, StylePreviewOut, StyleStatsOut, TemplateBlock, TemplateDetail, TemplateSample } from "@/lib/types";
+import { BLOCK_KIND_LABEL, SECTION_KIND_LABEL, STYLE_SOURCE_LABEL, STYLE_STATUS_LABEL, formatTimestamp } from "@/lib/format";
+import type { BuiltinSection, ResolvedSection, StyleCompareOut, StyleHistoryOut, StylePreviewOut, StyleStatsOut, TemplateBlock, TemplateDetail, TemplateSample, TemplateSummary } from "@/lib/types";
 
 const BLOCK_KINDS = ["intro", "core", "practice", "outro", "disclaimer"];
 
@@ -409,6 +409,104 @@ function EditorForm({ detail, isAdmin, editable }: { detail: TemplateDetail; isA
   );
 }
 
+function StyleHistory({ templateId, editable }: { templateId: number; editable: boolean }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const hist = useQuery({
+    queryKey: ["template-style-history", templateId],
+    queryFn: () => api.get<StyleHistoryOut[]>(`/templates/${templateId}/style-history`),
+    enabled: open,
+  });
+  const restore = useMutation({
+    mutationFn: (version: number) => api.post<TemplateDetail>(`/templates/${templateId}/style-restore/${version}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["template"] });
+      queryClient.invalidateQueries({ queryKey: ["template-style-history", templateId] });
+    },
+  });
+  return (
+    <div className="space-y-2 border-t border-line pt-4">
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand-700">
+        <History className="size-4" /> Lịch sử văn phong
+        {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+      </button>
+      {open && (
+        <div className="space-y-2">
+          <ErrorBox error={hist.error ?? restore.error} />
+          {hist.isLoading ? <Spinner /> : (hist.data ?? []).map((h) => (
+            <div key={h.version_no} className="flex flex-wrap items-start justify-between gap-2 rounded-xl bg-paper p-3 text-sm">
+              <div className="min-w-0">
+                <div className="font-medium text-ink">
+                  Bản {h.version_no} · {STYLE_SOURCE_LABEL[h.source] ?? h.source}
+                </div>
+                <div className="text-xs text-muted">
+                  {h.created_by_name} · {formatTimestamp(h.created_at)} · {h.sample_count} bài mẫu
+                </div>
+                {h.tone ? <p className="mt-1 text-ink">{h.tone}</p> : null}
+              </div>
+              {editable && (
+                <Button variant="secondary" className="px-3 py-1.5 text-xs" loading={restore.isPending}
+                  onClick={() => confirm(`Khôi phục văn phong bản ${h.version_no}? Bản hiện tại sẽ được lưu lại.`) && restore.mutate(h.version_no)}>
+                  Khôi phục
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StyleCopy({ templateId }: { templateId: number }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [fromId, setFromId] = useState("");
+  const list = useQuery({
+    queryKey: ["templates"],
+    queryFn: () => api.get<TemplateSummary[]>("/templates"),
+    enabled: open,
+  });
+  const copy = useMutation({
+    mutationFn: () => api.post<TemplateDetail>(`/templates/${templateId}/style-copy`, { from_template_id: Number(fromId) }),
+    onSuccess: () => {
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["template"] });
+      queryClient.invalidateQueries({ queryKey: ["template-style-history", templateId] });
+    },
+  });
+  const candidates = (list.data ?? []).filter((t) => t.id !== templateId && t.style_status === "ready");
+  if (!open) {
+    return (
+      <Button variant="secondary" onClick={() => setOpen(true)}>
+        <Copy className="size-4" /> Sao chép từ mẫu khác
+      </Button>
+    );
+  }
+  return (
+    <div className="space-y-2 rounded-xl border border-line p-3">
+      <Field label="Mẫu nguồn (đã có văn phong)">
+        <select value={fromId} onChange={(e) => setFromId(e.target.value)}
+          className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink">
+          <option value="">— Chọn mẫu —</option>
+          {candidates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+      </Field>
+      {list.isSuccess && candidates.length === 0 && (
+        <p className="text-xs text-muted">Chưa có mẫu nào khác có văn phong sẵn sàng.</p>
+      )}
+      <ErrorBox error={list.error ?? copy.error} />
+      <div className="flex gap-2">
+        <Button loading={copy.isPending} disabled={!fromId} onClick={() => copy.mutate()}>
+          Sao chép
+        </Button>
+        <Button variant="secondary" onClick={() => setOpen(false)}>Hủy</Button>
+      </div>
+    </div>
+  );
+}
+
 function StyleVerify({ templateId, editable }: { templateId: number; editable: boolean }) {
   const [topic, setTopic] = useState("");
   const [preview, setPreview] = useState<StylePreviewOut | null>(null);
@@ -479,6 +577,15 @@ function StyleStats({ templateId }: { templateId: number }) {
         <span className="flex items-center gap-1 text-ink"><ThumbsUp className="size-4 text-brand-600" /> {stats.data.up}</span>
         <span className="flex items-center gap-1 text-ink"><ThumbsDown className="size-4 text-red-600" /> {stats.data.down}</span>
       </div>
+      {stats.data.by_version.length > 0 && (
+        <ul className="flex flex-wrap gap-2 text-xs text-muted">
+          {stats.data.by_version.map((v) => (
+            <li key={v.version} className="rounded-full bg-paper px-2.5 py-1">
+              Bản {v.version}: {v.up} thích / {v.down} không thích
+            </li>
+          ))}
+        </ul>
+      )}
       <ul className="space-y-1 text-sm">
         {stats.data.reports.map((rep) => (
           <li key={rep.report_id} className="flex items-center gap-2">
@@ -568,6 +675,7 @@ function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boo
               <Sparkles className="size-4" /> Phân tích văn phong
             </Button>
           )}
+          {editable && <StyleCopy templateId={detail.id} />}
         </div>
       ) : (
         <div className="space-y-3">
@@ -605,6 +713,8 @@ function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boo
           )}
           <StyleVerify templateId={detail.id} editable={editable} />
           <StyleStats templateId={detail.id} />
+          <StyleHistory templateId={detail.id} editable={editable} />
+          {editable && <StyleCopy templateId={detail.id} />}
         </div>
       )}
     </Card>

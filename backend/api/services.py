@@ -29,7 +29,7 @@ from backend.reporting.style import (ANALYSIS_SYSTEM, DEFAULT_PREVIEW_TOPIC, PRE
 from backend.reporting.service import AttemptCallback, generate_report
 
 from .models import (AuditLog, Client, LLMUsage, Organization, Report, ReportRevision, ReportTemplate,
-                     TemplateBlock, TemplateSample, User)
+                     TemplateBlock, TemplateSample, User, TemplateStyleVersion)
 from .security import decrypt_value
 from .schemas import ChartSummary, ClientOut, ReportDetailOut, ReportSummaryOut, SectionOut
 
@@ -131,11 +131,12 @@ def report_detail(report: Report) -> ReportDetailOut:
     base = report_summary(report).model_dump()
     client = report.client
     style_used = bool(((report.request or {}).get("options") or {}).get("style_profile"))
+    style_version = (((report.request or {}).get("options") or {}).get("style_profile") or {}).get("style_version")
     subject_display = display_birth(client.birth_date, client.birth_time, client.timezone)
     if not report.document:
         return ReportDetailOut(**base, subject_display=subject_display, summary=None,
                                sections=[], warnings=[], markdown="",
-                               style_used=style_used, style_rating=report.style_rating)
+                               style_used=style_used, style_rating=report.style_rating, style_version=style_version)
     document = load_document(report)
     sections = [
         SectionOut(id=s.id, title=s.title, status=s.status, warnings=list(s.warnings))
@@ -145,7 +146,7 @@ def report_detail(report: Report) -> ReportDetailOut:
         **base, subject_display=subject_display, summary=chart_summary(document.chart),
         sections=sections, warnings=list(document.warnings), markdown=document.to_markdown(),
         llm_provider=document.provenance.llm_provider, llm_cost_usd=document.provenance.llm_cost_usd,
-        style_used=style_used, style_rating=report.style_rating,
+        style_used=style_used, style_rating=report.style_rating, style_version=style_version,
     )
 
 
@@ -197,6 +198,7 @@ def create_report(db: Session, user: User, client: Client, *, tier: str, templat
         id=report_id, org_id=user.org_id, client_id=client.id, created_by=user.id,
         tier=tier, template=template, content_mode=content_mode, domains=domains,
         status="generating", request=request.model_dump(mode="json"),
+        style_version=(style_profile or {}).get("style_version"),
     )
     db.add(report)
     if request.content_mode is not ContentMode.LLM:
@@ -634,6 +636,7 @@ def resolve_template_style(db: Session, user: User, key: str) -> dict | None:
     if tpl is None or tpl.style_status != "ready":
         return None
     return {"template_key": tpl.key, "template_name": tpl.name, "template_version": tpl.version,
+            "style_version": current_style_version(db, tpl.id),
             "profile": tpl.style_profile or {}}
 
 # --- văn phong mẫu: viết thử / so sánh / thống kê (P3) -------------------------
@@ -711,6 +714,58 @@ def template_style_stats(db: Session, user: User, tpl: ReportTemplate) -> dict:
     up = db.scalar(select(func.count()).select_from(rated.where(Report.style_rating == 1).subquery())) or 0
     down = db.scalar(select(func.count()).select_from(rated.where(Report.style_rating == -1).subquery())) or 0
     recent = db.scalars(rated.order_by(Report.created_at.desc()).limit(10)).all()
-    return {"up": up, "down": down, "reports": [
+    sub = rated.where(Report.style_version.is_not(None)).subquery()
+    grouped = db.execute(select(sub.c.style_version, sub.c.style_rating, func.count())
+                         .group_by(sub.c.style_version, sub.c.style_rating)).all()
+    by: dict[int, dict[str, int]] = {}
+    for ver, rating, n in grouped:
+        slot = by.setdefault(int(ver), {"up": 0, "down": 0})
+        slot["up" if rating == 1 else "down"] += n
+    by_version = [{"version": v, **by[v]} for v in sorted(by)]
+    return {"up": up, "down": down, "by_version": by_version, "reports": [
         {"report_id": r.id, "client_name": r.client.full_name,
          "rating": r.style_rating, "created_at": r.created_at} for r in recent]}
+
+# --- văn phong mẫu: lịch sử bản + sao chép (P4) --------------------------------
+
+def current_style_version(db: Session, template_id: int) -> int:
+    """Số bản văn phong mới nhất của mẫu (0 khi chưa có bản nào)."""
+    return db.scalar(select(func.max(TemplateStyleVersion.version_no)).where(
+        TemplateStyleVersion.template_id == template_id)) or 0
+
+
+def commit_style_version(db: Session, tpl: ReportTemplate, profile: dict, source: str,
+                         user_id: int | None) -> int:
+    """Lưu hồ sơ vừa set thành bản mới. Trả về version_no."""
+    version_no = current_style_version(db, tpl.id) + 1
+    db.add(TemplateStyleVersion(template_id=tpl.id, version_no=version_no, profile=dict(profile),
+                                source=source, created_by=user_id))
+    return version_no
+
+
+def restore_template_style(db: Session, user: User, tpl: ReportTemplate, version_no: int) -> dict:
+    """Khôi phục 1 bản văn phong cũ thành bản mới nhất (P4). Trả về profile đã set."""
+    row = db.scalar(select(TemplateStyleVersion).where(
+        TemplateStyleVersion.template_id == tpl.id,
+        TemplateStyleVersion.version_no == version_no))
+    if row is None:
+        raise HTTPException(status_code=404, detail="Không tìm thấy bản văn phong này.")
+    profile = dict(row.profile or {})
+    samples = db.scalar(select(func.count()).select_from(TemplateSample).where(
+        TemplateSample.template_id == tpl.id)) or 0
+    tpl.style_profile = profile
+    tpl.style_status = "ready" if profile.get("sample_count", samples) == samples else "stale"
+    commit_style_version(db, tpl, profile, "restore", user.id)
+    return profile
+
+
+def copy_template_style(db: Session, target: ReportTemplate, source: ReportTemplate,
+                        user_id: int | None) -> dict:
+    """Sao chép văn phong từ mẫu khác (P4, không tốn lượt AI). Trả về profile đã set."""
+    profile = dict(source.style_profile or {})
+    if not str(profile.get("tone", "") or "").strip():
+        raise HTTPException(status_code=422, detail="Mẫu nguồn chưa có hồ sơ văn phong.")
+    target.style_profile = profile
+    target.style_status = "ready"
+    commit_style_version(db, target, profile, "copy", user_id)
+    return profile

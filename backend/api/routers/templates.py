@@ -20,7 +20,8 @@ from backend.reporting.contract import ReportRequest
 from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, current_user, get_db
-from ..models import Organization, Report, ReportTemplate, TemplateBlock, TemplateSample, User
+from ..models import (Organization, Report, ReportTemplate, TemplateBlock, TemplateSample,
+                      TemplateStyleVersion, User)
 from ..schemas import (
     BlockCreate,
     BlockOut,
@@ -35,6 +36,8 @@ from ..schemas import (
     SampleOut,
     SampleUpdate,
     StyleCompareOut,
+    StyleCopyIn,
+    StyleHistoryOut,
     StylePreviewIn,
     StylePreviewOut,
     StyleProfile,
@@ -47,8 +50,9 @@ from ..schemas import (
     TemplateSummaryOut,
     TemplateUpdate,
 )
-from ..services import (analyze_template_style, audit, build_template_snapshot, compare_template_style,
-                        preview_template_style, snapshot_sections, template_style_stats)
+from ..services import (analyze_template_style, audit, build_template_snapshot, commit_style_version,
+                        compare_template_style, copy_template_style, preview_template_style,
+                        restore_template_style, snapshot_sections, template_style_stats)
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -356,6 +360,8 @@ def update_template(template_id: int, payload: TemplateUpdate, request: Request,
             tpl.style_profile = data
             tpl.style_status = "ready" if (payload.style_profile.tone.strip()
                                            or payload.style_profile.excerpt.strip()) else "none"
+            if tpl.style_status == "ready":
+                commit_style_version(db, tpl, data, "manual", user.id)
         tpl.version += 1
         if user.role != "admin" and tpl.status == "pending":
             tpl.status, tpl.review_note = "draft", ""
@@ -498,6 +504,7 @@ def analyze_style(template_id: int, request: Request, user: User = Depends(curre
     profile = analyze_template_style(db, user, tpl, request.app.state.secret_key)
     tpl.style_profile = profile
     tpl.style_status = "ready"
+    commit_style_version(db, tpl, profile, "analyze", user.id)
     audit(db, user, "template.analyze_style", "template", tpl.id, ip=client_ip(request),
           samples=profile.get("sample_count", 0))
     db.commit()
@@ -538,6 +545,50 @@ def style_stats(template_id: int, user: User = Depends(current_user),
     """Thống kê 👍/👎 từ các báo cáo đã dùng văn phong mẫu (P3.3)."""
     tpl = _get(db, user, template_id)
     return StyleStatsOut.model_validate(template_style_stats(db, user, tpl))
+
+
+@router.get("/{template_id}/style-history", response_model=list[StyleHistoryOut])
+def style_history(template_id: int, user: User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> list[StyleHistoryOut]:
+    """Lịch sử các bản văn phong của mẫu (P4)."""
+    tpl = _get(db, user, template_id)
+    rows = db.scalars(select(TemplateStyleVersion).where(
+        TemplateStyleVersion.template_id == tpl.id).order_by(
+        TemplateStyleVersion.version_no.desc())).all()
+    return [StyleHistoryOut(
+        version_no=r.version_no, source=r.source, created_by_name=_created_by_name(db, r.created_by),
+        created_at=r.created_at, tone=str((r.profile or {}).get("tone", "") or ""),
+        excerpt=str((r.profile or {}).get("excerpt", "") or ""),
+        sample_count=int((r.profile or {}).get("sample_count", 0) or 0)) for r in rows]
+
+
+@router.post("/{template_id}/style-restore/{version_no}", response_model=TemplateDetailOut)
+def style_restore(template_id: int, version_no: int, request: Request,
+                  user: User = Depends(current_user), db: Session = Depends(get_db)) -> TemplateDetailOut:
+    """Khôi phục 1 bản văn phong cũ (lưu thành bản mới, P4)."""
+    tpl = _get(db, user, template_id)
+    _require_editable(user, tpl)
+    restore_template_style(db, user, tpl, version_no)
+    audit(db, user, "template.style_restore", "template", tpl.id, ip=client_ip(request),
+          from_version=version_no)
+    db.commit()
+    return _detail(db, user, tpl)
+
+
+@router.post("/{template_id}/style-copy", response_model=TemplateDetailOut)
+def style_copy(template_id: int, payload: StyleCopyIn, request: Request,
+               user: User = Depends(current_user), db: Session = Depends(get_db)) -> TemplateDetailOut:
+    """Sao chép văn phong từ mẫu khác (P4, không tốn lượt AI)."""
+    tpl = _get(db, user, template_id)
+    _require_editable(user, tpl)
+    if payload.from_template_id == template_id:
+        raise HTTPException(status_code=422, detail="Không thể sao chép từ chính mẫu này.")
+    src = _get(db, user, payload.from_template_id)
+    copy_template_style(db, tpl, src, user.id)
+    audit(db, user, "template.style_copy", "template", tpl.id, ip=client_ip(request),
+          from_template=src.id)
+    db.commit()
+    return _detail(db, user, tpl)
 
 
 # --- samples --------------------------------------------------------------------

@@ -99,6 +99,7 @@ export interface ReportDetail extends ReportSummary {
   llm_cost_usd: number | null;
   style_used: boolean;
   style_rating: number | null;
+  style_version: number | null;
 }
 
 export interface Preview {
@@ -382,8 +383,25 @@ export interface StyleRatedReport {
   created_at: string;
 }
 
+export interface StyleVersionStat {
+  version: number;
+  up: number;
+  down: number;
+}
+
 export interface StyleStatsOut {
   up: number;
   down: number;
   reports: StyleRatedReport[];
+  by_version: StyleVersionStat[];
+}
+
+export interface StyleHistoryOut {
+  version_no: number;
+  source: string;
+  created_by_name: string;
+  created_at: string;
+  tone: string;
+  excerpt: string;
+  sample_count: number;
 }

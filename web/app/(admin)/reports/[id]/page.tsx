@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Link2, Loader2, PencilLine, RefreshCw, ThumbsDown, ThumbsUp } from "lucide-react";
+import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Link2, Loader2, PencilLine, RefreshCw, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,10 +9,63 @@ import { ChartTiles } from "@/components/ChartTiles";
 import { Markdown } from "@/components/Markdown";
 import { CopyField, SharePanel } from "@/components/SharePanel";
 import { absoluteUrl } from "@/lib/clipboard";
-import { Badge, Button, Card, ErrorBox, PageHeader, Spinner, StatusBadge, cx } from "@/components/ui";
+import { Badge, Button, Card, ErrorBox, Field, Modal, PageHeader, Spinner, StatusBadge, cx } from "@/components/ui";
 import { api, fileUrl } from "@/lib/api";
 import { formatTimestamp, formatUsd, MODE_LABEL, TEMPLATE_LABEL, TIER_LABEL } from "@/lib/format";
-import type { DownloadLink, ReportDetail } from "@/lib/types";
+import type { DownloadLink, ReportDetail, TemplateSummary } from "@/lib/types";
+
+function ApplyStyleButton({ report }: { report: ReportDetail }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [key, setKey] = useState(report.template);
+  const list = useQuery({
+    queryKey: ["templates"],
+    queryFn: () => api.get<TemplateSummary[]>("/templates"),
+    enabled: open,
+  });
+  const apply = useMutation({
+    mutationFn: () => api.post<ReportDetail>(`/reports/${report.id}/apply-style`, { template_key: key }),
+    onSuccess: (updated) => {
+      setOpen(false);
+      queryClient.setQueryData(["report", report.id], updated);
+      queryClient.invalidateQueries({ queryKey: ["report", report.id] });
+    },
+  });
+  const candidates = (list.data ?? []).filter((t) => t.style_status === "ready" && t.key !== report.template);
+  return (
+    <>
+      <Button variant="secondary" onClick={() => { setKey(report.template); setOpen(true); }}>
+        <Sparkles className="size-4" /> Áp văn phong
+      </Button>
+      {open && (
+        <Modal title="Áp văn phong cho báo cáo" onClose={() => setOpen(false)}>
+          <div className="space-y-3">
+            <p className="text-sm text-muted">
+              AI sẽ viết lại toàn bộ báo cáo theo văn phong đã chọn (giữ nguyên dữ liệu chart).
+              Đánh giá thích/không thích cũ sẽ bị xóa.
+            </p>
+            <Field label="Văn phong">
+              <select value={key} onChange={(e) => setKey(e.target.value)}
+                className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink">
+                <option value={report.template}>
+                  {report.template_name || report.template} (mẫu của báo cáo)
+                </option>
+                {candidates.map((t) => <option key={t.id} value={t.key}>{t.name}</option>)}
+              </select>
+            </Field>
+            <ErrorBox error={list.error ?? apply.error} />
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setOpen(false)}>Hủy</Button>
+              <Button loading={apply.isPending} onClick={() => apply.mutate()}>
+                Viết lại bằng AI
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
 
 function StyleRating({ reportId, rating }: { reportId: string; rating: number | null }) {
   const queryClient = useQueryClient();
@@ -125,7 +178,7 @@ export default function ReportPage() {
             <StatusBadge status={r.status} />
             <span>{TIER_LABEL[r.tier]} · {r.template_name || TEMPLATE_LABEL[r.template]}</span>
             <Badge tone={r.content_mode === "llm" ? "gold" : "brand"}>{MODE_LABEL[r.content_mode]}</Badge>
-            {r.style_used && <Badge tone="gold">Văn phong mẫu</Badge>}
+            {r.style_used && <Badge tone="gold">Văn phong mẫu{r.style_version ? ` · bản ${r.style_version}` : ""}</Badge>}
             {r.llm_provider && <span>· Viết bởi {r.llm_provider}{r.llm_cost_usd !== null && r.llm_cost_usd !== undefined ? ` (${formatUsd(r.llm_cost_usd)})` : ""}</span>}
             <span>· Tạo {formatTimestamp(r.created_at)} · v{r.version}</span>
           </span>
@@ -138,6 +191,7 @@ export default function ReportPage() {
                 <PencilLine className="size-4" /> Biên tập
               </Link>
             )}
+            {r.status === "ready" && <ApplyStyleButton report={r} />}
             {hasDocument && (
               <a href={fileUrl(r.id, "pdf", true)} className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-600">
                 <Download className="size-4" /> Tải PDF

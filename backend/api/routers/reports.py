@@ -17,6 +17,7 @@ from ..deps import client_ip, current_user, get_db
 from ..models import Client, Organization, Report, User
 from ..files import file_response
 from ..schemas import (
+    ApplyStyleIn,
     CatalogSection, DownloadLinkIn, DownloadLinkOut, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList,
     StyleRatingIn,
 )
@@ -172,6 +173,42 @@ def style_rating(report_id: str, payload: StyleRatingIn, request: Request,
     report.style_rating = payload.rating if payload.rating != 0 else None
     audit(db, user, "report.style_rating", "report", report.id, ip=client_ip(request), rating=payload.rating)
     db.commit()
+    return report_detail(report)
+
+
+@router.post("/{report_id}/apply-style", response_model=ReportDetailOut)
+def apply_style(report_id: str, request: Request, background: BackgroundTasks,
+                user: User = Depends(current_user), db: Session = Depends(get_db),
+                payload: ApplyStyleIn | None = None) -> ReportDetailOut:
+    """Viết lại báo cáo cũ theo văn phong mẫu (P4, chạy nền như tạo mới)."""
+    report = get_report_or_404(db, user, report_id)
+    if report.status == "generating":
+        raise HTTPException(status_code=409, detail="Báo cáo đang được tạo.")
+    if report.status == "archived":
+        raise HTTPException(status_code=409, detail="Báo cáo đã lưu trữ.")
+    key = (payload.template_key if payload and payload.template_key else None) or report.template
+    snapshot = resolve_template_style(db, user, (key or "").strip() or report.template)
+    if snapshot is None:
+        raise HTTPException(status_code=422, detail="Mẫu chưa có văn phong sẵn sàng (ready).")
+    options = dict((report.request or {}).get("options") or {})
+    options["style_profile"] = snapshot
+    report.request = {**(report.request or {}), "content_mode": "llm", "options": options}
+    report.content_mode = "llm"
+    report.style_rating = None
+    report.style_version = snapshot.get("style_version")
+    try:
+        ReportRequest.model_validate(report.request)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Báo cáo cũ không còn tương thích, tạo báo cáo mới.") from exc
+    report.status, report.error = "generating", ""
+    report.generation_attempts, report.job_heartbeat_at = 0, None
+    audit(db, user, "report.apply_style", "report", report.id, ip=client_ip(request), template_key=key)
+    db.commit()
+    state = request.app.state
+    background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
+                        state.settings.artifact_dir, "apply_style",
+                        llm_configs=org_llm_configs(db, user.org_id, state.secret_key),
+                        heartbeat_seconds=state.settings.job_heartbeat_seconds)
     return report_detail(report)
 
 

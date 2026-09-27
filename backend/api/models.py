@@ -101,6 +101,7 @@ class Report(Base):
     version: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str] = mapped_column(Text, default="")
     style_rating: Mapped[int | None] = mapped_column(Integer, nullable=True)  # P2: 1 | -1 | None
+    style_version: Mapped[int | None] = mapped_column(Integer, nullable=True)  # P4: dùng văn phong bản mấy
     # Background generation bookkeeping (restart recovery): a running job refreshes the
     # heartbeat; a "generating" report whose heartbeat stopped is resumed or failed.
     generation_attempts: Mapped[int] = mapped_column(Integer, default=0)
@@ -118,7 +119,7 @@ class ReportRevision(Base):
     report_id: Mapped[str] = mapped_column(ForeignKey("reports.id", ondelete="CASCADE"), index=True)
     version: Mapped[int] = mapped_column(Integer)
     author: Mapped[str] = mapped_column(String(120))
-    change_type: Mapped[str] = mapped_column(String(30))  # generate | llm_edit | manual_edit | regenerate
+    change_type: Mapped[str] = mapped_column(String(30))  # generate | llm_edit | manual_edit | regenerate | apply_style
     document: Mapped[dict] = mapped_column(JSONType)
     warnings: Mapped[list] = mapped_column(JSONType, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -280,3 +281,16 @@ class TemplateSample(Base):
     sort: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+class TemplateStyleVersion(Base):
+    """Lịch sử hồ sơ văn phong: mỗi lần đổi = 1 bản mới (P4)."""
+
+    __tablename__ = "template_style_versions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template_id: Mapped[int] = mapped_column(ForeignKey("report_templates.id", ondelete="CASCADE"), index=True)
+    version_no: Mapped[int] = mapped_column(Integer)
+    profile: Mapped[dict] = mapped_column(JSONType, default=dict)
+    source: Mapped[str] = mapped_column(String(16), default="manual")
+    created_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
