@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Eye, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Eye, Pencil, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +9,7 @@ import { PreviewModal, PublishModal, RejectModal, TemplateStatusPill, useTemplat
 import { Badge, Button, Card, ErrorBox, Field, Input, Modal, PageHeader, Spinner, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useMe } from "@/lib/auth";
-import { BLOCK_KIND_LABEL, SECTION_KIND_LABEL, formatTimestamp } from "@/lib/format";
+import { BLOCK_KIND_LABEL, SECTION_KIND_LABEL, STYLE_STATUS_LABEL, formatTimestamp } from "@/lib/format";
 import type { BuiltinSection, ResolvedSection, TemplateBlock, TemplateDetail, TemplateSample } from "@/lib/types";
 
 const BLOCK_KINDS = ["intro", "core", "practice", "outro", "disclaimer"];
@@ -409,6 +409,119 @@ function EditorForm({ detail, isAdmin, editable }: { detail: TemplateDetail; isA
   );
 }
 
+function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boolean }) {
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ tone: "", rhythm: "", vocabulary: "", structure: "", do: "", dont: "", excerpt: "" });
+  const st = detail.style_status || "none";
+  const p = detail.style_profile;
+  const startEdit = () => {
+    setForm({
+      tone: p.tone, rhythm: p.rhythm, vocabulary: p.vocabulary, structure: p.structure,
+      do: p.do.join("\n"), dont: p.dont.join("\n"), excerpt: p.excerpt,
+    });
+    setEditing(true);
+  };
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["template"] });
+  const analyze = useMutation({
+    mutationFn: () => api.post<TemplateDetail>(`/templates/${detail.id}/analyze-style`),
+    onSuccess: refresh,
+  });
+  const save = useMutation({
+    mutationFn: () => api.patch<TemplateDetail>(`/templates/${detail.id}`, {
+      style_profile: {
+        tone: form.tone.trim(), rhythm: form.rhythm.trim(), vocabulary: form.vocabulary.trim(),
+        structure: form.structure.trim(), excerpt: form.excerpt.trim(),
+        do: form.do.split("\n").map((s) => s.trim()).filter(Boolean),
+        dont: form.dont.split("\n").map((s) => s.trim()).filter(Boolean),
+      },
+    }),
+    onSuccess: () => { setEditing(false); refresh(); },
+  });
+  const tone = st === "ready" ? "brand" : st === "stale" ? "gold" : "stone";
+  return (
+    <Card className="space-y-4 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 font-semibold text-ink">
+          <Sparkles className="size-4" /> Văn phong AI
+        </h2>
+        <Badge tone={tone}>{STYLE_STATUS_LABEL[st] ?? st}</Badge>
+      </div>
+      <p className="text-xs text-muted">
+        AI học cách viết từ bài mẫu của mẫu này. Áp dụng khi tạo báo cáo ở chế độ AI biên tập (có công tắc tắt ở bước tạo).
+      </p>
+      <ErrorBox error={analyze.error ?? save.error} />
+      {editing ? (
+        <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Giọng điệu"><Input value={form.tone} onChange={(e) => setForm({ ...form, tone: e.target.value })} /></Field>
+            <Field label="Nhịp câu"><Input value={form.rhythm} onChange={(e) => setForm({ ...form, rhythm: e.target.value })} /></Field>
+            <Field label="Từ vựng"><Input value={form.vocabulary} onChange={(e) => setForm({ ...form, vocabulary: e.target.value })} /></Field>
+            <Field label="Cấu trúc"><Input value={form.structure} onChange={(e) => setForm({ ...form, structure: e.target.value })} /></Field>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Nên (mỗi dòng một điều)"><Textarea value={form.do} onChange={(e) => setForm({ ...form, do: e.target.value })} rows={4} /></Field>
+            <Field label="Tránh (mỗi dòng một điều)"><Textarea value={form.dont} onChange={(e) => setForm({ ...form, dont: e.target.value })} rows={4} /></Field>
+          </div>
+          <Field label="Đoạn trích minh họa"><Textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={3} /></Field>
+          <div className="flex gap-2">
+            <Button loading={save.isPending} onClick={() => save.mutate()}><Save className="size-4" /> Lưu văn phong</Button>
+            <Button variant="secondary" onClick={() => setEditing(false)}>Hủy</Button>
+          </div>
+        </div>
+      ) : st === "none" ? (
+        <div className="space-y-3">
+          <p className="rounded-lg bg-paper px-4 py-5 text-center text-sm text-muted">
+            {detail.samples.length < 2
+              ? `Cần ít nhất 2 bài mẫu để phân tích (hiện có ${detail.samples.length}). Thêm bài mẫu ở mục bên dưới trước.`
+              : "Chưa phân tích. AI sẽ đọc các bài mẫu và trích thành hồ sơ văn phong (tốn 1 lượt gọi AI)."}
+          </p>
+          {editable && detail.samples.length >= 2 && (
+            <Button loading={analyze.isPending} onClick={() => analyze.mutate()}>
+              <Sparkles className="size-4" /> Phân tích văn phong
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {st === "stale" && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              Bài mẫu đã thay đổi sau lần phân tích trước — nên phân tích lại để hồ sơ khớp.
+            </p>
+          )}
+          {p.excerpt ? (
+            <blockquote className="border-l-2 border-brand-500 pl-3 text-sm italic text-ink">“{p.excerpt}”</blockquote>
+          ) : null}
+          <dl className="grid gap-2 text-sm sm:grid-cols-2">
+            {[["Giọng điệu", p.tone], ["Nhịp câu", p.rhythm], ["Từ vựng", p.vocabulary], ["Cấu trúc", p.structure]].map(([k, v]) => (
+              v ? <div key={k}><dt className="text-xs font-semibold uppercase tracking-wider text-muted">{k}</dt><dd className="text-ink">{v}</dd></div> : null
+            ))}
+          </dl>
+          <div className="grid gap-3 text-sm sm:grid-cols-2">
+            {p.do.length > 0 && (
+              <div><div className="text-xs font-semibold uppercase tracking-wider text-muted">Nên</div>
+                <ul className="list-disc pl-5 text-ink">{p.do.map((d, i) => <li key={i}>{d}</li>)}</ul></div>
+            )}
+            {p.dont.length > 0 && (
+              <div><div className="text-xs font-semibold uppercase tracking-wider text-muted">Tránh</div>
+                <ul className="list-disc pl-5 text-ink">{p.dont.map((d, i) => <li key={i}>{d}</li>)}</ul></div>
+            )}
+          </div>
+          <p className="text-xs text-muted">Trích từ {p.sample_count} bài mẫu.</p>
+          {editable && (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" loading={analyze.isPending} onClick={() => analyze.mutate()}>
+                <Sparkles className="size-4" /> Phân tích lại
+              </Button>
+              <Button variant="secondary" onClick={startEdit}><Pencil className="size-4" /> Sửa tay</Button>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function SamplesCard({ detail, editable }: { detail: TemplateDetail; editable: boolean }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<TemplateSample | null | undefined>(undefined);
@@ -529,6 +642,7 @@ function DetailView({ detail, isAdmin }: { detail: TemplateDetail; isAdmin: bool
           </ol>
         </Card>
       )}
+      {detail.visibility === "private" && <StyleCard detail={detail} editable={editable} />}
       <SamplesCard detail={detail} editable={editable} />
       {previewOpen && <PreviewModal templateId={detail.id} name={detail.name} onClose={() => setPreviewOpen(false)} />}
     </div>

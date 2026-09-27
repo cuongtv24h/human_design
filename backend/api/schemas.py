@@ -71,6 +71,7 @@ class CatalogOption(BaseModel):
     description: str = ""
     badge: str = ""
     meta: str = ""
+    has_style: bool = False
 
 
 class CatalogSection(BaseModel):
@@ -199,6 +200,7 @@ class ReportOptions(BaseModel):
 class ReportCreate(ReportOptions):
     client_id: int
     content_mode: ContentMode = ContentMode.TEMPLATE
+    use_style: bool = True
 
 
 class PreviewIn(ReportOptions):
@@ -257,6 +259,8 @@ class ReportDetailOut(ReportSummaryOut):
     # Which fallback-chain provider wrote the content ("<name> · <model>"); "" for template.
     llm_provider: str = ""
     llm_cost_usd: float | None = None
+    style_used: bool = False
+    style_rating: int | None = None
 
 
 # --- dashboard --------------------------------------------------------------
@@ -608,6 +612,24 @@ TemplateStatus = Literal["draft", "pending", "active", "rejected", "archived"]
 BlockKind = Literal["intro", "core", "practice", "outro", "disclaimer"]
 
 
+# --- văn phong mẫu (P2) ----------------------------------------------------------
+
+
+class StyleProfile(BaseModel):
+    tone: str = ""
+    rhythm: str = ""
+    vocabulary: str = ""
+    structure: str = ""
+    do: list[str] = Field(default_factory=list)
+    dont: list[str] = Field(default_factory=list)
+    excerpt: str = ""
+    sample_count: int = 0
+
+
+class StyleRatingIn(BaseModel):
+    rating: int = Field(ge=-1, le=1)  # 1 = 👍, -1 = 👎, 0 = gỡ đánh giá
+
+
 class TemplateSectionIn(BaseModel):
     type: TemplateSectionType
     ref: str = ""
@@ -634,6 +656,7 @@ class TemplateUpdate(BaseModel):
     status: TemplateStatus | None = None
     review_note: str | None = Field(default=None, max_length=2000)
     visibility: str | None = None
+    style_profile: StyleProfile | None = None
 
 
 class ResolvedSectionOut(BaseModel):
@@ -662,6 +685,7 @@ class TemplateSummaryOut(BaseModel):
     origin_label: str = ""
     import_count: int = 0
     created_by_name: str = ""
+    style_status: str = "none"
     created_at: datetime
     updated_at: datetime
 
@@ -675,6 +699,8 @@ class SampleOut(BaseModel):
 
 class TemplateDetailOut(TemplateSummaryOut):
     review_note: str = ""
+    style_profile: StyleProfile = Field(default_factory=StyleProfile)
+    style_status: str = "none"
     sections: list[ResolvedSectionOut] = Field(default_factory=list)
     samples: list[SampleOut] = Field(default_factory=list)
 

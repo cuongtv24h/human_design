@@ -167,6 +167,7 @@ function StudioTab({ isAdmin }: { isAdmin: boolean }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <Link href={`/templates/${t.id}`} className="font-medium text-ink hover:text-brand-700">{t.name}</Link>
                   <TemplateStatusPill status={t.status} />
+                  {t.style_status === "ready" ? <Badge>Có văn phong</Badge> : null}
                   {t.visibility === "shared" ? <Badge tone="gold">Đã chia sẻ</Badge>
                     : publishedKeys.has(t.key) ? <Badge tone="gold">Đã chia sẻ</Badge> : null}
                   {t.badge ? <Badge>{t.badge}</Badge> : null}

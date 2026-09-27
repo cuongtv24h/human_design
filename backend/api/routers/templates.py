@@ -34,6 +34,7 @@ from ..schemas import (
     SampleCreate,
     SampleOut,
     SampleUpdate,
+    StyleProfile,
     TemplateCreate,
     TemplateDetailOut,
     TemplatePreviewIn,
@@ -42,7 +43,7 @@ from ..schemas import (
     TemplateSummaryOut,
     TemplateUpdate,
 )
-from ..services import audit, build_template_snapshot, snapshot_sections
+from ..services import analyze_template_style, audit, build_template_snapshot, snapshot_sections
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -173,6 +174,7 @@ def _summary(db: Session, user: User, tpl: ReportTemplate) -> TemplateSummaryOut
         samples_count=db.scalar(select(func.count()).select_from(TemplateSample)
                                 .where(TemplateSample.template_id == tpl.id)) or 0,
         reports_count=_reports_count(db, user, tpl), origin_label=tpl.origin_label,
+        style_status=tpl.style_status or "none",
         import_count=tpl.import_count, created_by_name=_created_by_name(db, tpl.created_by),
         created_at=tpl.created_at, updated_at=tpl.updated_at,
     )
@@ -181,7 +183,9 @@ def _summary(db: Session, user: User, tpl: ReportTemplate) -> TemplateSummaryOut
 def _detail(db: Session, user: User, tpl: ReportTemplate) -> TemplateDetailOut:
     base = _summary(db, user, tpl).model_dump()
     return TemplateDetailOut(
-        **base, review_note=tpl.review_note or "", sections=_resolve_sections(db, tpl),
+        **base, review_note=tpl.review_note or "",
+        style_profile=StyleProfile.model_validate(tpl.style_profile or {}),
+        sections=_resolve_sections(db, tpl),
         samples=[SampleOut(id=s.id, title=s.title, body=s.body, sort=s.sort) for s in _samples(db, tpl.id)],
     )
 
@@ -340,6 +344,13 @@ def update_template(template_id: int, payload: TemplateUpdate, request: Request,
             tpl.badge = payload.badge.strip()
         if payload.sections is not None:
             tpl.sections = _validate_sections(db, user, payload.sections)
+        if payload.style_profile is not None:
+            data = payload.style_profile.model_dump()
+            data["sample_count"] = db.scalar(select(func.count()).select_from(TemplateSample).where(
+                TemplateSample.template_id == tpl.id)) or 0
+            tpl.style_profile = data
+            tpl.style_status = "ready" if (payload.style_profile.tone.strip()
+                                           or payload.style_profile.excerpt.strip()) else "none"
         tpl.version += 1
         if user.role != "admin" and tpl.status == "pending":
             tpl.status, tpl.review_note = "draft", ""
@@ -383,6 +394,8 @@ def duplicate_template(template_id: int, request: Request, user: User = Depends(
         org_id=user.org_id, key=_unique_key(db, user.org_id, "private", _slug(src.name)),
         name=src.name, description=src.description, badge="", visibility="private", status="draft",
         sections=_inline_sections(db, src), created_by=user.id, origin_template_id=src.id,
+        style_profile=dict(src.style_profile or {}) if src.visibility == "private" else {},
+        style_status=src.style_status if src.visibility == "private" else "none",
         origin_label=f"Thư viện chung · {src.origin_label or src.name}" if src.visibility == "shared"
         else f"Bản sao của {src.name}",
     )
@@ -435,6 +448,8 @@ def publish_template(template_id: int, payload: TemplatePublishIn, request: Requ
         shared = ReportTemplate(org_id=user.org_id, key=tpl.key, visibility="shared", status="active",
                                 name=tpl.name, description=tpl.description, badge=badge,
                                 sections=_inline_sections(db, tpl), version=1,
+                                style_profile=dict(tpl.style_profile or {}),
+                                style_status=tpl.style_status,
                                 origin_template_id=tpl.id, origin_label=origin_label,
                                 created_by=user.id)
         db.add(shared)
@@ -443,6 +458,8 @@ def publish_template(template_id: int, payload: TemplatePublishIn, request: Requ
         shared.name, shared.description, shared.badge = tpl.name, tpl.description, badge
         shared.origin_label = origin_label
         shared.sections = _inline_sections(db, tpl)
+        shared.style_profile = dict(tpl.style_profile or {})
+        shared.style_status = tpl.style_status
         shared.version += 1
         shared.status = "active"
     db.execute(delete(TemplateSample).where(TemplateSample.template_id == shared.id))
@@ -467,6 +484,21 @@ def unpublish_template(template_id: int, request: Request, user: User = Depends(
     db.commit()
 
 
+@router.post("/{template_id}/analyze-style", response_model=TemplateDetailOut)
+def analyze_style(template_id: int, request: Request, user: User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> TemplateDetailOut:
+    """Trích hồ sơ văn phong từ bài mẫu bằng AI của tổ chức (P2)."""
+    tpl = _get(db, user, template_id)
+    _require_editable(user, tpl)
+    profile = analyze_template_style(db, user, tpl, request.app.state.secret_key)
+    tpl.style_profile = profile
+    tpl.style_status = "ready"
+    audit(db, user, "template.analyze_style", "template", tpl.id, ip=client_ip(request),
+          samples=profile.get("sample_count", 0))
+    db.commit()
+    return _detail(db, user, tpl)
+
+
 # --- samples --------------------------------------------------------------------
 
 @router.post("/{template_id}/samples", response_model=SampleOut, status_code=201)
@@ -482,6 +514,8 @@ def add_sample(template_id: int, payload: SampleCreate, request: Request,
                             sort=payload.sort)
     db.add(sample)
     tpl.version += 1
+    if tpl.style_status == "ready":
+        tpl.style_status = "stale"
     db.flush()
     audit(db, user, "template.sample_add", "template", tpl.id, ip=client_ip(request))
     db.commit()
@@ -514,6 +548,8 @@ def update_sample(sample_id: int, payload: SampleUpdate, request: Request,
     if payload.sort is not None:
         sample.sort = payload.sort
     tpl.version += 1
+    if tpl.style_status == "ready":
+        tpl.style_status = "stale"
     audit(db, user, "template.sample_update", "template", tpl.id, ip=client_ip(request))
     db.commit()
     return SampleOut(id=sample.id, title=sample.title, body=sample.body, sort=sample.sort)
@@ -528,6 +564,8 @@ def delete_sample(sample_id: int, request: Request, user: User = Depends(current
     tpl = _get(db, user, sample.template_id)
     _require_editable(user, tpl)
     tpl.version += 1
+    if tpl.style_status == "ready":
+        tpl.style_status = "stale"
     audit(db, user, "template.sample_delete", "template", tpl.id, ip=client_ip(request))
     db.delete(sample)
     db.commit()

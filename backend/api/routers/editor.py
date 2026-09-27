@@ -146,8 +146,9 @@ def llm_section(report_id: str, section_id: str, request: Request, user: User = 
         configs = org_llm_configs(db, user.org_id, request.app.state.secret_key)
         if not configs:
             raise LLMError("chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
+        style = ((report.request or {}).get("options") or {}).get("style_profile")
         draft = llm_edit_section(document, section_id, llm_configs=configs,
-                                 on_llm_attempt=collect_attempts(attempts))
+                                 on_llm_attempt=collect_attempts(attempts), style=style)
     except LLMError as exc:
         if attempts:
             save_llm_usages(db, user.org_id, report_id, "section", attempts)

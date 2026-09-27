@@ -180,6 +180,7 @@ function Wizard() {
   const [template, setTemplate] = useState("operating_manual");
   const [domains, setDomains] = useState<string[]>([]);
   const [mode, setMode] = useState("template");
+  const [useStyle, setUseStyle] = useState(true);
 
   useEffect(() => {
     if (preset.data && !client) {
@@ -195,7 +196,7 @@ function Wizard() {
   };
 
   const create = useMutation({
-    mutationFn: () => api.post<ReportDetail>("/reports", { client_id: client!.id, tier, template, domains, content_mode: mode }),
+    mutationFn: () => api.post<ReportDetail>("/reports", { client_id: client!.id, tier, template, domains, content_mode: mode, use_style: useStyle }),
     onSuccess: (report) => {
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -210,6 +211,8 @@ function Wizard() {
 
   const toggleDomain = (value: string, on: boolean) =>
     setDomains((d) => (on ? [...d, value] : d.filter((x) => x !== value)));
+  const selectedTemplate = cat.templates.find((t) => t.value === template);
+  const isCustomTemplate = template !== "sections" && template !== "operating_manual";
 
   return (
     <>
@@ -292,6 +295,19 @@ function Wizard() {
                   );
                 })}
               </div>
+              {mode === "llm" && isCustomTemplate && (
+                <div className="rounded-xl border border-line bg-white p-4">
+                  {selectedTemplate?.has_style ? (
+                    <Checkbox label="Dùng văn phong của mẫu"
+                      description="AI viết theo giọng đã học từ bài mẫu của mẫu này. Tắt để dùng giọng mặc định."
+                      checked={useStyle} onChange={setUseStyle} />
+                  ) : (
+                    <p className="text-sm text-muted">
+                      Mẫu này chưa có hồ sơ văn phong — AI sẽ dùng giọng mặc định. Vào Studio → mẫu → “Phân tích văn phong” để AI học giọng của bạn.
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
           )}
 
@@ -314,6 +330,11 @@ function Wizard() {
                   </div>
                 ))}
               </dl>
+              {mode === "llm" && isCustomTemplate && selectedTemplate?.has_style && (
+                <p className="text-sm text-muted">
+                  Văn phong mẫu: {useStyle ? "AI viết theo văn phong của mẫu." : "Đã tắt — AI dùng giọng mặc định."}
+                </p>
+              )}
               {mode === "llm" && (
                 <p className="rounded-lg bg-gold-100 p-3 text-sm text-[#6b4a12]">
                   AI cần khoảng 1–2 phút. Bạn có thể rời trang — báo cáo sẽ ở trạng thái “Đang tạo” và tự cập nhật khi xong.

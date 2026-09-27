@@ -66,7 +66,8 @@ def catalog(request: Request, user: User = Depends(current_user), db: Session = 
             value=tpl.key, label=tpl.name,
             description=tpl.description or f"Mẫu tùy chỉnh · {len(tpl.sections or [])} mục.",
             badge=tpl.badge or ("Thư viện chung" if shared else "Studio"),
-            meta=tpl.origin_label if shared else f"{len(tpl.sections or [])} mục"))
+            meta=tpl.origin_label if shared else f"{len(tpl.sections or [])} mục",
+            has_style=tpl.style_status == "ready"))
     return CatalogOut(
         tiers=TIERS, templates=templates, content_modes=CONTENT_MODES, domains=DOMAINS,
         sections_by_tier={

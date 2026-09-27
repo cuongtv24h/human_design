@@ -100,6 +100,7 @@ class Report(Base):
     warnings_count: Mapped[int] = mapped_column(Integer, default=0)
     version: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str] = mapped_column(Text, default="")
+    style_rating: Mapped[int | None] = mapped_column(Integer, nullable=True)  # P2: 1 | -1 | None
     # Background generation bookkeeping (restart recovery): a running job refreshes the
     # heartbeat; a "generating" report whose heartbeat stopped is resumed or failed.
     generation_attempts: Mapped[int] = mapped_column(Integer, default=0)
@@ -241,6 +242,9 @@ class ReportTemplate(Base):
     # [{type: "builtin", ref: "<section_id|domain_x>", title_override: ""} |
     #  {type: "block", block_id: <int|null>, title: "", body: "<inline snapshot>"}]
     sections: Mapped[list] = mapped_column(JSONType, default=list)
+    # P2: hồ sơ văn phong trích từ bài mẫu + trạng thái none|ready|stale.
+    style_profile: Mapped[dict] = mapped_column(JSONType, default=dict)
+    style_status: Mapped[str] = mapped_column(String(16), default="none")
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     origin_template_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     origin_label: Mapped[str] = mapped_column(String(200), default="")

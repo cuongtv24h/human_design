@@ -106,3 +106,9 @@ export const SECTION_KIND_LABEL: Record<string, string> = {
   narrative: "Cẩm nang",
   domain: "Chủ đề",
 };
+
+export const STYLE_STATUS_LABEL: Record<string, string> = {
+  none: "Chưa có",
+  ready: "Sẵn sàng",
+  stale: "Cần phân tích lại",
+};

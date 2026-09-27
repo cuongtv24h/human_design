@@ -29,6 +29,7 @@ import json
 from typing import Any, Iterable, Mapping
 
 from .contract import ReportDocument
+from .style import style_brief_block
 from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via contract)
 from .language_vn import (
     AUTHORITY_VN,
@@ -102,11 +103,14 @@ def strip_internal_times(value: Any) -> Any:
     return value
 
 
-def build_llm_brief(document: ReportDocument, section_ids: Iterable[str] | None = None) -> str:
+def build_llm_brief(document: ReportDocument, section_ids: Iterable[str] | None = None,
+                    style: Mapping[str, Any] | None = None) -> str:
     """Assemble the complete, self-contained prompt bundle for the LLM editor.
 
     ``section_ids`` limits the rewrite to those sections (editor: "AI biên tập phần này");
     the other sections are still listed as context so tone and facts stay consistent.
+    ``style`` (P2) is a ``style_profile`` snapshot from the report request; when present,
+    a "## 8" voice section is appended to the brief.
     """
     only = set(section_ids) if section_ids is not None else None
     # Internal calculation times (UTC, Julian Day, Design time) stay out of the brief:
@@ -126,8 +130,7 @@ def build_llm_brief(document: ReportDocument, section_ids: Iterable[str] | None 
             f"Nội dung template tham chiếu:\n\n{section.content_markdown.rstrip()}"
         )
     subject = document.subject
-    return "\n\n".join(
-        [
+    parts = [
             "# BIÊN TẬP BÁO CÁO HUMAN DESIGN",
             "## 1. Vai trò của bạn",
             LLM_PERSONA.strip(),
@@ -147,8 +150,11 @@ def build_llm_brief(document: ReportDocument, section_ids: Iterable[str] | None 
             "## 7. Định dạng trả về",
             'JSON: {"<section_id>": "<markdown mới>"} — chỉ gồm những phần bạn biên tập.'
             + ("" if only is None else " Chỉ biên tập: " + ", ".join(f"`{sid}`" for sid in sorted(only)) + "."),
-        ]
-    )
+    ]
+    style_block = style_brief_block(style)
+    if style_block:
+        parts.append(style_block)
+    return "\n\n".join(parts)
 
 
 def _required_facts(chart: Mapping[str, Any]) -> list[tuple[str, str]]:

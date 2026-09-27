@@ -18,12 +18,13 @@ from ..models import Client, Organization, Report, User
 from ..files import file_response
 from ..schemas import (
     CatalogSection, DownloadLinkIn, DownloadLinkOut, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList,
+    StyleRatingIn,
 )
 from ..security import sign_token
 from ..services import (
     ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404,
     org_llm_configs, org_var_map, report_detail, report_summary, resolve_custom_template,
-    run_llm_generation, visible_reports, warm_artifacts,
+    resolve_template_style, run_llm_generation, visible_reports, warm_artifacts,
 )
 
 from hd_time import display_birth  # noqa: E402
@@ -78,9 +79,11 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
     if payload.template not in ("sections", "operating_manual") and custom_template is None:
         raise HTTPException(status_code=422, detail="Mẫu báo cáo không tồn tại hoặc chưa được duyệt.")
     org = db.get(Organization, user.org_id)
+    style_profile = resolve_template_style(db, user, payload.template) if payload.use_style else None
     report = create_report(db, user, client, content_mode=payload.content_mode.value,
                            custom_template=custom_template,
                            org_vars=org_var_map(org) if custom_template else None,
+                           style_profile=style_profile,
                            **_values(payload))
     audit(db, user, "report.create", "report", report.id, ip=client_ip(request),
           content_mode=report.content_mode, tier=report.tier, template=report.template)
@@ -157,6 +160,19 @@ def download_link(report_id: str, payload: DownloadLinkIn, request: Request, use
     audit(db, user, "report.link", "report", report.id, ip=client_ip(request), format=payload.format)
     db.commit()
     return DownloadLinkOut(url=f"/api/v1/files/{token}", expires_at=datetime.fromtimestamp(expires, timezone.utc))
+
+
+@router.patch("/{report_id}/style-rating", response_model=ReportDetailOut)
+def style_rating(report_id: str, payload: StyleRatingIn, request: Request,
+                 user: User = Depends(current_user), db: Session = Depends(get_db)) -> ReportDetailOut:
+    """Đánh giá văn phong AI của báo cáo (P2.3 tối thiểu)."""
+    report = get_report_or_404(db, user, report_id)
+    if not ((report.request or {}).get("options") or {}).get("style_profile"):
+        raise HTTPException(status_code=422, detail="Báo cáo này không dùng văn phong mẫu.")
+    report.style_rating = payload.rating if payload.rating != 0 else None
+    audit(db, user, "report.style_rating", "report", report.id, ip=client_ip(request), rating=payload.rating)
+    db.commit()
+    return report_detail(report)
 
 
 @router.get("/{report_id}/markdown")

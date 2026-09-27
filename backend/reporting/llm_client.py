@@ -173,6 +173,7 @@ def call_llm_with_usage(
     brief: str,
     config: LLMConfig,
     transport: Transport | None = None,
+    system: str | None = None,
 ) -> tuple[dict[str, str], LLMUsage]:
     """Send the brief to the LLM; return ``(parsed section drafts, token usage)``."""
     payload: dict[str, Any] = {
@@ -180,7 +181,7 @@ def call_llm_with_usage(
         "temperature": config.temperature,
         "response_format": {"type": "json_object"},
         "messages": [
-            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "system", "content": system or SYSTEM_MESSAGE},
             {"role": "user", "content": brief},
         ],
     }
@@ -202,9 +203,10 @@ def call_llm(
     brief: str,
     config: LLMConfig,
     transport: Transport | None = None,
+    system: str | None = None,
 ) -> dict[str, str]:
     """Send the brief to the LLM and return parsed section drafts."""
-    drafts, _ = call_llm_with_usage(brief, config, transport=transport)
+    drafts, _ = call_llm_with_usage(brief, config, transport=transport, system=system)
     return drafts
 
 

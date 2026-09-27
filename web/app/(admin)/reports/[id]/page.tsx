@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Link2, Loader2, PencilLine, RefreshCw } from "lucide-react";
+import { AlertTriangle, Archive, Download, FileCode2, FileImage, FileText, Link2, Loader2, PencilLine, RefreshCw, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,6 +13,28 @@ import { Badge, Button, Card, ErrorBox, PageHeader, Spinner, StatusBadge, cx } f
 import { api, fileUrl } from "@/lib/api";
 import { formatTimestamp, formatUsd, MODE_LABEL, TEMPLATE_LABEL, TIER_LABEL } from "@/lib/format";
 import type { DownloadLink, ReportDetail } from "@/lib/types";
+
+function StyleRating({ reportId, rating }: { reportId: string; rating: number | null }) {
+  const queryClient = useQueryClient();
+  const rate = useMutation({
+    mutationFn: (value: number) => api.patch<ReportDetail>(`/reports/${reportId}/style-rating`, { rating: value }),
+    onSuccess: (report) => queryClient.setQueryData(["report", reportId], report),
+  });
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-1 rounded-xl border border-line bg-white px-4 py-2 text-sm">
+      <span className="mr-1 text-muted">Văn phong AI của báo cáo này:</span>
+      <Button variant="ghost" className="px-2 py-1" loading={rate.isPending} title="Hay, đúng giọng mẫu"
+        onClick={() => rate.mutate(rating === 1 ? 0 : 1)}>
+        <ThumbsUp className={cx("size-4", rating === 1 ? "text-brand-600" : "text-muted")} />
+      </Button>
+      <Button variant="ghost" className="px-2 py-1" loading={rate.isPending} title="Chưa đúng giọng mẫu"
+        onClick={() => rate.mutate(rating === -1 ? 0 : -1)}>
+        <ThumbsDown className={cx("size-4", rating === -1 ? "text-red-600" : "text-muted")} />
+      </Button>
+      <ErrorBox error={rate.error} />
+    </div>
+  );
+}
 
 const TABS = [
   { id: "content", label: "Nội dung" },
@@ -103,6 +125,7 @@ export default function ReportPage() {
             <StatusBadge status={r.status} />
             <span>{TIER_LABEL[r.tier]} · {r.template_name || TEMPLATE_LABEL[r.template]}</span>
             <Badge tone={r.content_mode === "llm" ? "gold" : "brand"}>{MODE_LABEL[r.content_mode]}</Badge>
+            {r.style_used && <Badge tone="gold">Văn phong mẫu</Badge>}
             {r.llm_provider && <span>· Viết bởi {r.llm_provider}{r.llm_cost_usd !== null && r.llm_cost_usd !== undefined ? ` (${formatUsd(r.llm_cost_usd)})` : ""}</span>}
             <span>· Tạo {formatTimestamp(r.created_at)} · v{r.version}</span>
           </span>
@@ -168,6 +191,7 @@ export default function ReportPage() {
             </Card>
           )}
 
+          {r.style_used && <StyleRating reportId={r.id} rating={r.style_rating} />}
           <div className="mb-4 flex gap-1 border-b border-line" role="tablist">
             {TABS.map((t) => (
               <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}

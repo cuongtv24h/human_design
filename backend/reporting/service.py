@@ -98,7 +98,9 @@ def generate_report(
     if not chain:
         return _fallback(document, "chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
     try:
-        drafts, used, usage = _run_chain(build_llm_brief(document), chain, transport, on_llm_attempt)
+        style = (request.options or {}).get("style_profile")
+        drafts, used, usage = _run_chain(build_llm_brief(document, style=style), chain,
+                                         transport, on_llm_attempt)
     except LLMError as exc:
         tried = ", ".join(display_provider(c) for c in chain)
         return _fallback(document, f"đã thử {len(chain)} nhà cung cấp ({tried}) đều lỗi — {exc}")
@@ -170,6 +172,7 @@ def llm_edit_section(
     llm_configs: list[LLMConfig] | tuple[LLMConfig, ...] | None = None,
     transport: Transport | None = None,
     on_llm_attempt: AttemptCallback | None = None,
+    style: Mapping[str, Any] | None = None,
 ) -> str:
     """Ask the LLM to rewrite one section; returns the proposed markdown (not saved).
 
@@ -183,8 +186,8 @@ def llm_edit_section(
     chain = _resolve_chain(llm_config, llm_configs)
     if not chain:
         raise LLMError("chưa cấu hình khóa AI (Cài đặt → AI / LLM hoặc HD_LLM_API_KEY)")
-    drafts, _, _ = _run_chain(build_llm_brief(document, section_ids=[section_id]), chain,
-                              transport, on_llm_attempt)
+    drafts, _, _ = _run_chain(build_llm_brief(document, section_ids=[section_id], style=style),
+                              chain, transport, on_llm_attempt)
     draft = drafts.get(section_id)
     if not draft or not draft.strip():
         raise LLMError("AI không trả về nội dung cho phần này")

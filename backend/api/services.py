@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -20,11 +21,13 @@ from backend.reporting.render_common import Theme
 from backend.reporting.render_docx import render_docx
 from backend.reporting.render_pdf import render_pdf
 from backend.reporting.language_vn import TYPE_VN, vn_authority, vn_definition, vn_strategy
-from backend.reporting.llm_client import LLMConfig, LLMUsage as TokenUsage, display_provider, estimate_cost
+from backend.reporting.llm_client import (LLMConfig, LLMError, LLMUsage as TokenUsage, call_llm_with_usage,
+    display_provider, estimate_cost)
+from backend.reporting.style import ANALYSIS_SYSTEM, build_style_analysis_brief, parse_style_profile
 from backend.reporting.service import AttemptCallback, generate_report
 
 from .models import (AuditLog, Client, LLMUsage, Organization, Report, ReportRevision, ReportTemplate,
-                     TemplateBlock, User)
+                     TemplateBlock, TemplateSample, User)
 from .security import decrypt_value
 from .schemas import ChartSummary, ClientOut, ReportDetailOut, ReportSummaryOut, SectionOut
 
@@ -125,10 +128,12 @@ def load_document(report: Report) -> ReportDocument:
 def report_detail(report: Report) -> ReportDetailOut:
     base = report_summary(report).model_dump()
     client = report.client
+    style_used = bool(((report.request or {}).get("options") or {}).get("style_profile"))
     subject_display = display_birth(client.birth_date, client.birth_time, client.timezone)
     if not report.document:
         return ReportDetailOut(**base, subject_display=subject_display, summary=None,
-                               sections=[], warnings=[], markdown="")
+                               sections=[], warnings=[], markdown="",
+                               style_used=style_used, style_rating=report.style_rating)
     document = load_document(report)
     sections = [
         SectionOut(id=s.id, title=s.title, status=s.status, warnings=list(s.warnings))
@@ -138,6 +143,7 @@ def report_detail(report: Report) -> ReportDetailOut:
         **base, subject_display=subject_display, summary=chart_summary(document.chart),
         sections=sections, warnings=list(document.warnings), markdown=document.to_markdown(),
         llm_provider=document.provenance.llm_provider, llm_cost_usd=document.provenance.llm_cost_usd,
+        style_used=style_used, style_rating=report.style_rating,
     )
 
 
@@ -176,13 +182,15 @@ def store_document(db: Session, report: Report, document: ReportDocument, author
 
 def create_report(db: Session, user: User, client: Client, *, tier: str, template: str,
                   content_mode: str, domains: list[str], custom_template: dict | None = None,
-                  org_vars: dict | None = None) -> Report:
+                  org_vars: dict | None = None, style_profile: dict | None = None) -> Report:
     report_id = str(uuid4())
     request = build_request(client, tier=tier, template=template, content_mode=content_mode,
                             domains=domains, report_id=report_id)
     if custom_template is not None:
         request.options = {**(request.options or {}), "custom_template": custom_template,
                            "org_vars": org_vars or {}}
+    if style_profile is not None:
+        request.options = {**(request.options or {}), "style_profile": style_profile}
     report = Report(
         id=report_id, org_id=user.org_id, client_id=client.id, created_by=user.id,
         tier=tier, template=template, content_mode=content_mode, domains=domains,
@@ -567,3 +575,61 @@ def template_display_name(report: Report) -> str:
     except (AttributeError, TypeError):
         pass
     return key
+
+
+# --- template style (P2) ------------------------------------------------------
+
+STYLE_MIN_SAMPLES = 2
+
+
+def analyze_template_style(db: Session, user: User, tpl: ReportTemplate, secret: str) -> dict:
+    """Trích hồ sơ văn phong từ bài mẫu qua LLM của tổ chức (P2-B)."""
+    samples = db.scalars(select(TemplateSample).where(TemplateSample.template_id == tpl.id)
+                         .order_by(TemplateSample.sort, TemplateSample.id)).all()
+    if len(samples) < STYLE_MIN_SAMPLES:
+        raise HTTPException(status_code=422, detail=(
+            f"Cần ít nhất {STYLE_MIN_SAMPLES} bài mẫu để phân tích văn phong (hiện có {len(samples)})."))
+    configs = org_llm_configs(db, user.org_id, secret)
+    if not configs:
+        raise HTTPException(status_code=422, detail="Chưa cấu hình AI cho tổ chức (Cài đặt → AI / LLM).")
+    brief = build_style_analysis_brief(tpl.name, [(s.title, s.body) for s in samples])
+    attempts: list[dict[str, Any]] = []
+    errors: list[str] = []
+    for config in configs:
+        started = time.perf_counter()
+        try:
+            drafts, usage = call_llm_with_usage(brief, config, system=ANALYSIS_SYSTEM)
+        except LLMError as exc:
+            latency = int((time.perf_counter() - started) * 1000)
+            errors.append(f"{display_provider(config)} ({exc})")
+            attempts.append({"config": config, "ok": False, "usage": None,
+                             "error": str(exc)[:500], "latency_ms": latency})
+            continue
+        latency = int((time.perf_counter() - started) * 1000)
+        attempts.append({"config": config, "ok": True, "usage": usage, "error": "", "latency_ms": latency})
+        save_llm_usages(db, user.org_id, None, "template_style", attempts)
+        try:
+            return parse_style_profile(drafts, len(samples))
+        except ValueError as exc:
+            db.commit()
+            raise HTTPException(status_code=502, detail=f"{exc} Thử phân tích lại.") from exc
+    save_llm_usages(db, user.org_id, None, "template_style", attempts)
+    db.commit()
+    raise HTTPException(status_code=503, detail=f"AI đang bận, thử lại sau ({'; '.join(errors)}).")
+
+
+def resolve_template_style(db: Session, user: User, key: str) -> dict | None:
+    """Snapshot hồ sơ văn phong (ready) của mẫu custom, hoặc None."""
+    if key in BUILTIN_TEMPLATE_KEYS:
+        return None
+    tpl = db.scalar(select(ReportTemplate).where(
+        ReportTemplate.org_id == user.org_id, ReportTemplate.key == key,
+        ReportTemplate.status == "active"))
+    if tpl is None:
+        tpl = db.scalar(select(ReportTemplate).where(
+            ReportTemplate.visibility == "shared", ReportTemplate.key == key,
+            ReportTemplate.status == "active"))
+    if tpl is None or tpl.style_status != "ready":
+        return None
+    return {"template_key": tpl.key, "template_name": tpl.name, "template_version": tpl.version,
+            "profile": tpl.style_profile or {}}

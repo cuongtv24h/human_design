@@ -14,7 +14,7 @@ export interface User {
   last_login_at: string | null;
 }
 
-export interface CatalogOption { value: string; label: string; description: string; badge?: string; meta?: string }
+export interface CatalogOption { value: string; label: string; description: string; badge?: string; meta?: string; has_style?: boolean }
 export interface CatalogSection { id: string; title: string }
 
 export interface Catalog {
@@ -97,6 +97,8 @@ export interface ReportDetail extends ReportSummary {
   markdown: string;
   llm_provider: string;
   llm_cost_usd: number | null;
+  style_used: boolean;
+  style_rating: number | null;
 }
 
 export interface Preview {
@@ -306,6 +308,7 @@ export interface TemplateSummary {
   origin_label: string;
   import_count: number;
   created_by_name: string;
+  style_status: string;
   created_at: string;
   updated_at: string;
 }
@@ -325,6 +328,7 @@ export interface TemplateSample { id: number; title: string; body: string; sort:
 
 export interface TemplateDetail extends TemplateSummary {
   review_note: string;
+  style_profile: StyleProfile;
   sections: ResolvedSection[];
   samples: TemplateSample[];
 }
@@ -344,3 +348,14 @@ export interface OrgVar { key: string; label: string; value: string }
 export interface OrgVars { vars: OrgVar[] }
 export interface PreviewSection { id: string; title: string; markdown: string }
 export interface TemplatePreview { title: string; sections: PreviewSection[]; warnings: string[] }
+
+export interface StyleProfile {
+  tone: string;
+  rhythm: string;
+  vocabulary: string;
+  structure: string;
+  do: string[];
+  dont: string[];
+  excerpt: string;
+  sample_count: number;
+}
