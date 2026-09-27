@@ -14,15 +14,18 @@ from backend.reporting.export import bodygraph_svg
 from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, current_user, get_db
-from ..models import Client, Report, User
+from ..models import Client, Organization, Report, User
 from ..files import file_response
 from ..schemas import (
+    ApplyStyleIn,
     CatalogSection, DownloadLinkIn, DownloadLinkOut, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList,
+    StyleRatingIn,
 )
 from ..security import sign_token
 from ..services import (
-    ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404, report_detail,
-    org_llm_config, report_summary, run_llm_generation, visible_reports, warm_artifacts,
+    ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404,
+    org_llm_configs, org_var_map, report_detail, report_summary, resolve_custom_template,
+    resolve_template_style, run_llm_generation, visible_reports, warm_artifacts,
 )
 
 from hd_time import display_birth  # noqa: E402
@@ -31,7 +34,7 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 def _values(payload) -> dict:
-    return {"tier": payload.tier.value, "template": payload.template.value,
+    return {"tier": payload.tier.value, "template": payload.template,
             "domains": [d.value for d in payload.domains]}
 
 
@@ -47,8 +50,17 @@ def preview(payload: PreviewIn, user: User = Depends(current_user), db: Session 
                    "timezone": payload.timezone, "birth_location": payload.birth_place}
     else:
         raise HTTPException(status_code=422, detail="Cần chọn khách hàng hoặc nhập ngày + giờ sinh.")
+    custom_template = resolve_custom_template(db, user, payload.template)
+    if payload.template not in ("sections", "operating_manual") and custom_template is None:
+        raise HTTPException(status_code=422, detail="Mẫu báo cáo không tồn tại hoặc chưa được duyệt.")
+    options: dict = {}
+    if custom_template is not None:
+        org = db.get(Organization, user.org_id)
+        options = {"custom_template": custom_template, "org_vars": org_var_map(org)}
+    partner = payload.partner.model_dump() if payload.partner else None
     try:
-        request = ReportRequest.model_validate({"subject": subject, **_values(payload)})
+        request = ReportRequest.model_validate({"subject": subject, **_values(payload), "options": options,
+                                                **({"partner": partner} if partner else {})})
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=f"Dữ liệu không hợp lệ: {exc.errors()[0].get('msg')}") from exc
     document = ReportOrchestrator().run(request)
@@ -66,7 +78,20 @@ def preview(payload: PreviewIn, user: User = Depends(current_user), db: Session 
 def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
            user: User = Depends(current_user), db: Session = Depends(get_db)) -> ReportDetailOut:
     client = get_client_or_404(db, user, payload.client_id)
-    report = create_report(db, user, client, content_mode=payload.content_mode.value, **_values(payload))
+    custom_template = resolve_custom_template(db, user, payload.template)
+    if payload.template not in ("sections", "operating_manual") and custom_template is None:
+        raise HTTPException(status_code=422, detail="Mẫu báo cáo không tồn tại hoặc chưa được duyệt.")
+    org = db.get(Organization, user.org_id)
+    style_profile = resolve_template_style(db, user, payload.template) if payload.use_style else None
+    try:
+        report = create_report(db, user, client, content_mode=payload.content_mode.value,
+                               custom_template=custom_template,
+                               org_vars=org_var_map(org) if custom_template else None,
+                               style_profile=style_profile,
+                               partner=payload.partner.model_dump() if payload.partner else None,
+                               **_values(payload))
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=f"Dữ liệu đối tác không hợp lệ: {exc.errors()[0].get('msg')}") from exc
     audit(db, user, "report.create", "report", report.id, ip=client_ip(request),
           content_mode=report.content_mode, tier=report.tier, template=report.template)
     db.commit()
@@ -75,7 +100,8 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
         # Background task + heartbeat; interrupted jobs are resumed by backend/api/jobs.py.
         background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
                             state.settings.artifact_dir, "generate",
-                            org_llm_config(db, user.org_id, state.secret_key), state.settings.job_heartbeat_seconds)
+                            llm_configs=org_llm_configs(db, user.org_id, state.secret_key),
+                            heartbeat_seconds=state.settings.job_heartbeat_seconds)
     else:
         background.add_task(warm_artifacts, state.db.session_factory, state.settings.artifact_dir, report.id)
     return report_detail(report)
@@ -141,6 +167,55 @@ def download_link(report_id: str, payload: DownloadLinkIn, request: Request, use
     audit(db, user, "report.link", "report", report.id, ip=client_ip(request), format=payload.format)
     db.commit()
     return DownloadLinkOut(url=f"/api/v1/files/{token}", expires_at=datetime.fromtimestamp(expires, timezone.utc))
+
+
+@router.patch("/{report_id}/style-rating", response_model=ReportDetailOut)
+def style_rating(report_id: str, payload: StyleRatingIn, request: Request,
+                 user: User = Depends(current_user), db: Session = Depends(get_db)) -> ReportDetailOut:
+    """Đánh giá văn phong AI của báo cáo (P2.3 tối thiểu)."""
+    report = get_report_or_404(db, user, report_id)
+    if not ((report.request or {}).get("options") or {}).get("style_profile"):
+        raise HTTPException(status_code=422, detail="Báo cáo này không dùng văn phong mẫu.")
+    report.style_rating = payload.rating if payload.rating != 0 else None
+    audit(db, user, "report.style_rating", "report", report.id, ip=client_ip(request), rating=payload.rating)
+    db.commit()
+    return report_detail(report)
+
+
+@router.post("/{report_id}/apply-style", response_model=ReportDetailOut)
+def apply_style(report_id: str, request: Request, background: BackgroundTasks,
+                user: User = Depends(current_user), db: Session = Depends(get_db),
+                payload: ApplyStyleIn | None = None) -> ReportDetailOut:
+    """Viết lại báo cáo cũ theo văn phong mẫu (P4, chạy nền như tạo mới)."""
+    report = get_report_or_404(db, user, report_id)
+    if report.status == "generating":
+        raise HTTPException(status_code=409, detail="Báo cáo đang được tạo.")
+    if report.status == "archived":
+        raise HTTPException(status_code=409, detail="Báo cáo đã lưu trữ.")
+    key = (payload.template_key if payload and payload.template_key else None) or report.template
+    snapshot = resolve_template_style(db, user, (key or "").strip() or report.template)
+    if snapshot is None:
+        raise HTTPException(status_code=422, detail="Mẫu chưa có văn phong sẵn sàng (ready).")
+    options = dict((report.request or {}).get("options") or {})
+    options["style_profile"] = snapshot
+    report.request = {**(report.request or {}), "content_mode": "llm", "options": options}
+    report.content_mode = "llm"
+    report.style_rating = None
+    report.style_version = snapshot.get("style_version")
+    try:
+        ReportRequest.model_validate(report.request)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Báo cáo cũ không còn tương thích, tạo báo cáo mới.") from exc
+    report.status, report.error = "generating", ""
+    report.generation_attempts, report.job_heartbeat_at = 0, None
+    audit(db, user, "report.apply_style", "report", report.id, ip=client_ip(request), template_key=key)
+    db.commit()
+    state = request.app.state
+    background.add_task(run_llm_generation, state.db.session_factory, report.id, user.email,
+                        state.settings.artifact_dir, "apply_style",
+                        llm_configs=org_llm_configs(db, user.org_id, state.secret_key),
+                        heartbeat_seconds=state.settings.job_heartbeat_seconds)
+    return report_detail(report)
 
 
 @router.get("/{report_id}/markdown")

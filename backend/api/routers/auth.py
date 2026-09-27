@@ -7,13 +7,13 @@ from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from ..deps import client_ip, current_user, get_db, session_token
 from ..models import User, UserSession
-from ..schemas import LoginIn, LoginOut, UserOut
-from ..security import SESSION_COOKIE, hash_token, new_session_token, verify_password
+from ..schemas import LoginIn, LoginOut, PasswordChange, UserOut
+from ..security import SESSION_COOKIE, hash_password, hash_token, new_session_token, verify_password
 from ..services import audit
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -94,3 +94,19 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)) 
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(current_user)) -> UserOut:
     return user_out(user)
+
+
+@router.post("/password", status_code=204)
+def change_password(payload: PasswordChange, request: Request, user: User = Depends(current_user),
+                    db: Session = Depends(get_db)) -> None:
+    """Tự đổi mật khẩu: cần nhập đúng mật khẩu hiện tại; các phiên khác bị đăng xuất."""
+    if not verify_password(user.password_hash, payload.current_password):
+        raise HTTPException(status_code=401, detail="Mật khẩu hiện tại không đúng.")
+    user.password_hash = hash_password(payload.new_password)
+    drop = delete(UserSession).where(UserSession.user_id == user.id)
+    token = session_token(request)
+    if token:
+        drop = drop.where(UserSession.token_hash != hash_token(token))
+    db.execute(drop)
+    audit(db, user, "auth.password_change", "user", user.id, ip=client_ip(request))
+    db.commit()

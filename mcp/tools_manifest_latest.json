@@ -1465,7 +1465,7 @@
     "3.1.0-reports": "Report layer ra MCP/REST: 3 tools (generate_hd_report, build_hd_report_brief, apply_hd_report_draft) + 4 routes /reports/*; content_mode llm chạy thật qua client OpenAI-compatible (HD_LLM_API_KEY), fallback template.",
     "3.1.0-infographic": "Thêm định dạng Infographic HTML: tool generate_hd_infographic + routes POST/GET /reports/infographic.html; export_report(include_infographic=True)."
   },
-  "skill_count": 25,
+  "skill_count": 26,
   "skills": [
     "01_full_analysis.md",
     "02_career_guidance.md",
@@ -1485,6 +1485,7 @@
     "16_decision_authority.md",
     "17_deconditioning_notsel.md",
     "18_purpose_mission_practical.md",
+    "19_phs_variables.md",
     "20_team_leadership_dynamics.md",
     "21_centers_deep_dive.md",
     "22_channels_deep_dive.md",

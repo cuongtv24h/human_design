@@ -41,3 +41,47 @@
 ## 6. Điều kiện hóa nằm trong THÂN
 - Mọi bài tập phải có yếu tố thân: thở, dừng, ngủ, vận động, chạm đất.
 - Nói hiểu mà thân chưa đổi = chưa decondition. Thân đổi trước, tâm theo sau.
+
+## Not-Self: phần không phải bạn và sự điên rồ của nó
+
+- Not-Self là phần của bạn vận hành bởi điều kiện hóa: áp lực và kỳ vọng của
+  thế giới xung quanh. Cơ chế của nó là trí cố nắm quyền - trí quyết định, trí
+  lái xe - trong khi trí không được thiết kế để làm việc đó.
+- Trí là hành khách, không phải tài xế: trí ở đây để quan sát và trải nghiệm
+  cuộc đời, để làm thẩm quyền ngoài (outer authority) cho người khác - không
+  phải để quyết định thay bạn. Thả trí về ghế phụ là bước đầu của mọi sự đúng.
+- Sự "điên rồ" của not-self mang tính cơ học: trí bám vào các trung tâm MỞ của
+  bạn và ra quyết định để quản lý đúng những thứ bạn KHÔNG phải. Nó đẩy bạn
+  khởi xướng bừa, chứng minh, vội vàng, chiều lòng, kiểm soát thứ không thể
+  kiểm soát - và thu về 4 chữ ký thất bại: thất vọng (frustration), cay đắng
+  (bitterness), giận dữ (anger), chán chường (disappointment).
+- Not-Self không phải kẻ thù để tiêu diệt mà là đối tượng để nhận diện: mục
+  tiêu không phải xóa nó mà là mang nhận thức tới, thấy nó là gì, rồi chọn khác
+  đi bằng Chiến lược & Thẩm quyền.
+
+## Tiến trình gỡ điều kiện hóa 7 năm
+
+- Theo đúng Chiến lược & Thẩm quyền thì quá trình gỡ điều kiện hóa (deconditioning)
+  bắt đầu NGAY - nhưng cần khoảng 7 năm để hoàn tất, vì phải mất chừng đó thời
+  gian mọi tế bào trong cơ thể mới thay mới một lượt (thói quen, gắn bó, sinh
+  hóa đều cần chu kỳ này).
+- 7 năm không có nghĩa 7 năm khổ sở: đó là 7 năm của những quyết định ngày càng
+  đúng, sự thẳng hàng ngày càng sâu, và các mô thức not-self bong dần từng lớp.
+  Kiên trì thì chỉ vài tuần vài tháng đã thấy cột mốc đổi khác.
+- Cảm giác khi đang gỡ: áp lực cũ vẫn nổi lên y hệt, trí vẫn gào y hệt - khác
+  biệt duy nhất là bạn không để trí quyết nữa. Đừng mong "bình yên tuyệt đối";
+  hãy đo bằng số quyết định đúng tăng dần.
+- Đừng gỡ một mình trong chân không: môi trường đúng (người đúng, nơi đúng)
+  giảm một nửa sức nặng của điều kiện hóa - đặc biệt với người nhiều trung tâm mở.
+
+## Trình tự dừng vòng lặp not-self
+
+- Bước 1 - Gọi tên chủ đề: đèn nào đang sáng - thất vọng, cay đắng, giận dữ
+  hay chán chường? Gọi đúng tên là đã thoát khỏi nó một nửa.
+- Bước 2 - Dừng trí: nói rõ "đây là điều kiện hóa đang nói", đặt trí về ghế
+  quan sát. Không tranh luận với trí - tranh luận là đã lên ghế tài xế của nó.
+- Bước 3 - Quay về cơ chế đúng: Type + Chiến lược + Thẩm quyền của mình nói gì
+  trong tình huống này? Làm đúng bước nhỏ nhất có thể ngay lúc đó.
+- Bước 4 - Đầu hàng với thí nghiệm (surrender to the experiment): không cần tin,
+  chỉ cần thử đủ lâu để cơ thể tự chứng minh. Tần số đổi thì hình học cuộc đời
+  (người, việc, cơ hội đúng) tự sắp lại quanh bạn.

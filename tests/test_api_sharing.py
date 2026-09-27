@@ -86,19 +86,27 @@ def test_signed_link_expires(app, monkeypatch):
 
 # --- P2-6 LLM settings ---------------------------------------------------------------
 
+def _provider(**overrides):
+    body = {"name": "Chính", "base_url": "https://llm.example.com/v1/", "model": "gpt-4.1-mini",
+            "temperature": 0.4, "timeout": 90, "enabled": True,
+            "input_price": 0.15, "output_price": 0.6, "api_key": "sk-live-abcdef9876"}
+    body.update(overrides)
+    return body
+
+
 def test_llm_settings_encrypted_masked_and_used(app, monkeypatch):
     monkeypatch.delenv("HD_LLM_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     admin = login(app)
     initial = admin.get("/api/v1/settings/llm").json()
-    assert initial["key_source"] == "none" and initial["model"] == "gpt-4o-mini"
+    assert initial["key_source"] == "none" and initial["providers"] == []
     assert admin.post("/api/v1/settings/llm/test", headers=H).status_code == 409
 
-    body = {"base_url": "https://llm.example.com/v1/", "model": "gpt-4.1-mini", "temperature": 0.4, "timeout": 90,
-            "api_key": "sk-live-abcdef9876"}
-    saved = admin.put("/api/v1/settings/llm", json=body, headers=H).json()
-    assert saved["key_source"] == "database" and saved["key_hint"] == "••••9876"
-    assert saved["base_url"] == "https://llm.example.com/v1" and saved["updated_by"] == "admin@example.com"
+    saved = admin.put("/api/v1/settings/llm", json={"providers": [_provider()]}, headers=H).json()
+    assert saved["key_source"] == "database" and saved["updated_by"] == "admin@example.com"
+    first = saved["providers"][0]
+    assert (first["name"], first["key_hint"]) == ("Chính", "••••9876")
+    assert first["base_url"] == "https://llm.example.com/v1" and first["has_key"] is True
     assert "sk-live" not in admin.get("/api/v1/settings/llm").text
 
     # Stored encrypted — the plaintext key never reaches the database or the audit log.
@@ -108,8 +116,9 @@ def test_llm_settings_encrypted_masked_and_used(app, monkeypatch):
     assert "sk-live-abcdef9876" not in dump and "api_key_enc" in dump
 
     # Keep the key when api_key is omitted.
-    kept = admin.put("/api/v1/settings/llm", json={**body, "api_key": None, "model": "m2"}, headers=H).json()
-    assert kept["key_hint"] == "••••9876" and kept["model"] == "m2"
+    kept = admin.put("/api/v1/settings/llm",
+                     json={"providers": [_provider(api_key=None, model="m2")]}, headers=H).json()
+    assert kept["providers"][0]["key_hint"] == "••••9876" and kept["providers"][0]["model"] == "m2"
 
     seen = {}
 
@@ -118,8 +127,8 @@ def test_llm_settings_encrypted_masked_and_used(app, monkeypatch):
         return {"choices": [{"message": {"content": "OK"}}]}
 
     app.state.llm_transport = transport
-    result = admin.post("/api/v1/settings/llm/test", headers=H).json()
-    assert result["ok"] and result["model"] == "m2"
+    result = admin.post("/api/v1/settings/llm/test", json={}, headers=H).json()
+    assert result["results"][0]["ok"] and result["results"][0]["model"] == "m2"
     assert seen == {"url": "https://llm.example.com/v1/chat/completions", "auth": "Bearer sk-live-abcdef9876",
                     "model": "m2"}
 
@@ -128,27 +137,31 @@ def test_llm_settings_encrypted_masked_and_used(app, monkeypatch):
         raise LLMError("LLM HTTP 401: invalid key")
 
     app.state.llm_transport = failing
-    bad = admin.post("/api/v1/settings/llm/test", headers=H).json()
-    assert not bad["ok"] and "401" in bad["detail"]
+    bad = admin.post("/api/v1/settings/llm/test", json={"provider_index": 0}, headers=H).json()
+    assert not bad["results"][0]["ok"] and "401" in bad["results"][0]["detail"]
 
     # The editor now sees AI as available (from the DB key, no env var).
     rid = _report(admin)
     assert admin.get(f"/api/v1/reports/{rid}/editor").json()["llm_available"] is True
 
-    cleared = admin.put("/api/v1/settings/llm", json={**body, "api_key": ""}, headers=H).json()
-    assert cleared["key_source"] == "none"
+    cleared = admin.put("/api/v1/settings/llm", json={"providers": [_provider(api_key="")]}, headers=H).json()
+    assert cleared["key_source"] == "none" and cleared["providers"][0]["has_key"] is False
     monkeypatch.setenv("HD_LLM_API_KEY", "sk-env-00001111")
     env_view = admin.get("/api/v1/settings/llm").json()
-    assert env_view["key_source"] == "environment" and env_view["key_hint"] == "••••1111"
+    assert env_view["key_source"] == "environment"
 
 
 def test_llm_settings_admin_only_and_validation(app):
     coach = _coach(app)
     assert coach.get("/api/v1/settings/llm").status_code == 403
+    assert coach.get("/api/v1/settings/llm/usage").status_code == 403
     admin = login(app)
-    bad = admin.put("/api/v1/settings/llm", json={"base_url": "ftp://x.y/z", "model": "m", "temperature": 0.5,
-                                                  "timeout": 60}, headers=H)
+    bad = admin.put("/api/v1/settings/llm",
+                    json={"providers": [_provider(base_url="ftp://x.y/z")]}, headers=H)
     assert bad.status_code == 422
+    too_many = admin.put("/api/v1/settings/llm",
+                         json={"providers": [_provider(name=f"P{i}") for i in range(4)]}, headers=H)
+    assert too_many.status_code == 422
 
 
 def test_unreadable_key_after_secret_rotation(tmp_path, monkeypatch):
@@ -161,11 +174,11 @@ def test_unreadable_key_after_secret_rotation(tmp_path, monkeypatch):
     first = create_app(Settings(secret_key="one", **kwargs))
     ensure_admin(first.state.db, "r@example.com", PASSWORD)
     c1 = login(first, "r@example.com")
-    c1.put("/api/v1/settings/llm", json={"base_url": "https://x.io/v1", "model": "m", "temperature": 0.5,
-                                         "timeout": 60, "api_key": "sk-rotate-1234"}, headers=H)
+    c1.put("/api/v1/settings/llm", json={"providers": [_provider(base_url="https://x.io/v1", model="m",
+                                                                                api_key="sk-rotate-1234")]}, headers=H)
     second = create_app(Settings(secret_key="two", **kwargs))
     view = login(second, "r@example.com").get("/api/v1/settings/llm").json()
-    assert view["key_unreadable"] is True and view["key_source"] == "none"
+    assert view["providers"][0]["key_unreadable"] is True and view["key_source"] == "none"
 
 
 # --- P3-1 share links ------------------------------------------------------------------

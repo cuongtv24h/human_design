@@ -23,9 +23,9 @@ Full Money Map giúp hiểu đúng cách thu hút tiền, định giá, business
 | Type | % | Aura tiền | Strategy tiền | Pricing | Business Model | Investment | Money Trap |
 |------|---|-----------|---------------|---------|----------------|------------|------------|
 | Manifestor | 9% | Đóng, đẩy | Khởi xướng + Inform | Premium high-ticket, giá theo tác động | Founder, khởi nghiệp, consulting cao cấp | Đầu tư lớn đột phá theo đợt bộc phát | Cố làm việc như Generator 8h, không inform về tiền |
-| Generator | 36% | Mở, hút | Respond + Sacral uh-huh | Value-based, giá theo kết quả khi làm việc yêu | Bền bỉ, chuyên môn sâu, làm việc yêu | DCA bền bỉ vào điều yêu, Sacral uh-huh | Làm việc không yêu để kiếm tiền, quyết định tiền bằng đầu óc |
-| MG | 32% | Mở, nhanh, đa nhiệm | Respond + Inform, đa dòng tiền | Linh hoạt đa tầng, nhiều sản phẩm, charge cao cho tốc độ | Đa nhiệm nhiều dòng tiền, agency nhanh, solopreneur đa năng | Đa dạng nhiều khoản nhỏ thử nghiệm nhanh | Bị ép 1 việc, làm chậm, không inform khi đổi hướng, bỏ qua bước |
-| Projector | 22% | Tập trung, xuyên thấu | Invitation + Recognition, trí tuệ | CAO cho ÍT GIỜ - $500/giờ tư vấn thay vì $20/giờ làm việc, premium retainer | Consulting, coaching, advisory, quản lý, chuyên gia, không làm 8h cần nghỉ ngơi nhiều | Chờ invitation, đầu tư vào kiến thức hệ thống | Làm việc chăm chỉ như Generator, định giá thấp theo giờ, làm quá sức, hướng dẫn khi chưa được mời |
+| Generator | 37% | Mở, hút | Respond + Sacral uh-huh | Value-based, giá theo kết quả khi làm việc yêu | Bền bỉ, chuyên môn sâu, làm việc yêu | DCA bền bỉ vào điều yêu, Sacral uh-huh | Làm việc không yêu để kiếm tiền, quyết định tiền bằng đầu óc |
+| MG | 33% | Mở, nhanh, đa nhiệm | Respond + Inform, đa dòng tiền | Linh hoạt đa tầng, nhiều sản phẩm, charge cao cho tốc độ | Đa nhiệm nhiều dòng tiền, agency nhanh, solopreneur đa năng | Đa dạng nhiều khoản nhỏ thử nghiệm nhanh | Bị ép 1 việc, làm chậm, không inform khi đổi hướng, bỏ qua bước |
+| Projector | 20% | Tập trung, xuyên thấu | Invitation + Recognition, trí tuệ | CAO cho ÍT GIỜ - $500/giờ tư vấn thay vì $20/giờ làm việc, premium retainer | Consulting, coaching, advisory, quản lý, chuyên gia, không làm 8h cần nghỉ ngơi nhiều | Chờ invitation, đầu tư vào kiến thức hệ thống | Làm việc chăm chỉ như Generator, định giá thấp theo giờ, làm quá sức, hướng dẫn khi chưa được mời |
 | Reflector | 1% | Lấy mẫu, phản chiếu | Lunar Cycle 28 ngày + Môi trường | Linh hoạt theo môi trường, phản chiếu giá trị môi trường | Community, đánh giá, trung gian, consultant môi trường, linh hoạt | Chờ 28 ngày + môi trường, nói chuyện nhiều người | Ở môi trường không đúng về tiền, quyết định tiền nhanh, ở với người không đúng |
 
 ### Chi tiết từng Type
@@ -40,7 +40,7 @@ Full Money Map giúp hiểu đúng cách thu hút tiền, định giá, business
 - **Investment:** Đầu tư theo đợt bộc phát theo trực giác khởi xướng. Không phù hợp đầu tư đều đặn nhỏ giọt như Generator. Phù hợp đầu tư lớn vào ý tưởng đột phá bạn tin tưởng. Cần thông báo cho đối tác/gia đình trước khi đầu tư lớn.
 - **Saving/Spending:** Tiêu tiền theo đợt bộc phát, cần học quản lý. Tiết kiệm cho giai đoạn nghỉ ngơi sau khi khởi xướng.
 
-#### Generator 36% - Respond + Sacral uh-huh
+#### Generator 37% - Respond + Sacral uh-huh
 
 - **Aura tiền:** Mở, hút - Bạn là thỏi nam châm thu hút tiền khi làm việc bạn YÊU. Tiền đến khi Sacral nói uh-huh với cơ hội.
 - **Cách thu hút:** Chờ để Đáp Ứng cơ hội tiền bạc - Đừng khởi xướng việc kiếm tiền. Lắng nghe Sacral: uh-huh (mở, cao, ngực nở) = CÓ với cơ hội tiền, uh-uh (đóng, thấp) = KHÔNG. Làm việc bạn YÊU - Sacral sẽ cho năng lượng vô tận để kiếm tiền. Hỏi câu hỏi có/không về tiền: "Bạn có muốn đầu tư vào X không?" thay vì "Bạn muốn đầu tư gì?". Kiên nhẫn - Tiền đến từ việc làm đúng việc, không phải làm nhiều việc.
@@ -50,7 +50,7 @@ Full Money Map giúp hiểu đúng cách thu hút tiền, định giá, business
 - **Investment:** Đầu tư vào điều bạn YÊU và hiểu rõ. Sacral uh-huh với khoản đầu tư. Đầu tư bền bỉ dài hạn đều đặn. Phù hợp DCA (dollar-cost averaging) vào thứ bạn yêu. Đừng đầu tư theo trend nếu Sacral uh-uh.
 - **Saving/Spending:** Tiết kiệm tự nhiên khi làm việc bạn yêu (Satisfaction). Tiêu tiền cho điều mang lại Satisfaction. Học cách nói uh-uh với chi tiêu không mang lại Satisfaction.
 
-#### MG 32% - Đa dòng tiền + Respond + Inform
+#### MG 33% - Đa dòng tiền + Respond + Inform
 
 - **Aura tiền:** Mở, nhanh, đa nhiệm - Bạn thu hút tiền bằng tốc độ, hiệu quả, đa dạng. Tiền đến từ nhiều nguồn, nhiều dòng.
 - **Cách thu hút:** Chờ Đáp Ứng như Generator, rồi Thông Báo như Manifestor. Bước 1: Chờ tín hiệu tiền bạc, lắng nghe Sacral uh-huh/uh-uh. Bước 2: Nếu uh-huh, thông báo "Tôi sẽ làm X để kiếm tiền" rồi hành động nhanh. Đa dạng dòng tiền - Được phép thay đổi hướng, làm nhiều việc cùng lúc. Tìm con đường tắt, hiệu quả nhất để kiếm tiền - Bạn được thiết kế để làm tắt.
@@ -60,7 +60,7 @@ Full Money Map giúp hiểu đúng cách thu hút tiền, định giá, business
 - **Investment:** Đầu tư đa dạng nhiều khoản nhỏ thử nghiệm nhanh. Cho phép thay đổi danh mục đầu tư. Phù hợp đầu tư linh hoạt thử nghiệm nhiều cơ hội. Thông báo cho đối tác khi đổi hướng đầu tư.
 - **Saving/Spending:** Tiết kiệm đa dạng nhiều tài khoản cho nhiều mục tiêu. Tiêu tiền nhanh, cần học quản lý. Cho phép bản thân thử nhiều cách kiếm/tiêu tiền.
 
-#### Projector 22% - Invitation + Premium Pricing
+#### Projector 20% - Invitation + Premium Pricing
 
 - **Aura tiền:** Tập trung, xuyên thấu - Bạn không có năng lượng bền bỉ để kiếm tiền như Generator. Bạn kiếm tiền bằng TRÍ TUỆ, HƯỚNG DẪN, không phải làm việc chăm chỉ. Tiền đến khi được CÔNG NHẬN và được MỜI.
 - **Cách thu hút:** Chờ Lời Mời cho cơ hội tiền lớn: công việc, dự án, tăng lương, hợp tác. Tập trung vào học hệ thống, hiểu người khác, trở thành chuyên gia. Đừng cố gắng kiếm tiền như Generator (làm việc chăm chỉ 8h) -> kiệt sức, cay đắng, mất tiền. Xây dựng sự công nhận (recognition) trước - Khi được công nhận đúng, lời mời tiền sẽ đến. Tiền đến từ việc hướng dẫn, quản lý năng lượng người khác, không phải làm việc.

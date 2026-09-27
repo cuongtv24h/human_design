@@ -34,7 +34,7 @@ Không có trung tâm nào tốt/xấu. Defined là nơi bạn CHO đi. Undefine
 
 ### 4. G-CENTER (Trung tâm G - Bản ngã) - Tình yêu, Phương hướng, Bản sắc
 - **Vị trí**: Hình thoi ở giữa ngực
-- **Chức năng**: Tình yêu, phương hướng, bản sắc, nơi đặt Monopole Magnetic (nam châm hút chúng ta đi trong không-thời gian)
+- **Chức năng**: Tình yêu, phương hướng, bản sắc, nơi đặt Magnetic Monopole (đơn cực từ — nam châm hút chúng ta đi trong không-thời gian)
 - **Sinh học**: Gan, máu
 - **Cổng**: 1, 2, 7, 10, 13, 15, 25, 46 (8 cổng - tương ứng 8 hướng)
 - **Defined (46%)**: Có bản sắc, tình yêu, phương hướng cố định. Biết mình là ai.

@@ -47,3 +47,33 @@
 
 ## 8. 3 hành động cải thiện (mẫu)
 1. Thỏa thuận cơ chế aura (inform/mời/hỏi/thời gian). 2. Làm rõ 3 nguyên tắc bất khả xâm phạm mỗi người. 3. Lịch "trả cảm xúc": tuần 1 lần nói điều chưa ổn bằng ngôn ngữ quan sát.
+
+## Bốn kiểu kết nối giữa hai đồ thị
+
+- Electromagnetic (điện từ): mỗi người giữ một cổng của cùng kênh, ghép lại
+  thành kênh hoàn chỉnh - ví dụ người có cổng 5, người có cổng 15 thì cùng thắp
+  sáng kênh Nhịp điệu 5-15. Cảm giác: tia lửa, hóa học, năng lực mới. Hóa học
+  mạnh nhưng không phải lúc nào cũng ổn định.
+- Companionship (đồng hành): cả hai cùng có sẵn kênh đầy đủ - dễ dàng, quen
+  thuộc, "hiểu nhau không cần nói", nhưng đôi khi thiếu lửa.
+- Dominance (chi phối): một người có kênh/trung tâm đầy, người kia mở hoàn
+  toàn - bên đầy phát sóng đều sang bên mở: vừa là điều kiện hóa, vừa là trường
+  học. Ví dụ Solar định nghĩa của bạn tràn qua Solar mở của đối phương.
+- Compromise (thỏa hiệp): một người có kênh đầy, người kia chỉ có một cổng treo
+  - bên một cổng phải "bẻ mình" theo kênh của đối phương: ma sát một chiều lặp
+  đi lặp lại. Hầu hết quan hệ thật là pha trộn cả bốn - kết luận đọc theo kiểu
+  chi phối nhất.
+
+## Đồ thị composite - thực thể thứ ba
+
+- Chồng hai đồ thị lên nhau tạo đồ thị composite (connection chart): kênh có thể
+  hoàn thành dù mỗi người riêng lẻ đều không có, trung tâm có thể định nghĩa dù
+  cả hai đều mở - ví dụ người cổng 19 + người cổng 49 cùng thắp kênh Tổng hợp
+  19-49. Composite là "người thứ ba trong phòng" với định nghĩa, Type và thẩm
+  quyền riêng của mối quan hệ.
+- Đọc composite trong tư vấn: (1) liệt kê kênh electromagnetic - đó là hóa học
+  và năng lực mới của cặp đôi; (2) xem trung tâm nào từ mở hóa định nghĩa -
+  đó là vùng cặp đôi vận hành mạnh nhưng cũng dễ cứng nhắc; (3) đặt tên kiểu
+  chi phối để cặp đôi hiểu mình đang chơi trò chơi nào.
+- Quy tắc vàng: hóa học electromagnetic không bảo chứng hòa hợp dài hạn; nhiều
+  cặp "sét đánh" rồi đứt vì không ai chịu học luật của thực thể thứ ba.

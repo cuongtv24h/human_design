@@ -11,6 +11,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER
 from hd_language import vn_authority, vn_type
+from hd_variables import format_variables_report
 
 TYPE_HEALTH = {
     "Generator": {
@@ -182,6 +183,7 @@ def analyze_health(birth_datetime, name=""):
             "body_signals": BODY_SIGNALS,
             "practice_7d": practice_7d,
             "summary": summary,
+            "variables": chart.get("variables") or {},
         },
         "áp_dụng_cho": "100% dân số - 60 biến thể (5 Types x 12 Profiles)",
     }
@@ -221,4 +223,8 @@ def format_health_report(d):
     L += ["", "## 6. KẾT LUẬN", h["summary"], "",
           "> \"Cơ thể không bao giờ nói dối - Mind mới là kẻ nói dối\"",
           "> \"Kiệt sức là tín hiệu lệch thiết kế, không phải huy chương\""]
+    v = h.get("variables") or {}
+    if v:
+        L += ["", "## 7. PHS & 4 MŨI TÊN (VARIABLES - CẦN GIỜ SINH CHUẨN)"]
+        L += format_variables_report(v).split("\n")
     return "\n".join(L)

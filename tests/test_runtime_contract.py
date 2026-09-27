@@ -55,7 +55,7 @@ def test_source_and_manifest_counts_match():
     assert {"explain_calculation_method", "analyze_centers_deep", "analyze_channels_deep", "analyze_type_strategy_authority", "analyze_profile_definition", "analyze_practical_application"} <= tool_names
     assert {"human-design://knowledge/calculation", "human-design://knowledge/applications", "human-design://knowledge/channels"} <= resource_uris
     skill_files = sorted(path.name for path in (ROOT / "mcp" / "skills").glob("*.md"))
-    assert manifest["skill_count"] == 25
+    assert manifest["skill_count"] == 26
     assert manifest["skills"] == skill_files
 
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Daily backup: PostgreSQL dump + .env + var/secret_key. Keeps KEEP_DAYS days (default 14).
-#   crontab -e  (user hd):   15 2 * * * /srv/human_design/deploy/backup.sh >> /srv/human_design/var/backup.log 2>&1
+#   crontab -e:   15 2 * * * $HOME/human_design/deploy/backup.sh >> $HOME/human_design/var/backup.log 2>&1
 # Restore: docs/DEPLOY_VPS.md, mục "Sao lưu & khôi phục".
 set -euo pipefail
 cd "$(dirname "$0")/.."
-DEST="${BACKUP_DIR:-/srv/backups/human_design}"
+DEST="${BACKUP_DIR:-$HOME/backups/human_design}"
 KEEP="${KEEP_DAYS:-14}"
 STAMP="$(date +%Y%m%d-%H%M)"
 umask 077

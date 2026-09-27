@@ -94,6 +94,68 @@ def test_deep_core_domain_is_normalized_and_keeps_provenance():
     assert not document.warnings
 
 
+def test_deep_core_new_domains_parenting_career():
+    request = ReportRequest.model_validate(
+        {
+            "subject": SUBJECT,
+            "tier": "deep_core",
+            "domains": ["parenting", "career"],
+        }
+    )
+    document = ReportOrchestrator().run(request)
+
+    section_ids = [section.id for section in document.sections]
+    assert "domain_parenting" in section_ids
+    assert "domain_career" in section_ids
+    assert request.domains == [DomainName.PARENTING, DomainName.CAREER]
+    parenting = next(s for s in document.sections if s.id == "domain_parenting")
+    career = next(s for s in document.sections if s.id == "domain_career")
+    assert parenting.source_tools == ["analyze_parenting", "format_parenting_report"]
+    assert career.source_tools == ["analyze_career", "format_career_report"]
+    assert parenting.data["parenting_analysis"]["child_type"]["advice"]
+    assert career.data["career_analysis"]["bg5"]["bg5"]
+    assert "22_nuoi_day_con_theo_thiet_ke.md" in document.provenance.knowledge_refs
+    assert "23_career_business_deep.md" in document.provenance.knowledge_refs
+    assert not document.warnings
+
+
+def test_template_sections_carry_knowledge_appendix():
+    request = ReportRequest.model_validate(
+        {
+            "subject": SUBJECT,
+            "tier": "deep_core",
+            "domains": ["parenting"],
+        }
+    )
+    document = ReportOrchestrator().run(request)
+    by_id = {s.id: s for s in document.sections}
+    # Section core có khối đọc thêm từ đúng file kho của nó.
+    assert "Đọc thêm từ kho tri thức" in by_id["summary"].content_markdown
+    assert "[Kho tri thức: 00_tong_quan_he_thong.md]" in by_id["summary"].content_markdown
+    # Section domain mới cũng được làm giàu từ file 22.
+    assert "[Kho tri thức: 22_nuoi_day_con_theo_thiet_ke.md]" in by_id["domain_parenting"].content_markdown
+    assert "uh-huh" in by_id["domain_parenting"].content_markdown
+    # Nội dung gốc vẫn còn nguyên phía trên khối đọc thêm.
+    head, _, _tail = by_id["summary"].content_markdown.partition("Đọc thêm từ kho tri thức")
+    assert "Tóm tắt" in head or "tóm tắt" in head or len(head) > 200
+
+
+def test_cross_family_follows_profile():
+    # Họ Cross do Profile quyết định (không phải hiệu kinh độ 2 Sun).
+    cases = [
+        ({"birth_date": "1990-05-15", "birth_time": "08:30", "timezone": "+07:00"}),
+        ({"birth_date": "1985-11-02", "birth_time": "14:05", "timezone": "+07:00"}),
+        ({"birth_date": "2000-06-20", "birth_time": "22:40", "timezone": "+07:00"}),
+    ]
+    rax = {"1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6"}
+    lax = {"5/1", "5/2", "6/2", "6/3"}
+    for subj in cases:
+        doc = ReportOrchestrator().run(ReportRequest.model_validate({"subject": subj, "tier": "deep_core"}))
+        prof, cross = doc.chart["profile"], doc.chart["cross_type"]
+        expected = "Right Angle" if prof in rax else "Left Angle" if prof in lax else "Juxtaposition"
+        assert cross == expected, (prof, cross)
+
+
 def test_deep_core_channels_and_cross_are_explained():
     request = ReportRequest.model_validate({"subject": SUBJECT, "tier": "deep_core"})
     document = ReportOrchestrator().run(request)

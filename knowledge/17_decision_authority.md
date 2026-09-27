@@ -57,3 +57,35 @@
 ## 5. Dấu hiệu Mind đang lái (đèn đỏ)
 Phân tích mãi không xong; liệt kê pros/cons vô tận; hỏi khắp nơi; quyết xong vẫn day dứt; dùng "lẽ ra/phải/nên" để ép mình.
 -> Câu thần chú: "Đầu óc là hành khách, Authority mới là tài xế."
+
+## Bảy thẩm quyền ra quyết định đúng cơ học
+
+- Emotional (đám đông cảm xúc định nghĩa): không quyết lúc cao trào - chờ sóng
+  qua rồi mới rõ. "Ngủ một đêm" là liều tối thiểu, việc lớn cần nhiều ngày.
+- Sacral (Generator/MG): chỉ biết hồi đáp, không biết khởi xướng. Cần có thứ để
+  đáp (câu hỏi, tình huống) - câu hỏi có/không là chìa khóa. Bỏ qua Sacral mà
+  quyết bằng đầu thì Frustration và kiệt sức là chắc chắn.
+- Splenic: trực giác tức thì về an toàn/sức khỏe - nói một lần, khẽ, rồi thôi.
+  Không nghe lúc đó thì mất. Luyện bằng cách tin cảm nhận đầu tiên.
+- Ego (Heart): hỏi "ta có thật sự muốn và đủ ý chí cam kết?". Thẩm quyền của
+  lời hứa - đã hứa thì làm, nên đừng hứa bừa.
+- Self-Projected (G định nghĩa): nói ra để nghe rõ mình. Cần người lắng nghe
+  đúng (không chen quyết hộ) - clarity đến qua tiếng nói của chính mình.
+- Mental/Environment (Projector chỉ định nghĩa trên Họng): không có thẩm quyền
+  nội tại - phải ở đúng không gian vật lý, nói với đúng người, môi trường là
+  tấm bảng dội âm. Ép quyết một mình trong phòng kín là sai cách.
+- Lunar (Reflector): quyết lớn chờ đủ chu kỳ mặt trăng ~28 ngày để đi qua đủ
+  góc nhìn và năng lượng rồi clarity tự hiện.
+
+## Trình tự vận hành đúng khi đứng trước quyết định
+
+- Bước 1 - Đọc đèn báo: Frustration, cay đắng, giận dữ hay thất vọng đang sáng?
+  Đó là tín hiệu not-self, không phải dữ liệu quyết định.
+- Bước 2 - Dừng trí: trí là hành khách quan sát, không phải tài xế. Nói thầm
+  "đây là điều kiện hóa đang nói" rồi đặt trí sang ghế phụ.
+- Bước 3 - Hỏi đúng cơ chế của thẩm quyền mình: Emotional thì hẹn lại sau sóng,
+  Sacral thì xin câu hỏi có/không, Splenic thì nín thở nghe cảm nhận đầu, Ego
+  thì kiểm tra ý chí thật, Self thì nói ra, Mental thì đổi chỗ và tìm người để
+  nói, Lunar thì ghi lại và hẹn 28 ngày sau.
+- Bước 4 - Kiên trì với kết quả cơ thể đưa ra dù trí phản đối - mỗi quyết định
+  đúng là một viên gạch gỡ điều kiện hóa.

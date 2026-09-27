@@ -7,7 +7,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from ..deps import client_ip, get_db, require_admin
-from ..models import User, UserSession
+from ..models import ChatMessage, ChatSession, Client, Report, User, UserSession
 from ..schemas import UserCreate, UserOut, UserUpdate
 from ..security import hash_password
 from ..services import audit
@@ -66,3 +66,31 @@ def update_user(user_id: int, payload: UserUpdate, request: Request, admin: User
           fields=sorted(payload.model_dump(exclude_unset=True, exclude={"password"})) + (["password"] if payload.password else []))
     db.commit()
     return user_out(user)
+
+
+@router.delete("/{user_id}", status_code=204)
+def delete_user(user_id: int, request: Request, admin: User = Depends(require_admin),
+                db: Session = Depends(get_db)) -> None:
+    """Xóa hẳn tài khoản trống (chưa có khách hàng/báo cáo). Tài khoản có dữ liệu thì dùng Khóa."""
+    user = _get(db, admin, user_id)
+    if user.id == admin.id:
+        raise HTTPException(status_code=422, detail="Không thể xóa tài khoản của chính mình.")
+    # Không cần chặn "admin cuối cùng": người xóa luôn là một admin khác còn hoạt động.
+    n_clients = db.scalar(select(func.count()).select_from(Client).where(
+        Client.owner_user_id == user.id, Client.deleted_at.is_(None))) or 0
+    n_reports = db.scalar(select(func.count()).select_from(Report).where(Report.created_by == user.id)) or 0
+    if n_clients or n_reports:
+        parts = []
+        if n_clients:
+            parts.append(f"{n_clients} khách hàng")
+        if n_reports:
+            parts.append(f"{n_reports} báo cáo")
+        raise HTTPException(status_code=409,
+                            detail=f"Tài khoản còn phụ trách {' và '.join(parts)}, không thể xóa hẳn. Hãy dùng Khóa tài khoản.")
+    db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    chat_ids = select(ChatSession.id).where(ChatSession.user_id == user.id)
+    db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(chat_ids)))
+    db.execute(delete(ChatSession).where(ChatSession.user_id == user.id))
+    audit(db, admin, "user.delete", "user", user.id, ip=client_ip(request), email=user.email)
+    db.delete(user)
+    db.commit()

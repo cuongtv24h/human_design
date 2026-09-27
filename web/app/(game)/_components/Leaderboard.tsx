@@ -1,0 +1,86 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { STYLES } from "@/lib/game/content";
+import { getRuntimeConcepts } from "@/lib/game/runtime";
+import { useGameConfig } from "@/lib/game/use-game-config";
+import type { GameScoreOut } from "@/lib/types";
+
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+export default function Leaderboard() {
+  const { config } = useGameConfig();
+  const themes = getRuntimeConcepts(config).filter((c) => c.enabled);
+  const [tab, setTab] = useState(() => getRuntimeConcepts(null)[0]?.slug ?? "nguoc-dong");
+  const active = themes.some((t) => t.slug === tab) ? tab : (themes[0]?.slug ?? tab);
+  const [rows, setRows] = useState<GameScoreOut[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setRows(null);
+    api
+      .get<GameScoreOut[]>(`/public/game/scores?theme=${active}&limit=5`)
+      .then(
+        (r) => {
+          if (alive) setRows(r);
+        },
+        () => {
+          if (alive) setRows([]);
+        },
+      );
+    return () => {
+      alive = false;
+    };
+  }, [active]);
+
+  if (themes.length === 0) return null;
+  return (
+    <div>
+      <h2 className="text-center text-2xl font-black">🏆 Bảng vàng tuần này</h2>
+      <p className="mt-1 text-center text-sm text-white/60">
+        Độ lệch càng thấp, sống càng đúng thiết kế — ẩn danh hoàn toàn
+      </p>
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        {themes.map((t) => (
+          <button
+            key={t.slug}
+            type="button"
+            onClick={() => setTab(t.slug)}
+            className={`rounded-full px-4 py-2 text-sm font-bold ${
+              active === t.slug ? "bg-amber-300 text-[#14122b]" : "border border-white/20 hover:bg-white/10"
+            }`}
+          >
+            {t.icon} {t.name}
+          </button>
+        ))}
+      </div>
+      <div className="mx-auto mt-3 max-w-md space-y-1.5">
+        {rows === null ? (
+          <p className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center text-sm text-white/50">
+            Đang tải bảng vàng…
+          </p>
+        ) : rows.length === 0 ? (
+          <p className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center text-sm text-white/60">
+            Chưa có ai ghi danh — đối chiếu xong, bạn có thể là người đầu tiên.
+          </p>
+        ) : (
+          rows.map((r, i) => {
+            const st = (STYLES as Record<string, { icon: string; name: string }>)[r.style];
+            return (
+              <div
+                key={`${r.created_at}-${i}`}
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5"
+              >
+                <span className="w-7 text-center font-black">{MEDALS[i] ?? `#${i + 1}`}</span>
+                <span className="text-2xl">{st?.icon ?? "✨"}</span>
+                <span className="flex-1 text-sm font-bold">{st?.name ?? "Ẩn danh"}</span>
+                <span className="text-sm font-black text-amber-200">lệch {r.deviation}%</span>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}

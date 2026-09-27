@@ -32,6 +32,7 @@ def _validated(payload: ClientIn) -> ClientIn:
 @router.get("", response_model=ClientList)
 def list_clients(
     q: str = "", limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
+    order: str = Query("updated", pattern="^(updated|recent)$"),
     user: User = Depends(current_user), db: Session = Depends(get_db),
 ) -> ClientList:
     query = visible_clients(user)
@@ -40,7 +41,18 @@ def list_clients(
         query = query.where(or_(func.lower(Client.full_name).like(like), func.lower(Client.email).like(like),
                                 Client.phone.like(like)))
     total = db.scalar(select(func.count()).select_from(query.subquery())) or 0
-    rows = db.scalars(query.order_by(Client.updated_at.desc()).limit(limit).offset(offset)).all()
+    if order == "recent":
+        # Tương tác gần nhất của user hiện tại (tạo báo cáo) trước, rồi tới khách mới nhất.
+        last_touch = (
+            select(func.max(Report.created_at))
+            .where(Report.client_id == Client.id, Report.created_by == user.id)
+            .correlate(Client)
+            .scalar_subquery()
+        )
+        query = query.order_by(last_touch.desc().nulls_last(), Client.created_at.desc())
+    else:
+        query = query.order_by(Client.updated_at.desc())
+    rows = db.scalars(query.limit(limit).offset(offset)).all()
     return ClientList(items=[client_out(db, c) for c in rows], total=total)
 
 

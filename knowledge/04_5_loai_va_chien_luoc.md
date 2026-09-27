@@ -1,7 +1,9 @@
 # 5 LOẠI NĂNG LƯỢNG - CHIẾN LƯỢC - THẨM QUYỀN
 
+> Tỉ lệ Type chuẩn sách: 37/33/20/9/1 (mẫu thống kê human.design 2026: 35.0/30.6/21.9/11.1/1.5).
+
 ## 1. GENERATOR (Người Kiến Tạo) - 37% dân số
-**Dấu hiệu BodyGraph**: Sacral định nghĩa, Throat KHÔNG nối trực tiếp với Motor (hoặc có nhưng không phải Manifestor)
+**Dấu hiệu BodyGraph**: Sacral định nghĩa, Throat KHÔNG nối với Motor (nếu Sacral + Throat nối Motor thì là Manifesting Generator)
 
 **Năng lượng**: Aura mở, bao bọc, hút. Có năng lượng bền bỉ, làm việc.
 
@@ -117,20 +119,22 @@ Sacral định nghĩa, không có kênh Motor-Throat.
 
 Thứ tự ưu tiên từ cao xuống thấp:
 
+> Tỉ lệ theo thống kê human.design (~432.000 đồ thị, 2026).
+
 1. **Emotional - Solar Plexus (50% dân số)**: Có Solar Plexus định nghĩa. Không có sự thật trong khoảnh khắc. Cần chờ sóng cảm xúc đi qua, đạt đến sự rõ ràng theo thời gian. "Để tôi ngủ qua đêm". Không quyết định khi đang ở đỉnh cao hay đáy sâu cảm xúc.
 
-2. **Sacral (35% - Generator)**: Có Sacral định nghĩa, Solar Plexus mở. Quyết định ngay lập tức qua tiếng bụng uh-huh/uh-uh. Tin vào phản ứng cơ thể.
+2. **Sacral (32.9% - Generator)**: Có Sacral định nghĩa, Solar Plexus mở. Quyết định ngay lập tức qua tiếng bụng uh-huh/uh-uh. Tin vào phản ứng cơ thể.
 
-3. **Splenic (10%)**: Spleen định nghĩa, Sacral và Solar Plexus mở. Trực giác tức thì, nói một lần, rất khẽ, trong hiện tại. Liên quan đến sức khỏe, an toàn. Không lặp lại. Phải tin ngay.
+3. **Splenic (9.5%)**: Spleen định nghĩa, Sacral và Solar Plexus mở. Trực giác tức thì, nói một lần, rất khẽ, trong hiện tại. Liên quan đến sức khỏe, an toàn. Không lặp lại. Phải tin ngay.
 
-4. **Ego/Heart Manifested & Projected**:
+4. **Ego/Heart Manifested (0.8%) & Projected (0.4%)**:
    - Ego Manifested: Heart nối Throat, dưới Heart mở. Có thể tự biểu hiện ý chí.
    - Ego Projected: Heart nối G, cần được mời. Hỏi: "Tôi có muốn cam kết ý chí của mình cho điều này không?"
 
-5. **Self-Projected (G-Center)**: G định nghĩa, Sacral, Solar, Spleen, Heart mở. Cần nói ra thành tiếng với người tin cậy để nghe sự thật của mình. "Tôi biết..." Sự thật đến qua giọng nói.
+5. **Self-Projected (G-Center, 2.9%)**: G định nghĩa, Sacral, Solar, Spleen, Heart mở. Cần nói ra thành tiếng với người tin cậy để nghe sự thật của mình. "Tôi biết..." Sự thật đến qua giọng nói.
 
-6. **Mental/Environment (Mental Projector)**: Không có trung tâm nào dưới Throat định nghĩa. Cần sounding board (bảng vang) - nói chuyện với nhiều người tin cậy ở môi trường đúng để nghe mình. Không tìm lời khuyên, tìm sự phản chiếu.
+6. **Mental/Environment (Mental Projector, 2.0%)**: Không có trung tâm nào dưới Throat định nghĩa. Cần sounding board (bảng vang) - nói chuyện với nhiều người tin cậy ở môi trường đúng để nghe mình. Không tìm lời khuyên, tìm sự phản chiếu.
 
-7. **Lunar (Reflector)**: Chờ chu kỳ mặt trăng.
+7. **Lunar (Reflector, 1.5%)**: Chờ chu kỳ mặt trăng.
 
 > **Quan trọng**: Tâm trí (Mind) KHÔNG BAO GIỜ là Authority. Tâm trí để đo lường, không phải để ra quyết định.

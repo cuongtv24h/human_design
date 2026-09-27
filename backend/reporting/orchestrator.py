@@ -8,6 +8,8 @@ Two presentation templates are supported (see ``docs/NARRATIVE_STANDARD.md``):
 - ``sections`` (default): deterministic structured sections per tier.
 - ``operating_manual``: the 5-part narrative standard, rendered by
   ``backend/reporting/narrative.py`` on top of ``language_vn.py``.
+- custom keys: organization/shared templates resolved by the API layer into
+  ``options["custom_template"]`` (see ``backend/reporting/blocks.py``).
 """
 
 from __future__ import annotations
@@ -32,7 +34,19 @@ from hd_calculator import (  # noqa: E402
 from hd_analyzer import CENTER_ANALYSIS, PROFILE_ANALYSIS, TYPE_ANALYSIS  # noqa: E402
 from hd_time import local_to_utc  # noqa: E402
 
-from .catalog import DOMAIN_SPECS, SectionSpec, get_manual_spec, get_plan_definition  # noqa: E402
+from .blocks import (  # noqa: E402
+    BLOCK_KIND_TO_SECTION_KIND,
+    build_block_context,
+    render_block,
+)
+from .catalog import (  # noqa: E402
+    CORE_SECTIONS,
+    DOMAIN_SPECS,
+    NARRATIVE_SECTIONS,
+    SectionSpec,
+    get_manual_spec,
+    get_plan_definition,
+)
 from .language_vn import (  # noqa: E402
     CROSS_FRAMING,
     CROSS_TYPE_LANGUAGE,
@@ -45,6 +59,7 @@ from .language_vn import (  # noqa: E402
 )
 from .contract import (  # noqa: E402
     DomainName,
+    ReportDefinition,
     ReportDocument,
     ReportPlan,
     ReportProvenance,
@@ -53,6 +68,7 @@ from .contract import (  # noqa: E402
     ReportTemplate,
 )
 from .narrative import render_operating_manual  # noqa: E402
+from .llm_editor import template_knowledge_appendix  # noqa: E402
 
 # Domain analyzers are deliberately imported from tools/, rather than copied
 # into the application layer.  ``None`` means that a formatter is not needed
@@ -64,12 +80,15 @@ from hd_money_analysis import analyze_money_map, format_money_report  # noqa: E4
 from hd_potential_analysis import analyze_potential_blindspots, format_potential_report  # noqa: E402
 from hd_purpose_analysis import analyze_purpose, format_purpose_report  # noqa: E402
 from hd_relationship_analysis import analyze_relationship, format_relationship_report  # noqa: E402
+from hd_career_analysis import analyze_career, format_career_report  # noqa: E402
+from hd_parenting_analysis import analyze_parenting, format_parenting_report  # noqa: E402
 from hd_team_analysis import analyze_team, format_team_report  # noqa: E402
+from hd_transits import transit_snapshot  # noqa: E402
 
 
 ORCHESTRATOR_VERSION = "0.2.0"
 CALCULATOR_VERSION = "pyswisseph 2.10.3.2 / Human Design calculator"
-KNOWLEDGE_VERSION = "2026-09-24"
+KNOWLEDGE_VERSION = "2026-09-28"
 
 
 def _parse_birth_datetime(date_text: str, time_text: str, timezone_text: str) -> datetime:
@@ -256,6 +275,21 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             "authority": chart["authority"],
         }
         markdown = "\n".join(f"- {item}" for item in data["first_7_days"])
+        try:
+            snap = transit_snapshot(chart["birth_datetime"])
+            hits = [f"{h['planet']}→{h['center']} mở" for h in snap["undefined_hits"]]
+            elec = [f"{e['planet']} nối kênh {e['channel']}" for e in snap["electromagnetics"]]
+            data["transit_today"] = {
+                "asof": snap["asof"], "undefined_hits": snap["undefined_hits"],
+                "electromagnetics": snap["electromagnetics"],
+            }
+            extra = [f"Transit hôm nay ({snap['asof']:%Y-%m-%d}): " +
+                     (", ".join(hits) if hits else "không hành tinh nào vào trung tâm mở") + "."]
+            if elec:
+                extra.append("Nối điện từ với cổng treo natal: " + ", ".join(elec) + ".")
+            markdown += "\n" + "\n".join(f"- {item}" for item in extra)
+        except Exception:
+            pass
     else:
         raise KeyError(f"Unknown core section: {spec.id}")
     return _json_safe(data), markdown
@@ -276,7 +310,70 @@ _DOMAIN_ADAPTERS: dict[
     DomainName.DECONDITIONING: (analyze_deconditioning, format_deconditioning_report),
     DomainName.PURPOSE: (analyze_purpose, format_purpose_report),
     DomainName.TEAM: (analyze_team, format_team_report),
+    DomainName.PARENTING: (analyze_parenting, format_parenting_report),
+    DomainName.CAREER: (analyze_career, format_career_report),
 }
+
+
+def _domain_data_and_markdown(domain, chart, subject_name, partner_name="", partner_datetime=None):
+    """Run one domain adapter (shared by builtin and custom template paths)."""
+    analyzer, formatter = _DOMAIN_ADAPTERS[domain]
+    if domain == DomainName.MONEY or domain == DomainName.POTENTIAL:
+        raw = analyzer(chart, subject_name)
+    elif domain == DomainName.RELATIONSHIP:
+        raw = analyzer(chart, subject_name, partner_datetime, partner_name)
+    else:
+        # Domain adapters consume the same calculated chart snapshot;
+        # they do not recalculate the subject's chart.
+        raw = analyzer(chart, subject_name)
+    return _json_safe(raw), formatter(raw)
+
+
+def _partner_args(request, domain):
+    if domain == DomainName.RELATIONSHIP and request.partner is not None:
+        return (request.partner.name,
+                _parse_birth_datetime(request.partner.birth_date, request.partner.birth_time,
+                                      request.partner.timezone))
+    return "", None
+
+
+def _plan_domains(request, domains):
+    section_ids, source_tools, knowledge_refs = [], [], []
+    for domain in domains:
+        domain_spec = DOMAIN_SPECS[domain]
+        section_ids.append(f"domain_{domain.value}")
+        source_tools.extend((domain_spec.analyzer_tool, domain_spec.formatter_tool))
+        knowledge_refs.extend(domain_spec.knowledge_refs)
+    return section_ids, source_tools, knowledge_refs
+
+
+def _custom_template(request):
+    """Snapshot injected by the API layer when ``template`` is a custom key."""
+    if isinstance(request.template, ReportTemplate):
+        return None
+    snap = (request.options or {}).get("custom_template")
+    if not isinstance(snap, dict) or not snap.get("sections"):
+        raise ValueError(f"Unknown report template: {request.template!r}")
+    return snap
+
+
+def _custom_extra_domains(request, custom):
+    """request.domains chưa có sẵn trong mẫu (tránh trùng section)."""
+    present = {e.get("ref", "") for e in custom.get("sections", []) if e.get("type") == "builtin"}
+    return [d for d in request.domains if f"domain_{d.value}" not in present]
+
+
+def _part_to_section(part, order):
+    return ReportSection(
+        id=part["id"],
+        title=part["title"],
+        kind=part["kind"],  # type: ignore[arg-type]
+        order=order,
+        data=part["data"],
+        content_markdown=part["markdown"],
+        source_tools=part["source_tools"],
+        knowledge_refs=part["knowledge_refs"],
+    )
 
 
 class ReportOrchestrator:
@@ -293,7 +390,47 @@ class ReportOrchestrator:
         self.calculator_version = calculator_version
         self.knowledge_version = knowledge_version
 
+    def _build_custom_plan(self, request: ReportRequest, custom: dict[str, Any]) -> ReportPlan:
+        by_id = {spec.id: spec for spec in (*CORE_SECTIONS, *NARRATIVE_SECTIONS)}
+        section_ids: list[str] = []
+        source_tools: list[str] = []
+        knowledge_refs: list[str] = []
+        for entry in custom["sections"]:
+            section_ids.append(entry["id"])
+            if entry.get("type") != "builtin":
+                continue
+            ref = entry.get("ref", "")
+            if ref in by_id:
+                source_tools.extend(by_id[ref].source_tools)
+                knowledge_refs.extend(by_id[ref].knowledge_refs)
+            elif ref.startswith("domain_"):
+                domain_spec = DOMAIN_SPECS[DomainName(ref[len("domain_"):])]
+                source_tools.extend((domain_spec.analyzer_tool, domain_spec.formatter_tool))
+                knowledge_refs.extend(domain_spec.knowledge_refs)
+        dom_ids, dom_tools, dom_refs = _plan_domains(request, _custom_extra_domains(request, custom))
+        section_ids += dom_ids
+        source_tools += dom_tools
+        knowledge_refs += dom_refs
+        definition = ReportDefinition(
+            key=str(request.template),
+            title=str(custom.get("name", "Báo cáo tùy chỉnh")),
+            tier=request.tier,
+            section_ids=list(section_ids),
+            description=str(custom.get("description", "")),
+        )
+        return ReportPlan(
+            definition_key=definition.key,
+            tier=request.tier,
+            domains=request.domains,
+            section_ids=section_ids,
+            source_tools=list(dict.fromkeys(source_tools)),
+            knowledge_refs=list(dict.fromkeys(knowledge_refs)),
+        )
+
     def build_plan(self, request: ReportRequest) -> ReportPlan:
+        custom = _custom_template(request)
+        if custom is not None:
+            return self._build_custom_plan(request, custom)
         if request.template is ReportTemplate.OPERATING_MANUAL:
             definition, core_specs = get_manual_spec()
         else:
@@ -304,11 +441,10 @@ class ReportOrchestrator:
         for spec in core_specs:
             source_tools.extend(spec.source_tools)
             knowledge_refs.extend(spec.knowledge_refs)
-        for domain in request.domains:
-            domain_spec = DOMAIN_SPECS[domain]
-            section_ids.append(f"domain_{domain.value}")
-            source_tools.extend((domain_spec.analyzer_tool, domain_spec.formatter_tool))
-            knowledge_refs.extend(domain_spec.knowledge_refs)
+        dom_ids, dom_tools, dom_refs = _plan_domains(request, request.domains)
+        section_ids += dom_ids
+        source_tools += dom_tools
+        knowledge_refs += dom_refs
         return ReportPlan(
             definition_key=definition.key,
             tier=request.tier,
@@ -318,6 +454,72 @@ class ReportOrchestrator:
             knowledge_refs=list(dict.fromkeys(knowledge_refs)),
         )
 
+    def _run_custom_sections(
+        self, request: ReportRequest, custom: dict[str, Any], chart: dict[str, Any]
+    ) -> tuple[list[ReportSection], list[str]]:
+        by_id = {spec.id: spec for spec in (*CORE_SECTIONS, *NARRATIVE_SECTIONS)}
+        core_ids = {spec.id for spec in CORE_SECTIONS}
+        narrative_parts = None
+        context = None
+        sections: list[ReportSection] = []
+        warnings: list[str] = []
+        for order, entry in enumerate(custom["sections"]):
+            sid = entry.get("id", f"custom_{order}")
+            try:
+                if entry.get("type") == "builtin":
+                    ref = entry.get("ref", "")
+                    title_override = entry.get("title_override", "") or ""
+                    if ref in core_ids:
+                        spec = by_id[ref]
+                        data, markdown = _core_section(spec, chart, request.subject.name)
+                        sections.append(ReportSection(
+                            id=sid, title=title_override or spec.title, kind=spec.kind,  # type: ignore[arg-type]
+                            order=order, data=data, content_markdown=markdown,
+                            source_tools=list(spec.source_tools),
+                            knowledge_refs=list(spec.knowledge_refs)))
+                    elif ref in by_id:
+                        if narrative_parts is None:
+                            narrative_parts = {p["id"]: p for p in
+                                               render_operating_manual(chart, request.subject.name)}
+                        section = _part_to_section(narrative_parts[ref], order)
+                        section.id = sid
+                        if title_override:
+                            section.title = title_override
+                        sections.append(section)
+                    elif ref.startswith("domain_"):
+                        domain = DomainName(ref[len("domain_"):])
+                        partner_name, partner_datetime = _partner_args(request, domain)
+                        data, markdown = _domain_data_and_markdown(
+                            domain, chart, request.subject.name, partner_name, partner_datetime)
+                        domain_spec = DOMAIN_SPECS[domain]
+                        sections.append(ReportSection(
+                            id=sid, title=title_override or domain_spec.title, kind="domain",
+                            order=order, data=data, content_markdown=markdown,
+                            source_tools=[domain_spec.analyzer_tool, domain_spec.formatter_tool],
+                            knowledge_refs=list(domain_spec.knowledge_refs)))
+                    else:
+                        raise KeyError(f"Unknown builtin section ref: {ref!r}")
+                else:
+                    if context is None:
+                        context = build_block_context(
+                            chart, request.subject.model_dump(),
+                            (request.options or {}).get("org_vars") or {})
+                    markdown, block_warnings = render_block(entry.get("body", ""), context)
+                    for warning in block_warnings:
+                        warnings.append(f"Section {sid}: {warning}")
+                    kind = BLOCK_KIND_TO_SECTION_KIND.get(entry.get("kind", "core"), "core")
+                    sections.append(ReportSection(
+                        id=sid, title=entry.get("title", "") or "Khối nội dung", kind=kind,  # type: ignore[arg-type]
+                        order=order, data={"block": entry.get("name", sid)},
+                        content_markdown=markdown, source_tools=["template_block"], knowledge_refs=[]))
+            except Exception as exc:
+                warning = f"Section {sid} failed: {exc}"
+                warnings.append(warning)
+                sections.append(ReportSection(
+                    id=sid, title=entry.get("title", "") or sid, kind="core", order=order,
+                    status="failed", warnings=[warning]))
+        return sections, warnings
+
     def _run_narrative_sections(
         self, chart: dict[str, Any], name: str
     ) -> tuple[list[ReportSection], list[str]]:
@@ -326,18 +528,7 @@ class ReportOrchestrator:
         warnings: list[str] = []
         for order, part in enumerate(render_operating_manual(chart, name)):
             try:
-                sections.append(
-                    ReportSection(
-                        id=part["id"],
-                        title=part["title"],
-                        kind=part["kind"],  # type: ignore[arg-type]
-                        order=order,
-                        data=part["data"],
-                        content_markdown=part["markdown"],
-                        source_tools=part["source_tools"],
-                        knowledge_refs=part["knowledge_refs"],
-                    )
-                )
+                sections.append(_part_to_section(part, order))
             except Exception as exc:  # keep an auditable failed section
                 warning = f"Section {part['id']} failed: {exc}"
                 warnings.append(warning)
@@ -368,7 +559,11 @@ class ReportOrchestrator:
         sections: list[ReportSection] = []
         warnings: list[str] = []
 
-        if request.template is ReportTemplate.OPERATING_MANUAL:
+        custom = _custom_template(request)
+        if custom is not None:
+            sections, section_warnings = self._run_custom_sections(request, custom, chart)
+            warnings.extend(section_warnings)
+        elif request.template is ReportTemplate.OPERATING_MANUAL:
             sections, section_warnings = self._run_narrative_sections(chart, request.subject.name)
             warnings.extend(section_warnings)
         else:
@@ -405,35 +600,14 @@ class ReportOrchestrator:
                     )
 
         next_order = len(sections)
-        for domain in request.domains:
+        extra_domains = _custom_extra_domains(request, custom) if custom is not None else request.domains
+        for domain in extra_domains:
             domain_spec = DOMAIN_SPECS[domain]
-            analyzer, formatter = _DOMAIN_ADAPTERS[domain]
             section_id = f"domain_{domain.value}"
             try:
-                if domain == DomainName.MONEY or domain == DomainName.POTENTIAL:
-                    raw = analyzer(chart, request.subject.name)
-                elif domain == DomainName.RELATIONSHIP:
-                    partner_datetime = None
-                    partner_name = ""
-                    if request.partner is not None:
-                        partner_datetime = _parse_birth_datetime(
-                            request.partner.birth_date,
-                            request.partner.birth_time,
-                            request.partner.timezone,
-                        )
-                        partner_name = request.partner.name
-                    raw = analyzer(
-                        chart,
-                        request.subject.name,
-                        partner_datetime,
-                        partner_name,
-                    )
-                else:
-                    # Domain adapters consume the same calculated chart snapshot;
-                    # they do not recalculate the subject's chart.
-                    raw = analyzer(chart, request.subject.name)
-                data = _json_safe(raw)
-                markdown = formatter(raw)
+                partner_name, partner_datetime = _partner_args(request, domain)
+                data, markdown = _domain_data_and_markdown(
+                    domain, chart, request.subject.name, partner_name, partner_datetime)
                 sections.append(
                     ReportSection(
                         id=section_id,
@@ -463,6 +637,13 @@ class ReportOrchestrator:
                 )
             next_order += 1
 
+        # Lam giau template: moi section kem khoi "Doc them" tu kho tri thuc.
+        for section in sections:
+            if section.status == "included" and section.knowledge_refs:
+                appendix = template_knowledge_appendix(section)
+                if appendix:
+                    section.content_markdown = section.content_markdown.rstrip() + "\n\n" + appendix
+
         generated_at = datetime.now(timezone.utc)
         provenance = ReportProvenance(
             orchestrator_version=self.orchestrator_version,
@@ -473,7 +654,9 @@ class ReportOrchestrator:
             knowledge_refs=plan.knowledge_refs,
         )
         display_name = request.subject.name or "Customer"
-        if request.template is ReportTemplate.OPERATING_MANUAL:
+        if custom is not None:
+            title = f"{custom.get('name', 'Báo cáo')} cho {display_name}"
+        elif request.template is ReportTemplate.OPERATING_MANUAL:
             title = f"Bản Thiết Kế Bản Thân — Cẩm Nang Vận Hành cho {display_name}"
         else:
             title = f"Human Design Report - {display_name}"

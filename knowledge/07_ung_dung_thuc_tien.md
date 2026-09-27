@@ -5,7 +5,7 @@
 Human Design nói rằng chúng ta bị điều kiện hóa bởi:
 - Trung tâm mở (nhận năng lượng người khác)
 - Gia đình, xã hội, trường học
-- Quá trình này mất 7 năm để tế bào cơ thể thay mới hoàn toàn (chu kỳ Uranus)
+- Quá trình này mất 7 năm để tế bào cơ thể thay mới hoàn toàn (chu kỳ sao Thổ Saturn)
 
 **Thực hành**: Sống đúng Strategy + Authority trong 7 năm.
 
@@ -13,7 +13,8 @@ Human Design nói rằng chúng ta bị điều kiện hóa bởi:
 
 - **Electromagnetic**: Khi 1 người có cổng này, người kia có cổng đối diện tạo thành kênh => sức hút mạnh, nhưng cũng xung đột
 - **Dominance**: Một người định nghĩa trung tâm mà người kia mở => người định nghĩa chi phối
-- **Compromise**: Cả 2 có cùng cổng nhưng khác line? Một người có kênh định nghĩa, người kia có 1 cổng trong kênh đó
+- **Compromise**: Một người có kênh định nghĩa sẵn, người kia chỉ có 1 cổng treo trong kênh đó — bên một cổng phải bẻ mình theo, ma sát một chiều lặp lại
+- **Companionship**: Cả hai cùng có sẵn kênh đầy đủ — dễ dàng, quen thuộc, ít ma sát nhưng đôi khi thiếu lửa
 - **Không có kết nối**: Không có kênh nào nối
 
 ## 3. Human Design trong công việc
@@ -47,6 +48,11 @@ Cần tính toán chính xác đến Color/Tone/Base (đòi hỏi giờ sinh c�
 - **Incarnation Cross chi tiết**: 192 Cross với tên và mô tả
 - **Godhead**: 16 vị thần của Mandala
 - **Dream Rave**: Phân tích giấc mơ
+- **Transit và chu kỳ lớn**: engine `hd_transits` tính Solar return hằng năm,
+  Jupiter/Saturn return, Uranus đối đỉnh (~42t) và Uranus return (~84t);
+  tra cứu qua tool chat `calculate_transits` (Chiron chưa tính)
+- **Variables/PHS**: engine `hd_variables` tính sẵn 4 mũi tên trong chart
+  (cần giờ sinh chính xác đến phút)
 
 ## 7. Lưu ý đạo đức khi phân tích
 

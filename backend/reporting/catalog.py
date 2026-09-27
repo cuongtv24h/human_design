@@ -32,9 +32,9 @@ class DomainSpec:
 CORE_SECTIONS: tuple[SectionSpec, ...] = (
     SectionSpec("summary", "Tóm tắt chart", "summary", ("calculate_hd_chart",), ("00_tong_quan_he_thong.md",)),
     SectionSpec("type_strategy_authority", "Loại năng lượng · Chiến lược · Quyền nội tại (Type · Strategy · Authority)", "core", ("calculate_hd_chart",), ("04_5_loai_va_chien_luoc.md",)),
-    SectionSpec("profile_definition", "Nhân cách & Định nghĩa (Profile · Definition)", "core", ("calculate_hd_chart",), ("05_profile_cross_definition.md",)),
+    SectionSpec("profile_definition", "Nhân cách & Định nghĩa (Profile · Definition)", "core", ("calculate_hd_chart",), ("05_profile_cross_definition.md", "21_profile_lines_chuyen_sau.md",)),
     SectionSpec("centers", "9 trung tâm năng lượng (9 Centers)", "core", ("calculate_hd_chart",), ("02_9_trung_tam.md",)),
-    SectionSpec("channels_gates", "Kênh & Cổng (Channels & Gates)", "core", ("calculate_hd_chart",), ("01_mandala_64_cong.md", "03_36_kenh.md")),
+    SectionSpec("channels_gates", "Kênh & Cổng (Channels & Gates)", "core", ("calculate_hd_chart",), ("01_mandala_64_cong.md", "03_36_kenh.md", "24_64_cong_chi_tiet.md")),
     SectionSpec("cross", "Chữ thập hóa thân (Incarnation Cross)", "core", ("calculate_hd_chart",), ("08_192_incarnation_crosses_chi_tiet.md",)),
     SectionSpec("practical_actions", "Ứng dụng thực tiễn", "practice", ("calculate_hd_chart",), ("07_ung_dung_thuc_tien.md",)),
 )
@@ -42,12 +42,14 @@ CORE_SECTIONS: tuple[SectionSpec, ...] = (
 DOMAIN_SPECS: dict[DomainName, DomainSpec] = {
     DomainName.MONEY: DomainSpec(DomainName.MONEY, "Money & Wealth", "analyze_money_map", "format_money_report", ("13_money_wealth_full_map.md",)),
     DomainName.POTENTIAL: DomainSpec(DomainName.POTENTIAL, "Potential & Blind Spots", "analyze_potential_blindspots", "format_potential_report", ("14_potential_blindspots.md",)),
-    DomainName.HEALTH: DomainSpec(DomainName.HEALTH, "Health Thân-Tâm-Trí", "analyze_health", "format_health_report", ("15_health_than_tam_tri.md",)),
-    DomainName.RELATIONSHIP: DomainSpec(DomainName.RELATIONSHIP, "Relationship & Intimacy", "analyze_relationship", "format_relationship_report", ("16_relationship_intimacy_deep.md",)),
+    DomainName.HEALTH: DomainSpec(DomainName.HEALTH, "Health Thân-Tâm-Trí", "analyze_health", "format_health_report", ("15_health_than_tam_tri.md", "25_phs_variables_chuyen_sau.md",)),
+    DomainName.RELATIONSHIP: DomainSpec(DomainName.RELATIONSHIP, "Relationship & Intimacy", "analyze_relationship", "format_relationship_report", ("16_relationship_intimacy_deep.md", "10_dong_luc_tinh_yeu_ket_noi.md",)),
     DomainName.DECISION: DomainSpec(DomainName.DECISION, "Decision & Authority", "analyze_decision", "format_decision_report", ("17_decision_authority.md",)),
-    DomainName.DECONDITIONING: DomainSpec(DomainName.DECONDITIONING, "Deconditioning & Not-Self", "analyze_deconditioning", "format_deconditioning_report", ("18_deconditioning_notsel.md",)),
-    DomainName.PURPOSE: DomainSpec(DomainName.PURPOSE, "Purpose & Mission", "analyze_purpose", "format_purpose_report", ("19_purpose_mission_practical.md",)),
+    DomainName.DECONDITIONING: DomainSpec(DomainName.DECONDITIONING, "Deconditioning & Not-Self", "analyze_deconditioning", "format_deconditioning_report", ("18_deconditioning_notsel.md", "09_tam_ly_so_hai_co_che_tri_oc.md",)),
+    DomainName.PURPOSE: DomainSpec(DomainName.PURPOSE, "Purpose & Mission", "analyze_purpose", "format_purpose_report", ("19_purpose_mission_practical.md", "26_chu_de_nang_cao.md", "27_gene_keys_64_chi_tiet.md")),
     DomainName.TEAM: DomainSpec(DomainName.TEAM, "Team & Leadership", "analyze_team", "format_team_report", ("20_team_leadership_dynamics.md",)),
+    DomainName.PARENTING: DomainSpec(DomainName.PARENTING, "Parenting by Design", "analyze_parenting", "format_parenting_report", ("22_nuoi_day_con_theo_thiet_ke.md",)),
+    DomainName.CAREER: DomainSpec(DomainName.CAREER, "Career & Business", "analyze_career", "format_career_report", ("23_career_business_deep.md",)),
 }
 
 FREE_BASIC_SECTION_SPECS = (CORE_SECTIONS[0], CORE_SECTIONS[1], CORE_SECTIONS[2], CORE_SECTIONS[3], CORE_SECTIONS[6])
@@ -77,14 +79,14 @@ NARRATIVE_SECTIONS: tuple[SectionSpec, ...] = (
         "Phần 3 — Tháo gỡ gánh nặng: Những điều bạn đang gánh mà vốn không phải của bạn",
         "core",
         ("calculate_hd_chart", "language_vn"),
-        ("02_9_trung_tam.md", "18_deconditioning_notsel.md"),
+        ("02_9_trung_tam.md", "18_deconditioning_notsel.md", "09_tam_ly_so_hai_co_che_tri_oc.md"),
     ),
     SectionSpec(
         "part4_role_profile",
         "Phần 4 — Phong cách sống & vai diễn cuộc đời: Người bên trong và hình ảnh bên ngoài",
         "core",
         ("calculate_hd_chart", "language_vn"),
-        ("05_profile_cross_definition.md", "08_192_incarnation_crosses_chi_tiet.md"),
+        ("05_profile_cross_definition.md", "21_profile_lines_chuyen_sau.md", "08_192_incarnation_crosses_chi_tiet.md"),
     ),
     SectionSpec(
         "part5_field_application",

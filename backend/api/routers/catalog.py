@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from sqlalchemy import and_, or_, select
+from sqlalchemy.orm import Session
 
 from backend.reporting.catalog import CORE_SECTIONS, FREE_BASIC_SECTION_SPECS, NARRATIVE_SECTIONS
-from backend.reporting.llm_client import LLMConfig
+from ..models import ReportTemplate
 
-from ..deps import current_user
-from ..schemas import CatalogOption, CatalogOut, CatalogSection
+from ..deps import current_user, get_db
+from ..models import User
+from ..schemas import CatalogLlmProvider, CatalogOption, CatalogOut, CatalogSection
+from ..services import org_llm_configs
 
 from hd_time import VN_UTC_OFFSET, zone_label  # noqa: E402
 
@@ -41,6 +45,8 @@ DOMAINS = [
     CatalogOption(value="deconditioning", label="Gỡ bỏ điều kiện hóa (Deconditioning)"),
     CatalogOption(value="purpose", label="Sứ mệnh & Mục đích (Purpose)"),
     CatalogOption(value="team", label="Đội nhóm & Lãnh đạo (Team)"),
+    CatalogOption(value="parenting", label="Nuôi dạy con (Parenting)"),
+    CatalogOption(value="career", label="Sự nghiệp & Kinh doanh (Career)"),
 ]
 
 
@@ -48,16 +54,32 @@ def _sections(specs) -> list[CatalogSection]:
     return [CatalogSection(id=spec.id, title=spec.title) for spec in specs]
 
 
-@router.get("/catalog", response_model=CatalogOut, dependencies=[Depends(current_user)])
-def catalog() -> CatalogOut:
+@router.get("/catalog", response_model=CatalogOut)
+def catalog(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> CatalogOut:
+    chain = org_llm_configs(db, user.org_id, request.app.state.secret_key)
+    customs = db.scalars(select(ReportTemplate).where(
+        or_(and_(ReportTemplate.org_id == user.org_id, ReportTemplate.visibility == "private"),
+            ReportTemplate.visibility == "shared"),
+        ReportTemplate.status == "active").order_by(ReportTemplate.name)).all()
+    templates = list(TEMPLATES)
+    for tpl in customs:
+        shared = tpl.visibility == "shared"
+        templates.append(CatalogOption(
+            value=tpl.key, label=tpl.name,
+            description=tpl.description or f"Mẫu tùy chỉnh · {len(tpl.sections or [])} mục.",
+            badge=tpl.badge or ("Thư viện chung" if shared else "Studio"),
+            meta=tpl.origin_label if shared else f"{len(tpl.sections or [])} mục",
+            has_style=tpl.style_status == "ready"))
     return CatalogOut(
-        tiers=TIERS, templates=TEMPLATES, content_modes=CONTENT_MODES, domains=DOMAINS,
+        tiers=TIERS, templates=templates, content_modes=CONTENT_MODES, domains=DOMAINS,
         sections_by_tier={
             "free_basic": _sections(FREE_BASIC_SECTION_SPECS),
             "deep_core": _sections(CORE_SECTIONS),
             "operating_manual": _sections(NARRATIVE_SECTIONS),
         },
-        llm_available=LLMConfig.from_env() is not None,
+        llm_available=bool(chain),
+        llm_providers=[CatalogLlmProvider(name=c.name or f"Nhà cung cấp {i + 1}", model=c.model)
+                       for i, c in enumerate(chain)],
         timezone_default=VN_UTC_OFFSET,
         timezone_label=zone_label(VN_UTC_OFFSET),
     )

@@ -56,6 +56,22 @@ export function formatTimestamp(iso: string | null | undefined): string {
   return Number.isNaN(date.getTime()) ? iso : dtf.format(date);
 }
 
+/** USD cost: null/undefined (unknown price) -> "—". */
+export function formatUsd(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  if (value === 0) return "$0";
+  if (value < 0.01) return `$${value.toFixed(4)}`;
+  if (value < 100) return `$${value.toFixed(2)}`;
+  return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
+export function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 10_000) return `${(n / 1000).toFixed(1)}K`;
+  if (n >= 1000) return `${(n / 1000).toFixed(2)}K`;
+  return `${n}`;
+}
+
 export const STATUS_LABEL: Record<string, string> = {
   generating: "Đang tạo",
   ready: "Hoàn tất",
@@ -66,3 +82,40 @@ export const STATUS_LABEL: Record<string, string> = {
 export const TIER_LABEL: Record<string, string> = { free_basic: "Cơ bản", deep_core: "Chuyên sâu" };
 export const TEMPLATE_LABEL: Record<string, string> = { sections: "Theo mục", operating_manual: "Cẩm nang vận hành" };
 export const MODE_LABEL: Record<string, string> = { template: "Nội dung chuẩn", llm: "AI biên tập" };
+
+
+export const TEMPLATE_STATUS_LABEL: Record<string, string> = {
+  draft: "Nháp",
+  pending: "Chờ duyệt",
+  active: "Đang dùng",
+  rejected: "Bị từ chối",
+  archived: "Đã lưu trữ",
+};
+
+export const BLOCK_KIND_LABEL: Record<string, string> = {
+  intro: "Mở bài",
+  core: "Nội dung chính",
+  practice: "Thực hành",
+  outro: "Kết bài",
+  disclaimer: "Lưu ý",
+};
+
+export const SECTION_KIND_LABEL: Record<string, string> = {
+  summary: "Tóm tắt",
+  core: "Cốt lõi",
+  narrative: "Cẩm nang",
+  domain: "Chủ đề",
+};
+
+export const STYLE_STATUS_LABEL: Record<string, string> = {
+  none: "Chưa có",
+  ready: "Sẵn sàng",
+  stale: "Cần phân tích lại",
+};
+
+export const STYLE_SOURCE_LABEL: Record<string, string> = {
+  analyze: "Phân tích AI",
+  manual: "Sửa tay",
+  copy: "Sao chép",
+  restore: "Khôi phục",
+};

@@ -12,9 +12,9 @@ Human Design chia nhân loại thành 5 Types với Strategy, Signature, Not-Sel
 | Type | % Dân số | Aura | Strategy | Signature | Not-Self | Vai trò |
 |------|----------|------|----------|-----------|----------|---------|
 | **Manifestor** | 9% | Đóng, đẩy, bộc phát | Inform - Thông báo | Peace - Bình yên | Anger - Giận dữ | Khởi tạo, tiên phong |
-| **Generator** | 36% | Mở, bao bọc, hút | Respond - Chờ đáp ứng | Satisfaction - Hài lòng | Frustration - Thất vọng | Xây dựng, vận hành bền bỉ |
-| **MG** | 32% | Mở, nhanh, đa nhiệm | Respond + Inform | Satisfaction + Peace | Frustration + Anger | Đa nhiệm, tìm đường tắt |
-| **Projector** | 22% | Tập trung, xuyên thấu | Invitation - Chờ lời mời | Success - Thành công | Bitterness - Cay đắng | Hướng dẫn, quản lý năng lượng |
+| **Generator** | 37% | Mở, bao bọc, hút | Respond - Chờ đáp ứng | Satisfaction - Hài lòng | Frustration - Thất vọng | Xây dựng, vận hành bền bỉ |
+| **MG** | 33% | Mở, nhanh, đa nhiệm | Respond + Inform | Satisfaction + Peace | Frustration + Anger | Đa nhiệm, tìm đường tắt |
+| **Projector** | 20% | Tập trung, xuyên thấu | Invitation - Chờ lời mời | Success - Thành công | Bitterness - Cay đắng | Hướng dẫn, quản lý năng lượng |
 | **Reflector** | 1% | Lấy mẫu, phản chiếu | Lunar Cycle - Chu kỳ Mặt Trăng 28 ngày | Surprise - Ngạc nhiên | Disappointment - Thất vọng | Phản chiếu sức khỏe cộng đồng |
 
 ### Chi tiết từng Type
@@ -31,7 +31,7 @@ Human Design chia nhân loại thành 5 Types với Strategy, Signature, Not-Sel
 - **Relationship:** Aura đóng đẩy -> người khác e dè. Cần tự do, không thích bị kiểm soát, học cách thông báo. Tìm bình yên.
 - **Child:** Bẩm sinh biết mình muốn làm gì và khi nào. Vết thương khi cha mẹ áp đặt rào cản -> hình phạt tâm lý -> phản ứng mạnh mẽ/bạo lực khi lớn. Lời khuyên: Đừng kiểm soát, cho tự chủ trong khuôn khổ an toàn, dạy thông báo "Con sẽ làm..." thay vì xin phép, tôn trọng độc lập, cho không gian riêng, hiểu không có năng lượng bền bỉ, đừng trừng phạt khi tự ý - hỏi "Con đã thông báo chưa?", khen khi thông báo.
 
-#### Generator 36% - Người Xây Dựng
+#### Generator 37% - Người Xây Dựng
 
 - **Kỹ thuật:** Sacral defined (đỏ), Throat không nối trực tiếp với Motor hoặc không có Motor to Throat
 - **Aura:** Mở, bao bọc, hút. Thỏi nam châm thu hút cơ hội. Nguồn năng lượng bền bỉ của hành tinh.
@@ -43,7 +43,7 @@ Human Design chia nhân loại thành 5 Types với Strategy, Signature, Not-Sel
 - **Relationship:** Aura mở hút - thu hút mọi người. Cần được hỏi, không bị ép, tôn trọng tiếng Sacral, cần thời gian đáp ứng. Tìm hài lòng.
 - **Child:** Có năng lượng dồi dào nếu được làm điều mình thích. Vết thương bị ép học/làm việc không yêu thích -> Frustration sớm, kiệt sức. Lời khuyên: Hỏi con câu hỏi có/không, đừng ép khởi xướng, cho thử nhiều việc để tìm ra điều yêu (Sacral uh-huh), tôn trọng khi nói uh-uh, dạy lắng nghe bụng không phải đầu óc.
 
-#### Manifesting Generator 32% - Người Đa Nhiệm
+#### Manifesting Generator 33% - Người Đa Nhiệm
 
 - **Kỹ thuật:** Sacral defined + Motor to Throat (có kênh nối Throat với Motor)
 - **Aura:** Mở như Generator nhưng nhanh hơn, đa nhiệm, có khả năng bỏ qua bước. Kết hợp sức mạnh khởi tạo và vận hành bền bỉ.
@@ -55,7 +55,7 @@ Human Design chia nhân loại thành 5 Types với Strategy, Signature, Not-Sel
 - **Relationship:** Aura mở, nhanh - thu hút nhưng cũng khiến người khác không theo kịp. Cần được phép thay đổi, thông báo khi đổi ý, tôn trọng tốc độ nhanh. Tìm hài lòng + bình yên, được phép đa đam mê.
 - **Child:** Nhanh, đa nhiệm, thích thử nhiều thứ cùng lúc. Vết thương bị ép làm 1 việc, làm chậm lại, làm theo từng bước -> Frustration + Anger. Lời khuyên: Cho thử nhiều việc cùng lúc, cho phép bỏ qua bước nếu thấy hiệu quả hơn, dạy thông báo khi đổi ý, đừng ép làm 1 việc cả đời, hỏi có/không và tôn trọng tốc độ nhanh.
 
-#### Projector 22% - Người Hướng Dẫn
+#### Projector 20% - Người Hướng Dẫn
 
 - **Kỹ thuật:** Không có Sacral defined, không có Motor to Throat, có ít nhất 1 Center defined khác
 - **Aura:** Tập trung, xuyên thấu, hút vào người khác. Không có năng lượng bền bỉ. Là Non-Energy Being - ở đây để quản lý, hướng dẫn năng lượng người khác, không phải để làm việc như Generator.
@@ -89,20 +89,22 @@ Human Design chia nhân loại thành 5 Types với Strategy, Signature, Not-Sel
 
 ### Chi tiết 12 Profiles
 
+> Tỉ lệ theo thống kê thời gian thực human.design (~432.000 đồ thị, truy cập 2026-09-28); tổng 12 Profile = 100%.
+
 | Profile | Role | % | Angle | Mô tả ngắn | Nghề nghiệp phù hợp |
 |---------|------|---|-------|------------|---------------------|
-| **1/3** | Investigator/Martyr | 14.7% | Right | Nghiên cứu thử sai. Cần nền tảng vững chắc, học qua va chạm. An toàn từ kiến thức. 1: Investigator cần an toàn, nền tảng. 3: Martyr thử và sai, thích nghi, hài hước. | Nghiên cứu, khoa học, chuyên gia, cần nền tảng vững chắc |
-| **1/4** | Investigator/Opportunist | 2.4% | Right | Nghiên cứu cơ hội. Cần nền tảng vững chắc để chia sẻ với mạng lưới bạn bè. Ảnh hưởng qua người quen. Bạn bè là chìa khóa. 1: nền tảng, 4: mạng lưới. | Chuyên gia + cộng đồng, ảnh hưởng qua bạn bè |
-| **2/4** | Hermit/Opportunist | 14.1% | Right | Ẩn sĩ cơ hội. Tài năng tự nhiên, cần ở một mình để phát triển, rồi được gọi ra qua mạng lưới. Cân bằng ẩn dật và kết nối. 2: tài năng tự nhiên, cần ở một mình. 4: cơ hội qua bạn bè. | Nghệ sĩ, chuyên gia tài năng tự nhiên được gọi ra |
-| **2/5** | Hermit/Heretic | 8.1% | Right | Ẩn sĩ dị giáo. Tài năng tự nhiên nhưng bị người khác chiếu rọi kỳ vọng. Cần ở một mình, cẩn thận với sự chiếu rọi. 2: ẩn sĩ tài năng, 5: dị giáo bị kỳ vọng. | Cố vấn, chuyên gia tài năng tự nhiên nhưng cần biên giới với kỳ vọng |
-| **3/5** | Martyr/Heretic | 14.1% | Right | Tử vì đạo dị giáo. Cuộc đời thử và sai, va chạm lớn, nhưng để cứu người, mang giải pháp thực tế. Học qua thất bại. 3: thử sai, 5: giải pháp thực tế bị kỳ vọng. | Thử nghiệm, giải pháp thực tế, cứu người qua trải nghiệm |
-| **3/6** | Martyr/Role Model | 8.7% | Right | Tử vì đạo hình mẫu. 3 giai đoạn cuộc đời: 0-30 thử sai, 30-50 quan sát trên mái nhà, 50+ làm hình mẫu. Cuộc đời là hành trình trở thành hình mẫu qua thử sai. | Lãnh đạo qua trải nghiệm, hình mẫu sau 50 tuổi |
-| **4/6** | Opportunist/Role Model | 8.7% | Right | Cơ hội hình mẫu. Ảnh hưởng qua mạng lưới bạn bè, cần quan sát để trở thành hình mẫu. Bạn bè và quan sát. 4: mạng lưới, 6: quan sát hình mẫu. | Lãnh đạo cộng đồng, hình mẫu qua mạng lưới |
-| **4/1** | Opportunist/Investigator | 2% hiếm | Juxtaposition | Cơ hội điều tra. Profile hiếm, định mệnh cố định. Không thể bị ảnh hưởng, cần nền tảng vững chắc để ảnh hưởng người khác. Một con đường duy nhất. 4: cơ hội, 1: nền tảng. Định mệnh cố định. | Chuyên gia một lĩnh vực cố định, không thể bị ảnh hưởng, ảnh hưởng người khác qua nền tảng vững chắc |
-| **5/1** | Heretic/Investigator | 14.3% | Left | Dị giáo điều tra. Người mang giải pháp thực tế có nền tảng. Bị kỳ vọng lớn, chiếu rọi. Cần nền tảng vững chắc để đáp ứng kỳ vọng. 5: giải pháp thực tế, 1: nền tảng. Nghiệp với người khác. | Lãnh đạo, cứu rỗi, giải pháp thực tế có nền tảng, chịu kỳ vọng lớn |
-| **5/2** | Heretic/Hermit | 8.1% | Left | Dị giáo ẩn sĩ. Giải pháp thực tế + tài năng tự nhiên. Cần ở một mình, cẩn thận với kỳ vọng người khác. 5: dị giáo, 2: ẩn sĩ tài năng. | Cố vấn giải pháp thực tế + tài năng tự nhiên |
-| **6/2** | Role Model/Hermit | 14.4% | Left | Hình mẫu ẩn sĩ. 3 giai đoạn, tài năng tự nhiên, quan sát rồi trở thành hình mẫu. Cần ở một mình. 0-30 thử sai, 30-50 trên mái nhà quan sát, 50+ hình mẫu. 6: hình mẫu, 2: ẩn sĩ tài năng. | Hình mẫu, quan sát, tài năng tự nhiên, tỏa sáng sau 50 |
-| **6/3** | Role Model/Martyr | 8.9% | Left | Hình mẫu tử vì đạo. 3 giai đoạn, thử sai để trở thành hình mẫu. Cuộc đời là hành trình quan sát và thử nghiệm. 6: hình mẫu quan sát, 3: thử sai. | Hình mẫu qua thử sai, quan sát và trải nghiệm |
+| **1/3** | Investigator/Martyr | 14.15% | Right | Nghiên cứu thử sai. Cần nền tảng vững chắc, học qua va chạm. An toàn từ kiến thức. 1: Investigator cần an toàn, nền tảng. 3: Martyr thử và sai, thích nghi, hài hước. | Nghiên cứu, khoa học, chuyên gia, cần nền tảng vững chắc |
+| **1/4** | Investigator/Opportunist | 2.17% | Right | Nghiên cứu cơ hội. Cần nền tảng vững chắc để chia sẻ với mạng lưới bạn bè. Ảnh hưởng qua người quen. Bạn bè là chìa khóa. 1: nền tảng, 4: mạng lưới. | Chuyên gia + cộng đồng, ảnh hưởng qua bạn bè |
+| **2/4** | Hermit/Opportunist | 15.98% | Right | Ẩn sĩ cơ hội. Tài năng tự nhiên, cần ở một mình để phát triển, rồi được gọi ra qua mạng lưới. Cân bằng ẩn dật và kết nối. 2: tài năng tự nhiên, cần ở một mình. 4: cơ hội qua bạn bè. | Nghệ sĩ, chuyên gia tài năng tự nhiên được gọi ra |
+| **2/5** | Hermit/Heretic | 2.25% | Right | Ẩn sĩ dị giáo. Tài năng tự nhiên nhưng bị người khác chiếu rọi kỳ vọng. Cần ở một mình, cẩn thận với sự chiếu rọi. 2: ẩn sĩ tài năng, 5: dị giáo bị kỳ vọng. | Cố vấn, chuyên gia tài năng tự nhiên nhưng cần biên giới với kỳ vọng |
+| **3/5** | Martyr/Heretic | 13.98% | Right | Tử vì đạo dị giáo. Cuộc đời thử và sai, va chạm lớn, nhưng để cứu người, mang giải pháp thực tế. Học qua thất bại. 3: thử sai, 5: giải pháp thực tế bị kỳ vọng. | Thử nghiệm, giải pháp thực tế, cứu người qua trải nghiệm |
+| **3/6** | Martyr/Role Model | 2.19% | Right | Tử vì đạo hình mẫu. 3 giai đoạn cuộc đời: 0-30 thử sai, 30-50 quan sát trên mái nhà, 50+ làm hình mẫu. Cuộc đời là hành trình trở thành hình mẫu qua thử sai. | Lãnh đạo qua trải nghiệm, hình mẫu sau 50 tuổi |
+| **4/6** | Opportunist/Role Model | 13.99% | Right | Cơ hội hình mẫu. Ảnh hưởng qua mạng lưới bạn bè, cần quan sát để trở thành hình mẫu. Bạn bè và quan sát. 4: mạng lưới, 6: quan sát hình mẫu. | Lãnh đạo cộng đồng, hình mẫu qua mạng lưới |
+| **4/1** | Opportunist/Investigator | 2.26% | Juxtaposition | Cơ hội điều tra. Profile hiếm, định mệnh cố định. Không thể bị ảnh hưởng, cần nền tảng vững chắc để ảnh hưởng người khác. Một con đường duy nhất. 4: cơ hội, 1: nền tảng. Định mệnh cố định. | Chuyên gia một lĩnh vực cố định, không thể bị ảnh hưởng, ảnh hưởng người khác qua nền tảng vững chắc |
+| **5/1** | Heretic/Investigator | 14.22% | Left | Dị giáo điều tra. Người mang giải pháp thực tế có nền tảng. Bị kỳ vọng lớn, chiếu rọi. Cần nền tảng vững chắc để đáp ứng kỳ vọng. 5: giải pháp thực tế, 1: nền tảng. Nghiệp với người khác. | Lãnh đạo, cứu rỗi, giải pháp thực tế có nền tảng, chịu kỳ vọng lớn |
+| **5/2** | Heretic/Hermit | 2.19% | Left | Dị giáo ẩn sĩ. Giải pháp thực tế + tài năng tự nhiên. Cần ở một mình, cẩn thận với kỳ vọng người khác. 5: dị giáo, 2: ẩn sĩ tài năng. | Cố vấn giải pháp thực tế + tài năng tự nhiên |
+| **6/2** | Role Model/Hermit | 14.40% | Left | Hình mẫu ẩn sĩ. 3 giai đoạn, tài năng tự nhiên, quan sát rồi trở thành hình mẫu. Cần ở một mình. 0-30 thử sai, 30-50 trên mái nhà quan sát, 50+ hình mẫu. 6: hình mẫu, 2: ẩn sĩ tài năng. | Hình mẫu, quan sát, tài năng tự nhiên, tỏa sáng sau 50 |
+| **6/3** | Role Model/Martyr | 2.22% | Left | Hình mẫu tử vì đạo. 3 giai đoạn, thử sai để trở thành hình mẫu. Cuộc đời là hành trình quan sát và thử nghiệm. 6: hình mẫu quan sát, 3: thử sai. | Hình mẫu qua thử sai, quan sát và trải nghiệm |
 
 ### Ý nghĩa các con số (Lines)
 

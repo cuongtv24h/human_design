@@ -75,6 +75,8 @@ class DomainName(str, Enum):
     DECONDITIONING = "deconditioning"
     PURPOSE = "purpose"
     TEAM = "team"
+    PARENTING = "parenting"
+    CAREER = "career"
 
 
 def _validate_birth_date(value: str) -> str:
@@ -150,7 +152,9 @@ class ReportRequest(BaseModel):
     report_id: UUID = Field(default_factory=uuid4)
     subject: SubjectInput
     tier: ReportTier = ReportTier.FREE_BASIC
-    template: ReportTemplate = ReportTemplate.SECTIONS
+    # Enum cho 2 mẫu hệ thống; chuỗi tự do cho mẫu tùy chỉnh (định nghĩa nằm
+    # trong options["custom_template"], xem backend/reporting/blocks.py).
+    template: ReportTemplate | str = ReportTemplate.SECTIONS
     content_mode: ContentMode = ContentMode.TEMPLATE
     domains: list[DomainName] = Field(default_factory=list)
     partner: PartnerInput | None = None
@@ -159,6 +163,16 @@ class ReportRequest(BaseModel):
     requested_by: str | None = None
     include_bodygraph: bool = True
     options: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("template", mode="before")
+    @classmethod
+    def _coerce_template(cls, value):
+        if isinstance(value, ReportTemplate):
+            return value
+        try:
+            return ReportTemplate(value)
+        except ValueError:
+            return str(value)
 
     @field_validator("domains")
     @classmethod
@@ -224,6 +238,10 @@ class ReportProvenance(BaseModel):
     source_tools: list[str] = Field(default_factory=list)
     knowledge_refs: list[str] = Field(default_factory=list)
     editor: str = "template"
+    # Which provider of the fallback chain wrote the content ("<name> · <model>"); "" for template.
+    llm_provider: str = ""
+    # Estimated USD cost of the successful LLM call (None when the price is unknown).
+    llm_cost_usd: float | None = None
 
 
 class ReportDocument(BaseModel):

@@ -43,3 +43,29 @@
 
 ## 8. 5 bước sống đúng sứ mệnh
 1. Strategy + Authority mỗi ngày. 2. Đào sâu P.Sun (70%). 3. Sống vai Profile. 4. Đóng góp theo Type. 5. Kiên nhẫn - sứ mệnh là hành trình, không phải đích.
+
+## Sứ mệnh là trạng thái năng lượng, không phải chức danh
+
+- Sai lầm phổ biến: đi tìm "nghề định mệnh" bằng lý trí. Trong Human Design,
+  sứ mệnh (Incarnation Cross + kênh Mặt Trời) là trạng thái năng lượng - khi
+  bạn sống đúng Chiến lược & Thẩm quyền, đúng người việc cơ hội tự mở ra quanh
+  trạng thái đó. Không ai "đuổi theo" được sứ mệnh; chỉ có thể sống đúng để nó
+  lộ diện.
+- Ba la bàn thực tế: (1) Thập giá cho biết chủ đề lớn của kiếp này - đọc như
+  bối cảnh, không phải lệnh; (2) Cổng Mặt Trời ý thức là siêu năng lực hướng
+  ngoại - việc nào cho nó đất diễn thì càng làm càng có sức; (3) Cổng Sao Thủy
+  là điều bạn đến để chia sẻ - trùng với việc làm thì uy tín tự tích lũy.
+- Câu hỏi tư vấn đúng không phải "tôi nên làm nghề gì?" mà là "trạng thái nào
+  khiến tôi sáng mắt, và việc nào nuôi trạng thái đó?".
+
+## Ba dấu hiệu bạn đang sống đúng sứ mệnh
+
+- Dấu 1 - Chữ ký đúng của Type xuất hiện đều: Generator/MG thỏa mãn (satisfaction)
+  sau ngày làm việc, Projector thành công/được công nhận (success), Manifestor
+  bình yên (peace), Reflector ngạc nhiên thích thú (surprise) trước đời.
+- Dấu 2 - Cơ hội tự tìm đến đúng gu: không phải săn đuổi kiệt sức mà là được mời,
+  được giới thiệu, được "đặt hàng" đúng thứ mình giỏi - hình học cuộc đời tự sắp lại.
+- Dấu 3 - Cơ thể nhẹ và bền: ngủ ngon hơn, bệnh vặt giảm, năng lượng còn dư cuối
+  ngày. Cơ thể là thước đo trung thực nhất - trí có thể tự lừa, cơ thể thì không.
+- Ngược lại, ba đèn đỏ: kiệt sức mãn tính dù nghỉ đủ, thành công mà rỗng (sai
+  đường nhưng leo giỏi), và cảm giác "đời mình như của người khác".

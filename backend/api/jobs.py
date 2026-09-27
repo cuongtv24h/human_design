@@ -24,7 +24,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import sessionmaker
 
 from .models import Report
-from .services import audit, org_llm_config, run_llm_generation
+from .services import audit, org_llm_configs, run_llm_generation
 
 log = logging.getLogger("hd.jobs")
 
@@ -74,10 +74,10 @@ def recover_stale_reports(session_factory: sessionmaker, *, secret_key: str, art
                 continue  # another worker got it first
             audit(db, None, "report.recover", "report", row.id, org_id=row.org_id, attempt=attempts + 1)
             db.commit()
-            config = org_llm_config(db, row.org_id, secret_key)
+            configs = org_llm_configs(db, row.org_id, secret_key)
         log.warning("resuming stale report %s (attempt %s)", row.id, attempts + 1)
         submit(run_llm_generation, session_factory, row.id, "system:recovery", artifact_dir,
-               "regenerate" if row.version else "generate", config, heartbeat_seconds, True)
+               "regenerate" if row.version else "generate", None, heartbeat_seconds, True, configs)
         results[row.id] = "resumed"
     return results
 

@@ -6,9 +6,9 @@ Hệ thống tính toán và phân tích Human Design bằng tiếng Việt, dù
 
 ## Tính năng
 
-- Tính BodyGraph từ ngày, giờ và múi giờ sinh: Personality, Design 88°, 64 Gates, 36 Channels, 9 Centers, Type, Strategy, Authority, Profile, Definition và Incarnation Cross.
-- Phân tích cơ bản và 6 nhóm ứng dụng v3.0: Health, Relationship, Decision, Deconditioning, Purpose và Team.
-- Các nhóm mở rộng: Fear Gates, Love Gates, 192 Incarnation Crosses, Manifestor, Consultation General, Money Map và Potential/Blind Spots.
+- Tính BodyGraph từ ngày, giờ và múi giờ sinh: Personality, Design 88°, 64 Gates, 36 Channels, 9 Centers, Type, Strategy, Authority, Profile, Definition và Incarnation Cross (tên chuẩn từ bảng 192).
+- Phân tích cơ bản và 10 domain: Money, Potential, Health, Relationship (composite 2 người), Decision, Deconditioning, Purpose, Team, Parenting và Career.
+- Tầng nâng cao: Variables/PHS (4 mũi tên Color/Tone, vẽ lên SVG), Transits & chu kỳ (Solar/Jupiter/Saturn return, Uranus đối đỉnh), 64 Gene Keys, 192 Incarnation Crosses.
 - CLI, xuất BodyGraph SVG/PNG và báo cáo PDF tiếng Việt.
 - MCP stdio cho Claude Desktop/Cursor/Windsurf và FastAPI/OpenAPI cho Custom GPT Actions hoặc client REST.
 
@@ -24,8 +24,8 @@ human_design/
 │   ├── openapi_server.py        # FastAPI bridge: 44 route decorator
 │   ├── tools_manifest_latest.json
 │   ├── mcp_config.json
-│   └── skills/                  # 25 skill markdown; không phải MCP prompt decorator
-├── knowledge/                   # 21 tài liệu kiến thức chuẩn hóa, đánh số 00–20
+│   └── skills/                  # 26 skill markdown; không phải MCP prompt decorator
+├── knowledge/                   # 28 tài liệu kiến thức chuẩn hóa, đánh số 00–27
 ├── docs/                        # Wiki nguồn và catalog tài liệu cá nhân
 └── report/                      # báo cáo lịch sử triển khai, giữ nguyên để tham chiếu
 ```
@@ -34,7 +34,7 @@ human_design/
 
 ### Report layer cho Admin/Coach
 
-`docs/REPORTING_ARCHITECTURE.md` mô tả `ReportRequest` → `ChartSnapshot` → `ReportPlan` → `ReportSection[]` → `ReportDocument`. Application layer hiện hỗ trợ `free_basic`/`deep_core` và 8 domain add-on; frontend, billing và payment chưa thuộc scope. Orchestrator gọi analyzer hiện có trong `tools/`, giữ raw structured output và provenance để renderer/LLM diễn giải sau này.
+`docs/REPORTING_ARCHITECTURE.md` mô tả `ReportRequest` → `ChartSnapshot` → `ReportPlan` → `ReportSection[]` → `ReportDocument`. Application layer hiện hỗ trợ `free_basic`/`deep_core` và 10 domain add-on (gồm composite đối tác ở relationship); billing và payment chưa thuộc scope. Orchestrator gọi analyzer hiện có trong `tools/`, giữ raw structured output và provenance để renderer/LLM diễn giải sau này.
 
 ## Cài đặt
 
@@ -149,11 +149,12 @@ cd web && npm install && npm run dev        # http://localhost:3000
 - **Triển khai lên VPS (pm2 + Nginx + PostgreSQL): xem hướng dẫn từng bước [`docs/DEPLOY_VPS.md`](docs/DEPLOY_VPS.md).** Tệp đi kèm: `deploy/ecosystem.config.cjs` (pm2), `deploy/deploy.sh` (cập nhật), `deploy/nginx.conf.example`, `deploy/backup.sh` (sao lưu hằng ngày); trước khi deploy chạy `deploy/check.sh` (pytest + migration + typecheck + build).
 - Xuất **PDF/Word** từ cùng một `ReportDocument` (`backend/reporting/render_pdf.py`, `render_docx.py`). Cần font DejaVu (`sudo apt install fonts-dejavu-core`, hoặc đặt `HD_FONT_DIR`); hình BodyGraph PNG dùng `resvg-py`, không cần libcairo. File được render sẵn sau khi tạo báo cáo và lưu theo phiên bản ở `ARTIFACT_DIR` (mặc định `var/artifacts`).
 - Giờ sinh nhập và hiển thị theo **giờ Việt Nam khai báo**, tính theo UTC+07:00 cố định (`tools/hd_time.py`).
-- **Biên tập báo cáo** (`/reports/{id}/edit`): sửa từng phần bằng Markdown, “Lưu phiên bản” (Ctrl/⌘+S) tạo phiên bản mới, xem/khôi phục lịch sử, cảnh báo vàng khi nội dung mất thông tin kỹ thuật gốc (Type, Strategy, Authority…), bản nháp tự lưu trong trình duyệt mỗi 10 giây. Nút “AI biên tập phần này” trả về đề xuất kèm so sánh để chấp nhận hoặc bỏ.
+- **Biên tập báo cáo** (`/admin/reports/{id}/edit`): sửa từng phần bằng Markdown, “Lưu phiên bản” (Ctrl/⌘+S) tạo phiên bản mới, xem/khôi phục lịch sử, cảnh báo vàng khi nội dung mất thông tin kỹ thuật gốc (Type, Strategy, Authority…), bản nháp tự lưu trong trình duyệt mỗi 10 giây. Nút “AI biên tập phần này” trả về đề xuất kèm so sánh để chấp nhận hoặc bỏ.
 - **Chia sẻ cho khách**: tab “Chia sẻ” của báo cáo tạo link `/r/…` (chọn định dạng được tải, hạn 7 ngày–1 năm, thu hồi bất cứ lúc nào, đếm lượt xem). Tab “Xuất file” có nút “Link 5 phút” — link tải trực tiếp không cần đăng nhập.
-- **AI / LLM** (admin, `/settings/llm`): nhập base URL, mô hình, khóa API (mã hóa khi lưu) và bấm “Kiểm tra kết nối”; nếu không lưu khóa, hệ thống dùng `HD_LLM_API_KEY`.
+- **AI / LLM** (admin, `/settings/llm`): chuỗi tối đa 3 nhà cung cấp (chính + 2 dự phòng tự fallback khi lỗi/timeout), mỗi cái gồm base URL, mô hình, khóa API (mã hóa khi lưu), giá USD/1M token và nút “Kiểm tra” riêng; trang này cũng thống kê lượt gọi, token và chi phí theo từng nhà cung cấp. Nếu không lưu khóa nào, hệ thống dùng `HD_LLM_API_KEY`.
+- **Trợ lý tra cứu** (widget góc màn hình): agent ReAct được chọn model, chỉ trả lời trong phạm vi Human Design (từ chối ngoài phạm vi), có 7 công cụ — tìm kho kiến thức 21 tài liệu, đọc 25 skill, tính BodyGraph thật, tra cứu khách hàng/báo cáo trong tổ chức. Mỗi lượt chat log token/chi phí; admin xem thống kê theo người dùng ở `/settings/assistant`. Trả lời stream từng chữ (SSE), gợi ý câu hỏi theo trang đang xem (khách hàng/báo cáo), chèn câu trả lời vào mục báo cáo đang sửa, đánh giá 👍/👎 từng câu trả lời.
 - **`HD_SECRET_KEY`** ký link và mã hóa khóa AI. Production nên đặt trong `.env` (chuỗi ngẫu nhiên dài, ví dụ `python -c "import secrets;print(secrets.token_urlsafe(48))"`); nếu bỏ trống, hệ thống tự tạo `var/secret_key`. Đổi khóa này làm link cũ mất hiệu lực và phải nhập lại khóa AI.
-- Nâng cấp CSDL: `.venv/bin/alembic upgrade head` (migration `0002`: bảng `share_links`, cột `organizations.llm_settings`).
+- Nâng cấp CSDL: `.venv/bin/alembic upgrade head` (migration `0004`: bảng `llm_usage` cho thống kê token/chi phí AI).
 - Preview nhúng trong iframe khác site: đặt `COOKIE_SAMESITE=none` (cookie `Secure; Partitioned`). Nếu trình duyệt vẫn chặn cookie trong iframe (Safari, Chrome ẩn danh…), trang admin tự nhận biết đang bị nhúng và giữ phiên trong `sessionStorage` của tab (gửi `Authorization: Bearer`). Chạy trực tiếp trên domain riêng thì chỉ dùng cookie httpOnly; production giữ mặc định `lax`.
 - Chế độ nội dung LLM chạy nền ngay trong `hd-api` (không cần Redis). Nếu `hd-api` bị khởi động lại/deploy/crash giữa chừng, báo cáo đang tạo được **tự chạy tiếp** trong khoảng 1–2 phút sau khi khởi động (tối đa 3 lần, sau đó báo lỗi kèm nút “Tạo lại”). Tắt bằng `HD_JOB_RECOVERY=false`.
 

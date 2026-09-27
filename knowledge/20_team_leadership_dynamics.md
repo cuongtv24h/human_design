@@ -49,3 +49,32 @@
 2. Đặt người có chart hợp ghế + năng lực đạt.
 3. Thiết lập luật vận hành theo Type (inform/mời/hỏi/thời gian).
 4. Review theo chữ ký: team Satisfaction hay Frustration? -> sai ghế thì đổi ghế, đừng đổi người vội.
+
+## Penta - trường năng lượng chung của nhóm 3-5 người
+
+- Penta là đồ thị composite tạo bởi 3-5 người làm việc chặt với nhau: năng lượng
+  mỗi người hòa vào một "cơ thể năng lượng chung" của team - có trung tâm định
+  nghĩa, có chỗ mở riêng, có vai trò và lỗ hổng riêng của tập thể.
+- Nguyên tắc vàng: trung tâm người này định nghĩa bù đúng chỗ mở của người kia
+  thì sinh synergy thật - hiệu suất tập thể vượt tổng cá nhân. Ngược lại, team
+  toàn người mở cùng một chỗ thì lỗ hổng đó thành điểm mù tập thể (ví dụ cả team
+  mở Solar thì cảm xúc lên xuống không ai neo).
+- Ứng dụng thực tế: tuyển người không chỉ xem CV mà xem họ "vá" được lỗ Penta
+  nào; xếp ghế theo Penta thay vì theo thâm niên; khi team trục trặc giao tiếp,
+  đọc Penta trước khi đổ lỗi cá nhân - đa số mâu thuẫn là cơ học, không phải đạo đức.
+
+## Năm vai trò BG5 trong tổ chức
+
+- Classic Builder (Generator): động cơ thực thi bền - đặt vào ghế xây, cho việc
+  yêu thích thì năng suất khiến người khác kinh ngạc; giao sai việc thì cạn nhanh.
+- Express Builder (MG): xây nhanh + tối ưu - đặt vào ghế triển khai, growth, đa
+  dự án; cho bẻ lái và tìm đường tắt, chỉ chốt kết quả.
+- Advisor (Projector): cố vấn chiến lược - đặt vào ghế dẫn, quản lý, HR; trả
+  theo giá trị nhìn thấy, không theo giờ; ép cày 8 tiếng là đốt nhân tài.
+- Initiator (Manifestor): người mở đường - đặt vào ghế founder, BD, đối ngoại,
+  khởi động cái mới; giao mục tiêu, đừng soi cách làm, yêu cầu inform việc lớn.
+- Evaluator (Reflector): gương soi tổ chức - đặt vào ghế QA văn hóa, cố vấn độc
+  lập; lắng nghe cảm nhận của họ về team như đọc nhiệt kế - họ thấy trước khi số
+  liệu thấy.
+- Công thức team khỏe: 70% Builder xây - 20% Advisor dẫn - 9% Initiator mở đường -
+  1% Evaluator soi. Sai ghế thì thiên tài cũng thành gánh nặng.

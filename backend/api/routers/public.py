@@ -6,16 +6,26 @@ payloads never include internal warnings, UTC datetimes or coach notes.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import time
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+
+from pydantic import ValidationError
+
+from backend.reporting.contract import ReportRequest
+from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, get_db
 from ..files import file_response
-from ..models import Organization, Report, ShareLink
-from ..schemas import PublicReportOut, PublicSection
+from ..models import (GameCustomQuestion, GameDisabledQuestion, GameEvent, GameLead, GameScore,
+                                GameStreakDay, Organization, Report, ShareLink)
+from ..schemas import (GameChartIn, GameChartOut, GameConceptOut, GameEventIn, GameLeadIn,
+                       GamePublicConfig, GameQuestionOut, GameScoreIn, GameScoreOut,
+                       GameStreakIn, GameStreakOut, PublicReportOut, PublicSection)
+from .game_admin import ensure_builtin_concepts, get_structures
 from ..security import hash_token, verify_token
 from ..services import audit, chart_summary, load_document
 from .shares import share_status
@@ -100,3 +110,190 @@ def signed_file(token: str, request: Request, db: Session = Depends(get_db)) -> 
           actor=payload.get("u"), format=fmt)
     db.commit()
     return response
+
+# --- game landing công khai (G1) ------------------------------------------------
+
+_GAME_EVENT_NAMES = frozenset({"game_start", "game_complete", "bridge_view", "bridge_submit",
+                               "share_click", "cta_click", "lead_submit", "compare_view",
+                               "compare_done"})
+
+_HITS: dict[tuple[str, str], list[float]] = {}
+
+
+def _ratelimit(key: str, limit: int, window: float = 60.0):
+    """Giới hạn tần suất theo IP cho endpoint công khai (bộ nhớ cục bộ; production cần redis)."""
+
+    def dep(request: Request) -> None:
+        ip = client_ip(request) or "unknown"
+        now = time.monotonic()
+        slot = (ip, key)
+        hits = [t for t in _HITS.get(slot, []) if now - t < window]
+        if len(hits) >= limit:
+            raise HTTPException(status_code=429, detail="Bạn thao tác quá nhanh, thử lại sau ít phút.")
+        hits.append(now)
+        _HITS[slot] = hits
+
+    return dep
+
+
+@router.post("/public/game/chart", response_model=GameChartOut)
+def game_chart(payload: GameChartIn, db: Session = Depends(get_db),
+               _rl: None = Depends(_ratelimit("game_chart", 30))) -> GameChartOut:
+    """Mini chart cho game landing (không cần đăng nhập)."""
+    try:
+        req = ReportRequest.model_validate({
+            "subject": {"name": "Khách", "birth_date": payload.birth_date,
+                        "birth_time": payload.birth_time, "timezone": payload.timezone,
+                        "birth_location": payload.birth_place},
+            "tier": "deep_core", "template": "sections", "domains": []})
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Ngày giờ sinh chưa hợp lệ.") from exc
+    document = ReportOrchestrator().run(req)
+    raw_centers = document.chart.get("defined_centers", []) or []
+    return GameChartOut(
+        summary=chart_summary(document.chart),
+        centers=[c for c in raw_centers if isinstance(c, str)],
+        subject_display=display_birth(payload.birth_date, payload.birth_time, payload.timezone))
+
+
+@router.post("/public/game/events")
+def game_event(payload: GameEventIn, db: Session = Depends(get_db),
+               _rl: None = Depends(_ratelimit("game_events", 120))) -> dict:
+    """Ghi sự kiện funnel ẩn danh (tên phải nằm trong danh sách cho phép)."""
+    if payload.name not in _GAME_EVENT_NAMES:
+        raise HTTPException(status_code=422, detail="Tên sự kiện không hợp lệ.")
+    db.add(GameEvent(name=payload.name, theme=payload.theme[:32],
+                     session_id=payload.session_id[:64]))
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/public/game/leads")
+def game_lead(payload: GameLeadIn, db: Session = Depends(get_db),
+              _rl: None = Depends(_ratelimit("game_leads", 10))) -> dict:
+    """Nhận thông tin khách muốn báo cáo đầy đủ (G1, không cần đăng nhập)."""
+    if not payload.name.strip() or not payload.contact.strip():
+        raise HTTPException(status_code=422, detail="Vui lòng nhập tên và số điện thoại/Zalo.")
+    db.add(GameLead(
+        name=payload.name.strip()[:80], contact=payload.contact.strip()[:120],
+        birth_date=payload.birth_date[:10], birth_time=payload.birth_time[:8],
+        birth_place=payload.birth_place[:120], timezone=payload.timezone[:10],
+        theme=payload.theme[:32], quiz=dict(payload.quiz or {}), note=payload.note.strip()[:500]))
+    db.commit()
+    return {"ok": True}
+
+_GAME_THEMES = frozenset({"nguoc-dong", "thuong-vu", "linh-thu"})
+_GAME_STYLES = frozenset({"khoi_xuong", "kien_tao", "dan_duong", "tam_guong"})
+
+
+def _week_start() -> datetime:
+    """0h thứ Hai đầu tuần (UTC) — bảng vàng tính theo tuần."""
+    now = datetime.now(timezone.utc)
+    monday = now - timedelta(days=now.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+@router.post("/public/game/scores")
+def game_score(payload: GameScoreIn, db: Session = Depends(get_db),
+               _rl: None = Depends(_ratelimit("game_scores", 30))) -> dict:
+    """Ghi điểm ẩn danh lên bảng vàng tuần (G3). Trả về thứ hạng hiện tại."""
+    if payload.theme not in _GAME_THEMES:
+        raise HTTPException(status_code=422, detail="Theme không hợp lệ.")
+    if payload.style not in _GAME_STYLES:
+        raise HTTPException(status_code=422, detail="Phong cách không hợp lệ.")
+    if not 0 <= payload.deviation <= 100:
+        raise HTTPException(status_code=422, detail="Độ lệch phải từ 0 đến 100.")
+    if not payload.session_id.strip():
+        raise HTTPException(status_code=422, detail="Thiếu session.")
+    start = _week_start()
+    db.add(GameScore(theme=payload.theme, style=payload.style, deviation=payload.deviation,
+                     session_id=payload.session_id.strip()[:64]))
+    db.commit()
+    best = select(GameScore.session_id, func.min(GameScore.deviation).label("dev")).where(
+        GameScore.theme == payload.theme, GameScore.created_at >= start).group_by(
+        GameScore.session_id).subquery()
+    better = db.scalar(select(func.count()).select_from(best).where(
+        best.c.dev < payload.deviation)) or 0
+    return {"ok": True, "rank": better + 1}
+
+
+@router.get("/public/game/scores", response_model=list[GameScoreOut])
+def game_scores(theme: str = "", limit: int = 10, db: Session = Depends(get_db)) -> list[GameScoreOut]:
+    """Top bảng vàng tuần, mỗi session chỉ tính điểm tốt nhất (G3)."""
+    if theme and theme not in _GAME_THEMES:
+        raise HTTPException(status_code=422, detail="Theme không hợp lệ.")
+    take = max(1, min(limit, 50))
+    q = select(GameScore).where(GameScore.created_at >= _week_start())
+    if theme:
+        q = q.where(GameScore.theme == theme)
+    q = q.order_by(GameScore.deviation.asc(), GameScore.id.asc()).limit(take * 5)
+    seen: set[str] = set()
+    out: list[GameScoreOut] = []
+    for row in db.scalars(q):
+        if row.session_id in seen:
+            continue
+        seen.add(row.session_id)
+        out.append(GameScoreOut.model_validate(row, from_attributes=True))
+        if len(out) >= take:
+            break
+    return out
+
+VN_TZ = timezone(timedelta(hours=7))
+
+
+def _today_vn() -> date:
+    return datetime.now(timezone.utc).astimezone(VN_TZ).date()
+
+
+def _streak_of(db: Session, sid: str) -> GameStreakOut:
+    today = _today_vn()
+    days = db.scalars(select(GameStreakDay.day).where(
+        GameStreakDay.session_id == sid, GameStreakDay.day <= today
+    ).order_by(GameStreakDay.day.desc()).limit(400)).all()
+    streak = 0
+    expect = today
+    for d in days:
+        if d == expect:
+            streak += 1
+            expect -= timedelta(days=1)
+        elif d < expect:
+            break
+    return GameStreakOut(streak=streak, today_done=today in days)
+
+
+@router.post("/public/game/streak", response_model=GameStreakOut)
+def game_streak(payload: GameStreakIn, db: Session = Depends(get_db),
+                _rl: None = Depends(_ratelimit("game_streak", 30))) -> GameStreakOut:
+    """Điểm danh đề hôm nay (G4). Ngày tính theo giờ VN. Trả về chuỗi ngày liên tiếp."""
+    sid = payload.session_id.strip()[:64]
+    if not sid:
+        raise HTTPException(status_code=422, detail="Thiếu session.")
+    if db.scalar(select(GameStreakDay.id).where(
+            GameStreakDay.session_id == sid, GameStreakDay.day == _today_vn())) is None:
+        db.add(GameStreakDay(session_id=sid, day=_today_vn()))
+        db.commit()
+    return _streak_of(db, sid)
+
+
+@router.get("/public/game/streak", response_model=GameStreakOut)
+def get_streak(session_id: str = "", db: Session = Depends(get_db)) -> GameStreakOut:
+    """Xem streak hiện tại mà không điểm danh (G4)."""
+    return _streak_of(db, session_id.strip()[:64])
+
+@router.get("/public/game/config", response_model=GamePublicConfig)
+def game_config(db: Session = Depends(get_db)) -> GamePublicConfig:
+    """Cấu hình game công khai cho client (Game Manager)."""
+    concepts = ensure_builtin_concepts(db)
+    custom: dict[str, list[GameQuestionOut]] = {}
+    for q in db.scalars(select(GameCustomQuestion).where(
+            GameCustomQuestion.enabled == True).order_by(GameCustomQuestion.id)).all():  # noqa: E712
+        custom.setdefault(q.concept_slug, []).append(
+            GameQuestionOut.model_validate(q, from_attributes=True))
+    disabled: dict[str, list[str]] = {}
+    for slug, qid in db.execute(select(GameDisabledQuestion.concept_slug,
+                                       GameDisabledQuestion.qid)).all():
+        disabled.setdefault(slug, []).append(qid)
+    return GamePublicConfig(
+        concepts=[GameConceptOut.model_validate(c, from_attributes=True) for c in concepts],
+        custom_questions=custom, disabled_builtin=disabled,
+        structures=get_structures(db))
