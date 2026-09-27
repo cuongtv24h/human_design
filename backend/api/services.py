@@ -23,7 +23,8 @@ from backend.reporting.language_vn import TYPE_VN, vn_authority, vn_definition, 
 from backend.reporting.llm_client import LLMConfig, LLMUsage as TokenUsage, display_provider, estimate_cost
 from backend.reporting.service import AttemptCallback, generate_report
 
-from .models import AuditLog, Client, LLMUsage, Organization, Report, ReportRevision, User
+from .models import (AuditLog, Client, LLMUsage, Organization, Report, ReportRevision, ReportTemplate,
+                     TemplateBlock, User)
 from .security import decrypt_value
 from .schemas import ChartSummary, ClientOut, ReportDetailOut, ReportSummaryOut, SectionOut
 
@@ -107,7 +108,8 @@ def chart_summary(chart: dict[str, Any]) -> ChartSummary:
 def report_summary(report: Report) -> ReportSummaryOut:
     return ReportSummaryOut(
         id=report.id, client_id=report.client_id, client_name=report.client.full_name,
-        tier=report.tier, template=report.template, content_mode=report.content_mode,
+        tier=report.tier, template=report.template, template_name=template_display_name(report),
+        content_mode=report.content_mode,
         domains=list(report.domains or []), status=report.status, editor=report.editor,
         warnings_count=report.warnings_count, version=report.version, error=report.error,
         created_at=report.created_at, updated_at=report.updated_at,
@@ -173,10 +175,14 @@ def store_document(db: Session, report: Report, document: ReportDocument, author
 
 
 def create_report(db: Session, user: User, client: Client, *, tier: str, template: str,
-                  content_mode: str, domains: list[str]) -> Report:
+                  content_mode: str, domains: list[str], custom_template: dict | None = None,
+                  org_vars: dict | None = None) -> Report:
     report_id = str(uuid4())
     request = build_request(client, tier=tier, template=template, content_mode=content_mode,
                             domains=domains, report_id=report_id)
+    if custom_template is not None:
+        request.options = {**(request.options or {}), "custom_template": custom_template,
+                           "org_vars": org_vars or {}}
     report = Report(
         id=report_id, org_id=user.org_id, client_id=client.id, created_by=user.id,
         tier=tier, template=template, content_mode=content_mode, domains=domains,
@@ -496,3 +502,68 @@ def prune_artifacts(artifact_dir: str, report_id: str, keep_version: int) -> int
             except OSError:  # concurrent download / already gone
                 pass
     return removed
+
+# --- report templates (Giai đoạn 1) -------------------------------------------
+
+BUILTIN_TEMPLATE_KEYS = ("sections", "operating_manual")
+BUILTIN_TEMPLATE_NAMES = {"sections": "Theo mục", "operating_manual": "Cẩm nang vận hành"}
+
+
+def org_var_map(org: Organization | None) -> dict[str, str]:
+    try:
+        items = ((org.template_vars if org else None) or {}).get("vars", [])
+    except AttributeError:
+        items = []
+    return {v["key"]: v.get("value", "") for v in items if isinstance(v, dict) and v.get("key")}
+
+
+def snapshot_sections(db: Session, sections) -> list[dict]:
+    """Chuyển sections đã validate thành snapshot tự chứa cho orchestrator."""
+    out: list[dict] = []
+    for i, entry in enumerate(sections or []):
+        if entry.get("type") == "builtin":
+            out.append({"id": entry.get("ref", f"custom_{i}"), "type": "builtin",
+                        "ref": entry.get("ref", ""), "title_override": entry.get("title_override", "")})
+            continue
+        blk = db.get(TemplateBlock, entry.get("block_id")) if entry.get("block_id") else None
+        if blk is not None:
+            out.append({"id": f"custom_{i}", "type": "block", "name": blk.name, "kind": blk.kind,
+                        "title": entry.get("title_override") or blk.name, "body": blk.body})
+        else:
+            out.append({"id": f"custom_{i}", "type": "block", "name": entry.get("name", ""),
+                        "kind": entry.get("kind", "core") or "core",
+                        "title": entry.get("title", "") or "Khối nội dung",
+                        "body": entry.get("body", "")})
+    return out
+
+
+def build_template_snapshot(db: Session, tpl: ReportTemplate) -> dict:
+    return {"key": tpl.key, "name": tpl.name, "description": tpl.description or "",
+            "version": tpl.version, "sections": snapshot_sections(db, tpl.sections)}
+
+
+def resolve_custom_template(db: Session, user: User, key: str) -> dict | None:
+    """Snapshot mẫu tùy chỉnh đang hoạt động, hoặc None nếu là mẫu hệ thống/không có."""
+    if key in BUILTIN_TEMPLATE_KEYS:
+        return None
+    tpl = db.scalar(select(ReportTemplate).where(
+        ReportTemplate.org_id == user.org_id, ReportTemplate.key == key,
+        ReportTemplate.status == "active"))
+    if tpl is None:
+        tpl = db.scalar(select(ReportTemplate).where(
+            ReportTemplate.visibility == "shared", ReportTemplate.key == key,
+            ReportTemplate.status == "active"))
+    return build_template_snapshot(db, tpl) if tpl is not None else None
+
+
+def template_display_name(report: Report) -> str:
+    key = report.template or "sections"
+    if key in BUILTIN_TEMPLATE_NAMES:
+        return BUILTIN_TEMPLATE_NAMES[key]
+    try:
+        snap = ((report.request or {}).get("options") or {}).get("custom_template") or {}
+        if snap.get("name"):
+            return str(snap["name"])
+    except (AttributeError, TypeError):
+        pass
+    return key

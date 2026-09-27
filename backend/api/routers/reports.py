@@ -14,15 +14,16 @@ from backend.reporting.export import bodygraph_svg
 from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, current_user, get_db
-from ..models import Client, Report, User
+from ..models import Client, Organization, Report, User
 from ..files import file_response
 from ..schemas import (
     CatalogSection, DownloadLinkIn, DownloadLinkOut, PreviewIn, PreviewOut, ReportCreate, ReportDetailOut, ReportList,
 )
 from ..security import sign_token
 from ..services import (
-    ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404, report_detail,
-    org_llm_configs, report_summary, run_llm_generation, visible_reports, warm_artifacts,
+    ARTIFACT_FORMATS, audit, chart_summary, create_report, get_client_or_404, get_report_or_404,
+    org_llm_configs, org_var_map, report_detail, report_summary, resolve_custom_template,
+    run_llm_generation, visible_reports, warm_artifacts,
 )
 
 from hd_time import display_birth  # noqa: E402
@@ -31,7 +32,7 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 def _values(payload) -> dict:
-    return {"tier": payload.tier.value, "template": payload.template.value,
+    return {"tier": payload.tier.value, "template": payload.template,
             "domains": [d.value for d in payload.domains]}
 
 
@@ -47,8 +48,15 @@ def preview(payload: PreviewIn, user: User = Depends(current_user), db: Session 
                    "timezone": payload.timezone, "birth_location": payload.birth_place}
     else:
         raise HTTPException(status_code=422, detail="Cần chọn khách hàng hoặc nhập ngày + giờ sinh.")
+    custom_template = resolve_custom_template(db, user, payload.template)
+    if payload.template not in ("sections", "operating_manual") and custom_template is None:
+        raise HTTPException(status_code=422, detail="Mẫu báo cáo không tồn tại hoặc chưa được duyệt.")
+    options: dict = {}
+    if custom_template is not None:
+        org = db.get(Organization, user.org_id)
+        options = {"custom_template": custom_template, "org_vars": org_var_map(org)}
     try:
-        request = ReportRequest.model_validate({"subject": subject, **_values(payload)})
+        request = ReportRequest.model_validate({"subject": subject, **_values(payload), "options": options})
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=f"Dữ liệu không hợp lệ: {exc.errors()[0].get('msg')}") from exc
     document = ReportOrchestrator().run(request)
@@ -66,7 +74,14 @@ def preview(payload: PreviewIn, user: User = Depends(current_user), db: Session 
 def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
            user: User = Depends(current_user), db: Session = Depends(get_db)) -> ReportDetailOut:
     client = get_client_or_404(db, user, payload.client_id)
-    report = create_report(db, user, client, content_mode=payload.content_mode.value, **_values(payload))
+    custom_template = resolve_custom_template(db, user, payload.template)
+    if payload.template not in ("sections", "operating_manual") and custom_template is None:
+        raise HTTPException(status_code=422, detail="Mẫu báo cáo không tồn tại hoặc chưa được duyệt.")
+    org = db.get(Organization, user.org_id)
+    report = create_report(db, user, client, content_mode=payload.content_mode.value,
+                           custom_template=custom_template,
+                           org_vars=org_var_map(org) if custom_template else None,
+                           **_values(payload))
     audit(db, user, "report.create", "report", report.id, ip=client_ip(request),
           content_mode=report.content_mode, tier=report.tier, template=report.template)
     db.commit()

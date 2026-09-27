@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import re
+
 from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from backend.reporting.contract import ContentMode, DomainName, ReportTemplate, ReportTier, SubjectInput
+from backend.reporting.contract import ContentMode, DomainName, ReportTier, SubjectInput
 
 
 class Problem(BaseModel):
@@ -67,6 +69,8 @@ class CatalogOption(BaseModel):
     value: str
     label: str
     description: str = ""
+    badge: str = ""
+    meta: str = ""
 
 
 class CatalogSection(BaseModel):
@@ -177,8 +181,19 @@ class ChartSummary(BaseModel):
 
 class ReportOptions(BaseModel):
     tier: ReportTier = ReportTier.FREE_BASIC
-    template: ReportTemplate = ReportTemplate.SECTIONS
+    # Mẫu hệ thống ("sections"/"operating_manual") hoặc key mẫu tùy chỉnh.
+    template: str = "sections"
     domains: list[DomainName] = Field(default_factory=list)
+
+    @field_validator("template")
+    @classmethod
+    def _check_template(cls, value: str) -> str:
+        value = (value or "").strip()
+        if value in ("sections", "operating_manual"):
+            return value
+        if re.fullmatch(r"[a-z0-9-]{1,30}", value or ""):
+            return value
+        raise ValueError("Mẫu báo cáo không hợp lệ.")
 
 
 class ReportCreate(ReportOptions):
@@ -216,6 +231,7 @@ class ReportSummaryOut(BaseModel):
     client_name: str
     tier: str
     template: str
+    template_name: str = ""
     content_mode: str
     domains: list[str]
     status: Literal["generating", "ready", "failed", "archived"]
@@ -583,3 +599,162 @@ class PublicReportOut(BaseModel):
     formats: list[str]
     sections: list[PublicSection]
     org_name: str
+
+
+# --- report templates (Giai đoạn 1) -------------------------------------------
+
+TemplateSectionType = Literal["builtin", "block"]
+TemplateStatus = Literal["draft", "pending", "active", "rejected", "archived"]
+BlockKind = Literal["intro", "core", "practice", "outro", "disclaimer"]
+
+
+class TemplateSectionIn(BaseModel):
+    type: TemplateSectionType
+    ref: str = ""
+    block_id: int | None = None
+    title_override: str = Field(default="", max_length=160)
+
+
+class TemplateCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    description: str = Field(default="", max_length=2000)
+    badge: str = Field(default="", max_length=40)
+    sections: list[TemplateSectionIn] = Field(default_factory=list, min_length=1, max_length=30)
+
+
+class TemplateUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    description: str | None = Field(default=None, max_length=2000)
+    badge: str | None = Field(default=None, max_length=40)
+    sections: list[TemplateSectionIn] | None = Field(default=None, min_length=1, max_length=30)
+    status: TemplateStatus | None = None
+    review_note: str | None = Field(default=None, max_length=2000)
+    visibility: str | None = None
+
+
+class ResolvedSectionOut(BaseModel):
+    type: str
+    ref: str = ""
+    block_id: int | None = None
+    title: str
+    title_default: str = ""
+    kind: str = ""
+    name: str = ""
+    body: str = ""
+
+
+class TemplateSummaryOut(BaseModel):
+    id: int
+    key: str
+    name: str
+    description: str = ""
+    badge: str = ""
+    visibility: str
+    status: str
+    version: int
+    sections_count: int
+    samples_count: int
+    reports_count: int = 0
+    origin_label: str = ""
+    import_count: int = 0
+    created_by_name: str = ""
+    created_at: datetime
+    updated_at: datetime
+
+
+class SampleOut(BaseModel):
+    id: int
+    title: str
+    body: str
+    sort: int
+
+
+class TemplateDetailOut(TemplateSummaryOut):
+    review_note: str = ""
+    sections: list[ResolvedSectionOut] = Field(default_factory=list)
+    samples: list[SampleOut] = Field(default_factory=list)
+
+
+class SampleCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+    body: str = Field(default="", max_length=50000)
+    sort: int = 0
+
+
+class SampleUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=160)
+    body: str | None = Field(default=None, max_length=50000)
+    sort: int | None = None
+
+
+class BlockCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    kind: BlockKind = "core"
+    body: str = Field(default="", max_length=20000)
+
+
+class BlockUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    kind: BlockKind | None = None
+    body: str | None = Field(default=None, max_length=20000)
+
+
+class BlockOut(BaseModel):
+    id: int
+    name: str
+    kind: str
+    body: str
+    variables: list[str] = Field(default_factory=list)
+    used_in: list[str] = Field(default_factory=list)
+
+
+class OrgVarIn(BaseModel):
+    key: str = Field(pattern=r"^[a-z][a-z0-9_]{0,29}$")
+    label: str = Field(default="", max_length=60)
+    value: str = Field(default="", max_length=500)
+
+
+class OrgVarsIn(BaseModel):
+    vars: list[OrgVarIn] = Field(default_factory=list, max_length=50)
+
+
+class OrgVarsOut(BaseModel):
+    vars: list[OrgVarIn] = Field(default_factory=list)
+
+
+class BlockVariableOut(BaseModel):
+    path: str
+    label: str
+    example: str
+
+
+class TemplateDefinitionIn(BaseModel):
+    name: str = Field(default="", max_length=120)
+    sections: list[TemplateSectionIn] = Field(default_factory=list, min_length=1, max_length=30)
+
+
+class TemplatePreviewIn(BaseModel):
+    template_id: int | None = None
+    definition: TemplateDefinitionIn | None = None
+
+
+class PreviewSectionOut(BaseModel):
+    id: str
+    title: str
+    markdown: str
+
+
+class TemplatePreviewOut(BaseModel):
+    title: str
+    sections: list[PreviewSectionOut]
+    warnings: list[str] = Field(default_factory=list)
+
+
+class FromBuiltinIn(BaseModel):
+    builtin: Literal["sections", "operating_manual"]
+    name: str = Field(min_length=1, max_length=120)
+
+
+class TemplatePublishIn(BaseModel):
+    badge: str = ""
+    origin_label: str = ""
