@@ -25,7 +25,7 @@ from ..models import (GameCustomQuestion, GameDisabledQuestion, GameEvent, GameL
 from ..schemas import (GameChartIn, GameChartOut, GameConceptOut, GameEventIn, GameLeadIn,
                        GamePublicConfig, GameQuestionOut, GameScoreIn, GameScoreOut,
                        GameStreakIn, GameStreakOut, PublicReportOut, PublicSection)
-from .game_admin import ensure_builtin_concepts
+from .game_admin import ensure_builtin_concepts, get_structures
 from ..security import hash_token, verify_token
 from ..services import audit, chart_summary, load_document
 from .shares import share_status
@@ -295,4 +295,5 @@ def game_config(db: Session = Depends(get_db)) -> GamePublicConfig:
         disabled.setdefault(slug, []).append(qid)
     return GamePublicConfig(
         concepts=[GameConceptOut.model_validate(c, from_attributes=True) for c in concepts],
-        custom_questions=custom, disabled_builtin=disabled)
+        custom_questions=custom, disabled_builtin=disabled,
+        structures=get_structures(db))

@@ -1022,3 +1022,54 @@ class GamePublicConfig(BaseModel):
     concepts: list[GameConceptOut]
     custom_questions: dict[str, list[GameQuestionOut]]
     disabled_builtin: dict[str, list[str]]
+    structures: dict[str, list[GameChapterOut]] = {}
+
+class GameNodeIn(BaseModel):
+    chapter_id: int = 0
+    mode: str = "normal"
+    question_count: int = 8
+    time_limit: int = 0
+    question_ids: list[str] = []
+
+
+class GameNodePatch(BaseModel):
+    mode: str | None = None
+    question_count: int | None = None
+    time_limit: int | None = None
+    question_ids: list[str] | None = None
+    idx: int | None = None
+
+
+class GameNodeOut(BaseModel):
+    id: int
+    chapter_id: int
+    idx: int
+    mode: str
+    question_count: int
+    time_limit: int
+    question_ids: list[str]
+    auto: bool = True
+
+
+class GameChapterIn(BaseModel):
+    concept_slug: str = ""
+    name: str = Field("", max_length=80)
+    icon: str = Field("", max_length=16)
+    desc: str = Field("", max_length=200)
+
+
+class GameChapterPatch(BaseModel):
+    name: str | None = Field(None, max_length=80)
+    icon: str | None = Field(None, max_length=16)
+    desc: str | None = Field(None, max_length=200)
+    idx: int | None = None
+
+
+class GameChapterOut(BaseModel):
+    id: int
+    concept_slug: str
+    idx: int
+    name: str
+    icon: str
+    desc: str
+    nodes: list[GameNodeOut] = []

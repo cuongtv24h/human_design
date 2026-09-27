@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import {
-  NODES_PER_CHAPTER,
-  buildNodes,
-  getChapters,
-  getProgress,
   modeMeta,
-  type StageNode,
+  getProgress,
+  type ResolvedNode,
+  type ResolvedWorld,
   type WorldProgress,
 } from "@/lib/game/stages";
 import type { RuntimeConcept } from "@/lib/game/runtime";
@@ -27,24 +25,22 @@ function Stars({ n }: { n: number }) {
 /** Bản đồ thế giới kiểu Mario: chương → màn, màn khóa/mở theo tiến trình. */
 export default function WorldMap({
   concept,
-  nodeCount,
+  world,
   tick,
   onPlay,
 }: {
   concept: RuntimeConcept;
-  nodeCount: number;
+  world: ResolvedWorld;
   /** tăng mỗi khi xong 1 màn để vẽ lại tiến trình */
   tick: number;
-  onPlay: (node: StageNode) => void;
+  onPlay: (node: ResolvedNode) => void;
 }) {
   const [progress, setProgress] = useState<WorldProgress>({ unlocked: 0, stars: {} });
   useEffect(() => {
     setProgress(getProgress(concept.slug));
   }, [concept.slug, tick]);
-  if (nodeCount <= 0) return null;
+  if (world.totalNodes <= 0) return null;
 
-  const chapters = getChapters(concept.slug);
-  const nodes = buildNodes(nodeCount);
   const total = Object.values(progress.stars).reduce((a, b) => a + b, 0);
 
   return (
@@ -52,12 +48,11 @@ export default function WorldMap({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-black sm:text-2xl">🗺️ Bản đồ {concept.name}</h2>
         <span className="rounded-full bg-amber-300/15 px-3 py-1 text-xs font-black text-amber-200">
-          ⭐ {total}/{nodeCount * 3}
+          ⭐ {total}/{world.totalNodes * 3}
         </span>
       </div>
-      {chapters.map((ch, ci) => {
-        const ns = nodes.filter((n) => n.chapter === ci);
-        if (ns.length === 0) return null;
+      {world.chapters.map((ch, ci) => {
+        if (ch.nodes.length === 0) return null;
         return (
           <section key={ci} className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
             <div className="flex items-center gap-3">
@@ -73,7 +68,7 @@ export default function WorldMap({
             </div>
             <p className="mt-1.5 text-xs text-white/55">{ch.desc}</p>
             <div className="mt-3 flex items-stretch gap-1.5">
-              {ns.map((n, k) => {
+              {ch.nodes.map((n, k) => {
                 const locked = n.index > progress.unlocked;
                 const stars = progress.stars[String(n.index)] ?? 0;
                 const isCurrent = n.index === progress.unlocked;
@@ -92,7 +87,11 @@ export default function WorldMap({
                       type="button"
                       disabled={locked}
                       onClick={() => onPlay(n)}
-                      title={locked ? `Hoàn thành Màn ${n.index} để mở` : `${meta.label} · Màn ${n.index + 1}`}
+                      title={
+                        locked
+                          ? `Hoàn thành Màn ${n.index} để mở`
+                          : `${meta.label} · Màn ${n.index + 1} · ${n.questions.length} câu${n.manual ? " (chọn tay)" : ""}`
+                      }
                       className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl border px-1 py-3 transition ${
                         locked
                           ? "border-white/10 bg-white/[0.02] opacity-50"
@@ -112,9 +111,6 @@ export default function WorldMap({
                   </div>
                 );
               })}
-              {Array.from({ length: NODES_PER_CHAPTER - ns.length }).map((_, k) => (
-                <span key={`pad-${k}`} aria-hidden className="min-w-0 flex-1" />
-              ))}
             </div>
           </section>
         );

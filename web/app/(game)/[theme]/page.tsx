@@ -28,13 +28,9 @@ import {
   toGameTheme,
 } from "@/lib/game/runtime";
 import {
-  BOSS_TIME_LIMIT_S,
-  SPEED_TIME_LIMIT_S,
-  buildNodes,
   completeNode,
   modeMeta,
-  nodeBank,
-  nodeCountFor,
+  resolveWorld,
   starsFor,
   type StageNode,
 } from "@/lib/game/stages";
@@ -55,8 +51,9 @@ export default function PlayPage() {
   const runtime = useMemo(() => getRuntimeTheme(slug, config), [slug, config]);
   const theme = useMemo(() => (runtime ? toGameTheme(runtime) : undefined), [runtime]);
   const bank = useMemo(() => getRuntimeBank(slug, config), [slug, config]);
-  const totalNodes = useMemo(() => nodeCountFor(bank.length), [bank]);
-  const nodes = useMemo(() => buildNodes(totalNodes), [totalNodes]);
+  const world = useMemo(() => resolveWorld(slug, bank, config), [slug, bank, config]);
+  const totalNodes = world.totalNodes;
+  const nodes = world.flat;
 
   const [phase, setPhase] = useState<"map" | "playing" | "done">(dailyParam ? "playing" : "map");
   const [mode, setMode] = useState<Mode>({ kind: "free", daily: dailyParam });
@@ -76,10 +73,10 @@ export default function PlayPage() {
   );
   const nodeQuestions = useMemo(() => {
     if (mode.kind !== "node" || !theme) return undefined;
-    return nodeBank(bank, mode.node.index).map((q) =>
-      toPlayQuestion(theme.slug, `${theme.slug}:node:${mode.node.index}`, q),
-    );
-  }, [mode, bank, theme]);
+    const rn = world.flat.find((n) => n.index === mode.node.index);
+    if (!rn) return [];
+    return rn.questions.map((q) => toPlayQuestion(theme.slug, `${theme.slug}:node:${rn.index}`, q));
+  }, [mode, world, theme]);
 
   useEffect(() => {
     if (dailyParam && theme && !started.current) {
@@ -220,7 +217,7 @@ export default function PlayPage() {
             </button>
           </div>
         </div>
-        <WorldMap concept={runtime} nodeCount={totalNodes} tick={tick} onPlay={startNode} />
+        <WorldMap concept={runtime} world={world} tick={tick} onPlay={startNode} />
         <p className="text-center">
           <Link href="/" className="text-sm font-bold text-white/60 hover:text-white">
             ← Trang chủ
@@ -234,6 +231,7 @@ export default function PlayPage() {
     const isNode = mode.kind === "node";
     const node = isNode ? mode.node : null;
     const meta = node ? modeMeta(node.mode) : null;
+    const rn = node ? world.flat.find((n) => n.index === node.index) : null;
     return (
       <PlayFlow
         key={isNode && node ? `n${node.index}` : `f${freeSeed}`}
@@ -241,9 +239,7 @@ export default function PlayPage() {
         seed={isNode && node ? `${slug}:node:${node.index}` : freeSeed}
         bank={bank}
         questions={nodeQuestions}
-        timeLimit={
-          node?.mode === "boss" ? BOSS_TIME_LIMIT_S : node?.mode === "speed" ? SPEED_TIME_LIMIT_S : undefined
-        }
+        timeLimit={rn?.timeLimit}
         helpers={isNode}
         boss={node?.mode === "boss"}
         title={node && meta ? `Màn ${node.index + 1} · ${meta.icon} ${meta.label}` : "Chơi tự do"}

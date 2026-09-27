@@ -32,10 +32,33 @@ export interface ServerCustomQuestion {
   enabled: boolean;
 }
 
+export interface ServerNode {
+  id: number;
+  chapter_id: number;
+  idx: number;
+  mode: string;
+  question_count: number;
+  /** 0 = auto theo mode */
+  time_limit: number;
+  question_ids: string[];
+  auto: boolean;
+}
+
+export interface ServerChapter {
+  id: number;
+  concept_slug: string;
+  idx: number;
+  name: string;
+  icon: string;
+  desc: string;
+  nodes: ServerNode[];
+}
+
 export interface GameServerConfig {
   concepts: ServerConcept[];
   custom_questions: Record<string, ServerCustomQuestion[]>;
   disabled_builtin: Record<string, string[]>;
+  structures: Record<string, ServerChapter[]>;
 }
 
 /** Concept sau khi hợp nhất — UI chỉ dùng kiểu này, không đọc THEMES trực tiếp. */

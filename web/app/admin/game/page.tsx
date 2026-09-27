@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { api, qs } from "@/lib/api";
 import { BANKS } from "@/lib/game/bank";
+import StructureManager from "./StructureManager";
 import { STYLES, THEMES } from "@/lib/game/content";
 
 interface Concept {
@@ -650,6 +651,8 @@ export default function GameManagerPage() {
           </table>
         </Card>
       )}
+
+      <StructureManager slug={slug} />
 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-bold text-ink">

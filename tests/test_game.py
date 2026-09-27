@@ -140,3 +140,41 @@ def test_game_manager(app):
     assert anon.get("/api/v1/public/game/config").json()["custom_questions"].get("tuoi-tho") is None
     assert admin.delete(f"{G}/questions/disabled?concept_slug=nguoc-dong&qid=nd001",
                         headers=H).status_code == 200
+
+
+def test_game_structures(app):
+    admin = login(app)
+    anon = TestClient(app)
+    G = "/api/v1/game"
+    assert anon.get(f"{G}/chapters?concept_slug=x").status_code == 401
+    assert admin.get(f"{G}/chapters?concept_slug=nguoc-dong", headers=H).json() == []
+    # Seed cấu trúc mặc định
+    seed = admin.post(f"{G}/chapters/seed", json={"concept_slug": "nguoc-dong"}, headers=H)
+    assert seed.status_code == 200, seed.text
+    chaps = seed.json()
+    assert len(chaps) == 4 and all(len(c["nodes"]) == 3 for c in chaps)
+    assert [n["mode"] for n in chaps[3]["nodes"]] == ["normal", "speed", "boss"]
+    assert admin.post(f"{G}/chapters/seed", json={"concept_slug": "nguoc-dong"}, headers=H).status_code == 409
+    cfg = anon.get("/api/v1/public/game/config").json()
+    assert len(cfg["structures"]["nguoc-dong"]) == 4
+    # Validate node
+    cid = chaps[0]["id"]
+    assert admin.post(f"{G}/nodes", json={"chapter_id": cid, "mode": "hard"}, headers=H).status_code == 422
+    assert admin.post(f"{G}/nodes", json={"chapter_id": cid, "question_count": 0}, headers=H).status_code == 422
+    assert admin.post(f"{G}/nodes", json={"chapter_id": 999999}, headers=H).status_code == 404
+    node = admin.post(f"{G}/nodes", json={"chapter_id": cid, "mode": "boss", "question_count": 10,
+                                          "time_limit": 15, "question_ids": ["nd001", "nd002"]},
+                      headers=H).json()
+    assert node["auto"] is False and node["time_limit"] == 15 and node["question_count"] == 10
+    assert admin.patch(f"{G}/nodes/{node['id']}", json={"question_ids": []}, headers=H).json()["auto"] is True
+    assert admin.patch(f"{G}/nodes/{node['id']}", json={"mode": "nope"}, headers=H).status_code == 422
+    # Chapter patch + xóa
+    assert admin.patch(f"{G}/chapters/{cid}", json={"name": "  "}, headers=H).status_code == 422
+    assert admin.patch(f"{G}/chapters/{cid}", json={"name": "Mở Đầu", "idx": 10}, headers=H).json()["name"] == "Mở Đầu"
+    assert admin.delete(f"{G}/nodes/{node['id']}", headers=H).status_code == 200
+    assert admin.delete(f"{G}/nodes/999999", headers=H).status_code == 404
+    assert admin.delete(f"{G}/chapters/{cid}", headers=H).status_code == 200
+    assert len(admin.get(f"{G}/chapters?concept_slug=nguoc-dong", headers=H).json()) == 3
+    # Xóa hết → config không còn structures
+    assert admin.delete(f"{G}/chapters?concept_slug=nguoc-dong", headers=H).status_code == 200
+    assert "nguoc-dong" not in anon.get("/api/v1/public/game/config").json()["structures"]

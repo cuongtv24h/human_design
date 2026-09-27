@@ -391,3 +391,31 @@ class GameDisabledQuestion(Base):
     concept_slug: Mapped[str] = mapped_column(String(32), primary_key=True)
     qid: Mapped[str] = mapped_column(String(24), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+class GameChapter(Base):
+    """Chương trong bản đồ thế giới của 1 concept (thiếu = dùng mặc định trong code)."""
+
+    __tablename__ = "game_chapters"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    concept_slug: Mapped[str] = mapped_column(String(32), ForeignKey("game_concepts.slug", ondelete="CASCADE"), index=True)
+    idx: Mapped[int] = mapped_column(Integer, default=0)
+    name: Mapped[str] = mapped_column(String(80), default="")
+    icon: Mapped[str] = mapped_column(String(16), default="")
+    desc: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class GameNode(Base):
+    """Màn chơi: mode + số câu + giờ (0 = auto) + set câu chọn tay (rỗng = auto)."""
+
+    __tablename__ = "game_nodes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    chapter_id: Mapped[int] = mapped_column(Integer, ForeignKey("game_chapters.id", ondelete="CASCADE"), index=True)
+    idx: Mapped[int] = mapped_column(Integer, default=0)
+    mode: Mapped[str] = mapped_column(String(8), default="normal")
+    question_count: Mapped[int] = mapped_column(Integer, default=8)
+    time_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    question_ids: Mapped[list] = mapped_column(JSONType, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
