@@ -99,8 +99,8 @@ export default function LandingView({ config }: { config: GameServerConfig | nul
               </span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-white/70 lg:mx-0">
-              16 tình huống đời thường bóc trần cách bạn đang vận hành — rồi đối chiếu với thiết kế
-              gốc của chính bạn.
+              Các tình huống đời thường bóc trần cách bạn đang vận hành — có khác với thiết kế
+              gốc của bạn không?
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               <Link
