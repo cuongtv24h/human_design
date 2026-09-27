@@ -68,6 +68,7 @@ from .contract import (  # noqa: E402
     ReportTemplate,
 )
 from .narrative import render_operating_manual  # noqa: E402
+from .llm_editor import template_knowledge_appendix  # noqa: E402
 
 # Domain analyzers are deliberately imported from tools/, rather than copied
 # into the application layer.  ``None`` means that a formatter is not needed
@@ -619,6 +620,13 @@ class ReportOrchestrator:
                     )
                 )
             next_order += 1
+
+        # Lam giau template: moi section kem khoi "Doc them" tu kho tri thuc.
+        for section in sections:
+            if section.status == "included" and section.knowledge_refs:
+                appendix = template_knowledge_appendix(section)
+                if appendix:
+                    section.content_markdown = section.content_markdown.rstrip() + "\n\n" + appendix
 
         generated_at = datetime.now(timezone.utc)
         provenance = ReportProvenance(

@@ -99,6 +99,7 @@ KNOWLEDGE_DIR = Path(__file__).resolve().parents[2] / "knowledge"
 BRIEF_KNOWLEDGE_PER_SECTION = 1500
 #: Tran ngan sach tri thuc cho ca brief (kiem soat chi phi token LLM).
 BRIEF_KNOWLEDGE_BUDGET = 18_000
+TEMPLATE_KNOWLEDGE_PER_SECTION = 1200
 
 
 def brief_knowledge(section, max_chars=BRIEF_KNOWLEDGE_PER_SECTION):
@@ -125,6 +126,19 @@ def brief_knowledge(section, max_chars=BRIEF_KNOWLEDGE_PER_SECTION):
         chunks.append(head)
         used += len(head)
     return "\n\n".join(chunks)
+
+
+def template_knowledge_appendix(section, max_chars=TEMPLATE_KNOWLEDGE_PER_SECTION):
+    """Khoi "Doc them" cho bao cao template, tu knowledge_refs cua section."""
+    excerpt = brief_knowledge(section, max_chars)
+    if not excerpt:
+        return ""
+    return (
+        "---\n\n"
+        "## \U0001F4DA Đọc thêm từ kho tri thức\n\n"
+        "*Tài liệu tham khảo giúp hiểu sâu hơn — mọi số liệu trong báo cáo vẫn lấy từ dữ liệu đã tính của bạn.*\n\n"
+        + excerpt
+    )
 
 
 def strip_internal_times(value: Any) -> Any:

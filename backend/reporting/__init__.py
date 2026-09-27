@@ -23,6 +23,7 @@ from .llm_editor import (
     brief_knowledge,
     build_llm_brief,
     merge_llm_draft,
+    template_knowledge_appendix,
     validate_llm_draft,
 )
 from .orchestrator import ReportOrchestrator
@@ -50,6 +51,7 @@ __all__ = [
     "brief_knowledge",
     "build_llm_brief",
     "merge_llm_draft",
+    "template_knowledge_appendix",
     "validate_llm_draft",
     "LLMConfig",
     "LLMError",
