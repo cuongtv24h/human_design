@@ -58,3 +58,4 @@ Incarnation Cross (bối cảnh sứ mệnh) + Angle (Right: tự trải nghiệ
 - `analyze_purpose(birth_date, birth_time, timezone, name)` -> dict
 - `generate_purpose_report(...)` -> báo cáo markdown
 - Kết hợp: 11_career (nghề), 20_team (vai trò tổ chức), 16_decision (quyết đổi nghề).
+- `calculate_transits` (tool chat) / `hd_transits.cycle_events` — mốc Saturn return, Uranus đối đỉnh cho khủng hoảng tuổi (Chiron chưa tính, phải nói rõ).

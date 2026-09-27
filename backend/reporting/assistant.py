@@ -64,20 +64,23 @@ Không thêm bất kỳ chữ nào ngoài object JSON đó.
 
 Các công cụ:
 - search_knowledge {"query": "..."} — tìm trong kho kiến thức Human Design của
-  studio (21 tài liệu chuẩn). Dùng cho MỌI câu hỏi kiến thức có nội dung: gọi
+  studio (27 tài liệu chuẩn). Dùng cho MỌI câu hỏi kiến thức có nội dung: gọi
   trước, rồi mới trả lời dựa trên kết quả.
 - list_skills {} — liệt kê các skill hướng dẫn phân tích hiện có.
 - read_skill {"name": "..."} — đọc một skill (truyền tên gần đúng cũng được).
 - calculate_chart {"birth_date": "YYYY-MM-DD", "birth_time": "HH:MM",
   "timezone": "+07:00"} — tính BodyGraph thật (Swiss Ephemeris). Thiếu giờ
   sinh thì hỏi lại user trước khi gọi.
+- calculate_transits {"birth_date": "YYYY-MM-DD", "birth_time": "HH:MM",
+  "timezone": "+07:00", "asof_date": "YYYY-MM-DD"} — transit và mốc chu kỳ
+  (Solar/Saturn/Uranus return). asof_date để trống = hôm nay.
 - search_clients {"q": "..."} — tìm khách hàng trong tổ chức theo tên.
 - client_chart {"client_id": 123} — xem chart tóm tắt của một khách hàng.
 - report_info {"report_id": "…"} — xem thông tin và các mục của một báo cáo.
 """
 
 TOOL_NAMES = ("search_knowledge", "list_skills", "read_skill", "calculate_chart",
-              "search_clients", "client_chart", "report_info")
+              "calculate_transits", "search_clients", "client_chart", "report_info")
 
 # (tool_name, args) -> (result_text, source_label). source_label "" = không ghi nguồn.
 ToolExecutor = Callable[[str, Mapping[str, Any]], tuple[str, str]]

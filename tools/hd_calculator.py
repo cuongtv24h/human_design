@@ -484,6 +484,13 @@ def calculate_hd_chart(birth_datetime):
     except Exception:
         incarnation_cross = f"{cross_type} Cross of {p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
     
+    try:
+        from hd_variables import analyze_variables as _analyze_variables
+        _variables = _analyze_variables({"personality_gates": personality_gates,
+                                          "design_gates": design_gates})
+    except Exception:
+        _variables = {}
+
     return {
         "birth_datetime": birth_datetime,
         "birth_jd": birth_jd,
@@ -502,6 +509,7 @@ def calculate_hd_chart(birth_datetime):
         "definition_groups": definition_groups,
         "incarnation_cross": incarnation_cross,
         "cross_type": cross_type,
+        "variables": _variables,
         "p_sun_gate": p_sun_gate,
         "p_earth_gate": p_earth_gate,
         "d_sun_gate": d_sun_gate,
@@ -527,6 +535,8 @@ def format_chart_text(chart):
     lines.append(f"Definition: {chart['definition']}")
     lines.append(f"Incarnation Cross: {chart['incarnation_cross']}")
     lines.append(f"Cross Type: {chart['cross_type']}")
+    if chart.get("variables"):
+        lines.append(f"Variables: {chart['variables']['code']}")
     lines.append("")
     lines.append(f"Design Date (88° Sun trước): {chart['design_datetime']} UTC (JD: {chart['design_jd']:.4f})")
     lines.append("")

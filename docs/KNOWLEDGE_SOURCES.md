@@ -77,3 +77,19 @@ Design Sun sớm, JX/LAX dùng Design Sun muộn, cùng bộ cổng); Earth luô
 diện (+32 cổng). Bảng đạt 192/192 kiểm tra trong `hd_crosses.verify()`.
 Nghĩa tiếng Việt 112 dòng do nhóm tự viết từ cơ học cổng (không dịch nguyên
 văn nguồn). Engine `hd_calculator` nay đặt tên Cross chuẩn thay cho tên chung.
+
+## Đợt 5 — Variables/PHS + Transits (2026-09-28)
+
+| # | Nguồn | Ngày crawl | Điểm chính khai thác | File đích |
+|---|-------|-----------|----------------------|-----------|
+| 20 | gethumandesign — "Variable & PHS: The Four Arrows" (https://www.gethumandesign.com/docs/variable/) + "Color, Tone & Base" (https://www.gethumandesign.com/docs/variable/color-tone-base/) | 2026-09-28 | Vị trí 4 mũi tên; Determination=Design Sun, Environment=Design Nodes, Motivation=Personality Sun, Perspective=Personality Nodes; Tone 1-3 trái / 4-6 phải | `tools/hd_variables.py`, `knowledge/25_phs_variables_chuyen_sau.md` |
+| 21 | gethumandesign — "Determination" (https://www.gethumandesign.com/docs/variable/determination/) | 2026-09-28 | 6 loại tiêu hóa + biến thể L/R (Consecutive/Alternating, Open/Closed, Hot/Cold, Calm/Nervous, High/Low, Direct/Indirect) | `tools/hd_variables.py`, `knowledge/25_*` |
+| 22 | gethumandesign — "Environment" (https://www.gethumandesign.com/docs/variable/environment/) | 2026-09-28 | 6 môi trường + biến thể L/R (Selective/Blending, Internal/External, Wet/Dry, Active/Passive, Narrow/Wide, Natural/Artificial) | `tools/hd_variables.py`, `knowledge/25_*` |
+| 23 | gethumandesign — "Motivation & Transference" (https://www.gethumandesign.com/docs/variable/motivation/) | 2026-09-28 | 6 động lực (Fear/Hope/Desire/Need/Guilt/Innocence) + cặp Transference đối diện; SỬA file 25 (bản cũ sai chu kỳ Shame/Rejection) | `tools/hd_variables.py`, `knowledge/25_*` |
+| 24 | gethumandesign — "Perspective, View & Cognition" (https://www.gethumandesign.com/docs/variable/perspective/) | 2026-09-28 | 6 góc nhìn + cặp Distraction; Cognition DUY NHẤT từ Design Sun Tone (SỬA file 25) | `tools/hd_variables.py`, `knowledge/25_*` |
+| 25 | Genetic Matrix — "Variable: The Four Arrows" (https://www.geneticmatrix.com/learn-hub/variables/index.html) + HD ReDefined — "Variables" (https://humandesignredefined.com/human-design-variables/) | 2026-09-28 | Đối chiếu vị trí mũi tên và ngữ nghĩa L/R (strategic/receptive, focused/peripheral) | kiểm chứng |
+
+Engine mới đợt 5: `hd_variables.analyze_variables` (4 mũi tên + Cognition, gắn
+trong chart) và `hd_transits` (Solar/Jupiter/Saturn return, Uranus đối đỉnh,
+snapshot transit + nối điện từ; Chiron chưa tính vì thiếu ephemeris offline).
+Tool chat mới `calculate_transits`; skill 19 lấp số đã giữ sẵn cho PHS.

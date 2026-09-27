@@ -51,7 +51,7 @@ def test_system_prompt_is_strict():
                    "không thay thế tư vấn y tế", "search_knowledge", "calculate_chart",
                    "TRẢ LỜI LUÔN", "càng ít càng tốt"):
         assert phrase in ASSISTANT_SYSTEM
-    assert len(TOOL_NAMES) == 7
+    assert len(TOOL_NAMES) == 8
 
 
 def test_parse_agent_step():
@@ -326,3 +326,19 @@ def test_tool_result_capped_for_llm():
     fed = script.calls[1]["messages"][-1]["content"]
     assert fed.startswith("[Kết quả search_knowledge]\n")
     assert len(fed) == len("[Kết quả search_knowledge]\n") + 6000
+
+
+def test_every_knowledge_file_produces_chunks():
+    from backend.api.assistant_tools import KNOWLEDGE_DIR, knowledge_chunks
+    files = sorted(p.name for p in KNOWLEDGE_DIR.glob("*.md"))
+    assert len(files) >= 27
+    covered = {f for f, _, _ in knowledge_chunks()}
+    assert set(files) == covered
+
+
+def test_skill_19_phs_exists_and_readable():
+    from backend.api.assistant_tools import list_skills, read_skill
+    names, _ = list_skills()
+    assert "19_phs_variables.md" in names
+    text, _ = read_skill("19_phs_variables")
+    assert "analyze_variables" in text

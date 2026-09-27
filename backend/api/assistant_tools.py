@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from functools import lru_cache
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -407,6 +408,28 @@ def calculate_chart(birth_date: str, birth_time: str, timezone: str = "+07:00") 
     return _chart_summary_text(chart, header), "Tính toán: BodyGraph (Swiss Ephemeris)"
 
 
+def calculate_transits(birth_date: str, birth_time: str, timezone: str = "+07:00",
+                       asof_date: str = "") -> tuple[str, str]:
+    try:
+        subject = SubjectInput(name="", birth_date=(birth_date or "").strip(),
+                               birth_time=(birth_time or "").strip(),
+                               timezone=(timezone or "+07:00").strip())
+    except ValidationError as exc:
+        return f"Ngày/giờ sinh chưa đúng ({exc.errors()[0].get('msg')}). Cần birth_date YYYY-MM-DD và birth_time HH:MM.", ""
+    from hd_time import local_to_utc
+    from hd_transits import cycle_events, format_transit_report, transit_snapshot
+    birth_dt = local_to_utc(subject.birth_date, subject.birth_time, subject.timezone)
+    asof = local_to_utc((asof_date or "").strip() or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                        "12:00", subject.timezone) if (asof_date or "").strip() else None
+    try:
+        snap = transit_snapshot(birth_dt, asof)
+        events = cycle_events(birth_dt)
+    except ValueError:
+        return "asof_date chưa đúng (cần YYYY-MM-DD).", ""
+    header = f"Transit cho {subject.birth_date} {subject.birth_time} ({subject.timezone}):"
+    return header + "\n" + format_transit_report(snap, events), "Tính toán: Transit (Swiss Ephemeris)"
+
+
 def search_clients(db: Session, user: User, query: str) -> tuple[str, str]:
     like = f"%{(query or '').strip().lower()}%"
     rows = db.scalars(visible_clients(user).where(func.lower(Client.full_name).like(like))
@@ -462,6 +485,10 @@ def make_executor(db: Session, user: User):
             if name == "calculate_chart":
                 return calculate_chart(str(args.get("birth_date", "")), str(args.get("birth_time", "")),
                                        str(args.get("timezone", "+07:00") or "+07:00"))
+            if name == "calculate_transits":
+                return calculate_transits(str(args.get("birth_date", "")), str(args.get("birth_time", "")),
+                                          str(args.get("timezone", "+07:00") or "+07:00"),
+                                          str(args.get("asof_date", "") or ""))
             if name == "search_clients":
                 return search_clients(db, user, str(args.get("q", "")))
             if name == "client_chart":
@@ -472,10 +499,10 @@ def make_executor(db: Session, user: User):
             detail = exc.detail if isinstance(exc.detail, str) else "Không có quyền."
             return detail, ""
         return (f"Công cụ “{name}” không tồn tại. Chỉ dùng: search_knowledge, list_skills, "
-                "read_skill, calculate_chart, search_clients, client_chart, report_info."), ""
+                "read_skill, calculate_chart, calculate_transits, search_clients, client_chart, report_info."), ""
 
     return execute
 
 
-__all__ = ["calculate_chart", "client_chart", "fold_vi", "knowledge_chunks", "list_skills", "make_executor",
+__all__ = ["calculate_chart", "calculate_transits", "client_chart", "fold_vi", "knowledge_chunks", "list_skills", "make_executor",
            "read_skill", "report_info", "search_clients", "search_knowledge", "skill_files"]

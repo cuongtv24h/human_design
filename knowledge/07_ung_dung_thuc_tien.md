@@ -48,6 +48,11 @@ Cần tính toán chính xác đến Color/Tone/Base (đòi hỏi giờ sinh c�
 - **Incarnation Cross chi tiết**: 192 Cross với tên và mô tả
 - **Godhead**: 16 vị thần của Mandala
 - **Dream Rave**: Phân tích giấc mơ
+- **Transit và chu kỳ lớn**: engine `hd_transits` tính Solar return hằng năm,
+  Jupiter/Saturn return, Uranus đối đỉnh (~42t) và Uranus return (~84t);
+  tra cứu qua tool chat `calculate_transits` (Chiron chưa tính)
+- **Variables/PHS**: engine `hd_variables` tính sẵn 4 mũi tên trong chart
+  (cần giờ sinh chính xác đến phút)
 
 ## 7. Lưu ý đạo đức khi phân tích
 
