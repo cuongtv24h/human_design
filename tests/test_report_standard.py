@@ -14,6 +14,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from backend.reporting import (
     LLM_PERSONA,
+    brief_knowledge,
     build_llm_brief,
     export_report,
     merge_llm_draft,
@@ -61,6 +62,27 @@ def test_llm_brief_contains_persona_rules_source_data_and_glossary():
     assert document.chart["incarnation_cross"] in brief
     assert "Chờ lời mời" in brief  # polished strategy term in the glossary
     assert "```json" in brief
+
+
+def test_llm_brief_attaches_knowledge_per_section():
+    document = _run(tier="deep_core", domains=["parenting"])
+    brief = build_llm_brief(document)
+    # Section parenting đính kèm đúng file kho của nó (nội dung file 22).
+    assert "[Kho tri thức: 22_nuoi_day_con_theo_thiet_ke.md]" in brief
+    assert "uh-huh" in brief
+    # Section core cũng có kho riêng (vd centers -> file 02).
+    assert "[Kho tri thức: 02_9_trung_tam.md]" in brief
+    # Chế độ biên tập 1 phần: chỉ section đó có kho đính kèm.
+    brief_one = build_llm_brief(document, section_ids=["domain_parenting"])
+    assert "[Kho tri thức: 22_nuoi_day_con_theo_thiet_ke.md]" in brief_one
+    assert "[Kho tri thức: 02_9_trung_tam.md]" not in brief_one
+
+
+def test_brief_knowledge_is_safe_when_refs_missing():
+    document = _run(tier="deep_core")
+    section = next(s for s in document.sections if s.id == "summary")
+    forged = section.model_copy(update={"knowledge_refs": ["../secret.md", "khong-co-file-nay.md"]})
+    assert brief_knowledge(forged) == ""
 
 
 def test_validate_llm_draft_detects_missing_facts():

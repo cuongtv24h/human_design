@@ -20,6 +20,7 @@ from .llm_client import LLMConfig, LLMError, call_llm, parse_llm_json
 from .llm_editor import (
     LLM_PERSONA,
     LLM_RULES,
+    brief_knowledge,
     build_llm_brief,
     merge_llm_draft,
     validate_llm_draft,
@@ -46,6 +47,7 @@ __all__ = [
     "export_report",
     "LLM_PERSONA",
     "LLM_RULES",
+    "brief_knowledge",
     "build_llm_brief",
     "merge_llm_draft",
     "validate_llm_draft",

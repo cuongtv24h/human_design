@@ -26,9 +26,10 @@ channel, center, type, authority, profile, cross; không bịa số liệu.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from .contract import ReportDocument
+from .contract import ReportDocument, ReportSection
 from .style import style_brief_block
 from hd_time import display_birth  # noqa: E402  (tools/ on sys.path via contract)
 from .language_vn import (
@@ -93,6 +94,38 @@ def _glossary_lines() -> str:
 
 _INTERNAL_TIME_KEYS = frozenset({"birth_datetime", "birth_jd", "design_jd", "design_datetime"})
 
+KNOWLEDGE_DIR = Path(__file__).resolve().parents[2] / "knowledge"
+#: Moi section dinh kem toi da tung nay ky tu tu kho tri thuc.
+BRIEF_KNOWLEDGE_PER_SECTION = 1500
+#: Tran ngan sach tri thuc cho ca brief (kiem soat chi phi token LLM).
+BRIEF_KNOWLEDGE_BUDGET = 18_000
+
+
+def brief_knowledge(section, max_chars=BRIEF_KNOWLEDGE_PER_SECTION):
+    """Trich kho tri thuc cho mot section, dua tren knowledge_refs cua no."""
+    chunks = []
+    used = 0
+    for ref in section.knowledge_refs:
+        if "/" in ref or ".." in ref:
+            continue
+        try:
+            text = (KNOWLEDGE_DIR / ref).read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if not text:
+            continue
+        # Ha cap heading trong trich dan de khoi dung so muc cua brief.
+        text = "\n".join("#" + line if line.startswith("## ") else line for line in text.split("\n"))
+        head = "[Kho tri thức: " + ref + "]\n" + text
+        room = max_chars - used
+        if room <= 0:
+            break
+        if len(head) > room:
+            head = head[:room].rstrip() + "\n…(còn nữa trong kho)"
+        chunks.append(head)
+        used += len(head)
+    return "\n\n".join(chunks)
+
 
 def strip_internal_times(value: Any) -> Any:
     """Recursively drop UTC / Julian-day keys from data shown to people or LLMs."""
@@ -118,17 +151,40 @@ def build_llm_brief(document: ReportDocument, section_ids: Iterable[str] | None 
     source = {k: v for k, v in document.chart.items() if k not in _INTERNAL_TIME_KEYS}
     chart_json = json.dumps(source, ensure_ascii=False, indent=2, default=str)
     rules = "\n".join(f"{index}. {rule}" for index, rule in enumerate(LLM_RULES, 1))
+    ordered = sorted(
+        (s for s in document.sections if s.status == "included"),
+        key=lambda item: item.order,
+    )
+    # Ngân sách tri thức: mỗi section được biên tập đều có phần, tối đa trần
+    # chung. Ưu tiên section domain trước (nội dung template mỏng hơn core).
+    budgeted = [s for s in ordered if only is None or s.id in only]
+    allowance = min(BRIEF_KNOWLEDGE_PER_SECTION * len(budgeted), BRIEF_KNOWLEDGE_BUDGET)
+    excerpts: dict[str, str] = {}
+    knowledge_used = 0
+    for section in sorted(budgeted, key=lambda s: (0 if s.id.startswith("domain_") else 1, s.order)):
+        if knowledge_used >= allowance:
+            break
+        excerpt = brief_knowledge(section, BRIEF_KNOWLEDGE_PER_SECTION)
+        if excerpt:
+            excerpts[section.id] = excerpt
+            knowledge_used += len(excerpt)
     structure_blocks = []
-    for section in sorted(document.sections, key=lambda item: item.order):
-        if section.status != "included":
-            continue
+    for section in ordered:
         if only is not None and section.id not in only:
             structure_blocks.append(f"### Section `{section.id}` — {section.title} (chỉ để tham khảo, KHÔNG viết lại)")
             continue
-        structure_blocks.append(
+        block = (
             f"### Section `{section.id}` — {section.title}\n\n"
             f"Nội dung template tham chiếu:\n\n{section.content_markdown.rstrip()}"
         )
+        excerpt = excerpts.get(section.id)
+        if excerpt:
+            block += (
+                "\n\nTài liệu tham khảo từ kho tri thức "
+                "(chỉ dùng để diễn giải — mọi số liệu lấy từ dữ liệu nguồn mục 4):\n\n"
+                f"{excerpt}"
+            )
+        structure_blocks.append(block)
     subject = document.subject
     parts = [
             "# BIÊN TẬP BÁO CÁO HUMAN DESIGN",
