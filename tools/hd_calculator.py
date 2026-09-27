@@ -475,7 +475,14 @@ def calculate_hd_chart(birth_datetime):
     else:  # 4/1 Juxtaposition
         cross_type = "Juxtaposition"
     
-    incarnation_cross = f"{cross_type} Cross of {p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
+    # Tên Cross chuẩn từ bảng 192 (Sun ý thức + họ); fallback tên chung nếu thiếu.
+    try:
+        from hd_crosses import get_cross as _get_cross
+        _geom = {"Right Angle": "RAX", "Left Angle": "LAX"}.get(cross_type, "JX")
+        _cross_name = _get_cross(p_sun_gate, _geom)["name_en"]
+        incarnation_cross = f"{cross_type} Cross of {_cross_name}"
+    except Exception:
+        incarnation_cross = f"{cross_type} Cross of {p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
     
     return {
         "birth_datetime": birth_datetime,

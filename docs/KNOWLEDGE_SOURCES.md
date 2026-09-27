@@ -62,3 +62,18 @@ LAX: 5/1,5/2,6/2,6/3; JX: 4/1); Ego Manifested (21-45) ưu tiên trước Ego Pr
 File mới: `24_64_cong_chi_tiet.md` (gắn section channels_gates),
 `25_phs_variables_chuyen_sau.md` (gắn domain HEALTH),
 `26_chu_de_nang_cao.md` (gắn domain PURPOSE).
+
+## Đợt 4 — Danh mục đủ 192 Incarnation Crosses (2026-09-28)
+
+| # | Nguồn | Ngày crawl | Điểm chính khai thác | File đích |
+|---|-------|-----------|----------------------|-----------|
+| 17 | Genetic Matrix — "The 192 Incarnation Crosses" (https://www.geneticmatrix.com/learn-hub/incarnation-cross/index.html) | 2026-09-28 | Danh sách đủ 192: tên + bộ 4 cổng + họ (RAX/LAX/JX) theo Sun ý thức; 4 Quarter; quy tắc 64×3 | `tools/hd_crosses.py`, `knowledge/08_192_incarnation_crosses_chi_tiet.md` |
+| 18 | Manifesting Human Design — "Incarnation Cross Index" (https://manifestinghumandesign.com/human-design-incarnation-cross/) | 2026-09-28 | Đối chiếu 16/16 RAX Quarter 1 (tên + 4 cổng) — khớp 100% | kiểm chứng |
+| 19 | humandesign4all — "The 192 Incarnation Crosses" (https://humandesign4all.com/incarnation-cross-in-human-design/) | 2026-09-28 | Đối chiếu ~30 mục LAX/JX (tên + 4 cổng) — khớp 100% | kiểm chứng |
+
+Kiểm chứng cơ học trên engine (sampling 1600 chart + suy giải tích từ quy tắc
+Design Sun = Sun − 88°): mỗi cổng Sun ý thức sinh đúng 3 Cross (RAX dùng
+Design Sun sớm, JX/LAX dùng Design Sun muộn, cùng bộ cổng); Earth luôn đối
+diện (+32 cổng). Bảng đạt 192/192 kiểm tra trong `hd_crosses.verify()`.
+Nghĩa tiếng Việt 112 dòng do nhóm tự viết từ cơ học cổng (không dịch nguyên
+văn nguồn). Engine `hd_calculator` nay đặt tên Cross chuẩn thay cho tên chung.
