@@ -150,7 +150,9 @@ class ReportRequest(BaseModel):
     report_id: UUID = Field(default_factory=uuid4)
     subject: SubjectInput
     tier: ReportTier = ReportTier.FREE_BASIC
-    template: ReportTemplate = ReportTemplate.SECTIONS
+    # Enum cho 2 mẫu hệ thống; chuỗi tự do cho mẫu tùy chỉnh (định nghĩa nằm
+    # trong options["custom_template"], xem backend/reporting/blocks.py).
+    template: ReportTemplate | str = ReportTemplate.SECTIONS
     content_mode: ContentMode = ContentMode.TEMPLATE
     domains: list[DomainName] = Field(default_factory=list)
     partner: PartnerInput | None = None
@@ -159,6 +161,16 @@ class ReportRequest(BaseModel):
     requested_by: str | None = None
     include_bodygraph: bool = True
     options: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("template", mode="before")
+    @classmethod
+    def _coerce_template(cls, value):
+        if isinstance(value, ReportTemplate):
+            return value
+        try:
+            return ReportTemplate(value)
+        except ValueError:
+            return str(value)
 
     @field_validator("domains")
     @classmethod

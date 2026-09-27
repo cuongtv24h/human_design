@@ -25,6 +25,8 @@ class Organization(Base):
     #   api_key_enc (Fernet), enabled, input_price, output_price}], updated_by, updated_at}.
     # Legacy flat keys (base_url/model/api_key_enc/...) are still read as one provider.
     llm_settings: Mapped[dict] = mapped_column(JSONType, default=dict)
+    # Biến tổ chức dùng trong khối nội dung: {vars: [{key, label, value}]}.
+    template_vars: Mapped[dict] = mapped_column(JSONType, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
@@ -216,3 +218,61 @@ class ChatMessage(Base):
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 1 = 👍, -1 = 👎
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+class ReportTemplate(Base):
+    """Mẫu báo cáo tùy chỉnh (Giai đoạn 1: quản trị mẫu + khối + bài mẫu).
+
+    Hai mẫu hệ thống (sections/operating_manual) vẫn nằm trong code.
+    Hàng ``visibility=shared`` là bản sao độc lập trên thư viện chung.
+    """
+
+    __tablename__ = "report_templates"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    org_id: Mapped[int | None] = mapped_column(ForeignKey("organizations.id"), nullable=True, index=True)
+    key: Mapped[str] = mapped_column(String(30), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(Text, default="")
+    badge: Mapped[str] = mapped_column(String(40), default="")
+    visibility: Mapped[str] = mapped_column(String(10), default="private")  # private | shared
+    status: Mapped[str] = mapped_column(String(10), default="draft")  # draft|pending|active|rejected|archived
+    review_note: Mapped[str] = mapped_column(Text, default="")
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    # [{type: "builtin", ref: "<section_id|domain_x>", title_override: ""} |
+    #  {type: "block", block_id: <int|null>, title: "", body: "<inline snapshot>"}]
+    sections: Mapped[list] = mapped_column(JSONType, default=list)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    origin_template_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    origin_label: Mapped[str] = mapped_column(String(200), default="")
+    import_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+class TemplateBlock(Base):
+    """Khối nội dung tái sử dụng trong thư viện khối của tổ chức."""
+
+    __tablename__ = "template_blocks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    kind: Mapped[str] = mapped_column(String(20), default="core")  # intro|core|practice|outro|disclaimer
+    body: Mapped[str] = mapped_column(Text, default="")
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+class TemplateSample(Base):
+    """Bài viết mẫu đính kèm mẫu báo cáo (Giai đoạn 1: chỉ để xem)."""
+
+    __tablename__ = "template_samples"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template_id: Mapped[int] = mapped_column(ForeignKey("report_templates.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(160))
+    body: Mapped[str] = mapped_column(Text, default="")
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
