@@ -81,13 +81,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const me = useMe();
   const [open, setOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
+  // Trang login nằm trong /admin nên phải thoát khỏi guard — không thì máy chưa
+  // đăng nhập sẽ kẹt ở "Đang kiểm tra đăng nhập…" vì form login không bao giờ render.
+  const isLoginPage = pathname === "/admin/login" || pathname.startsWith("/admin/login/");
 
   useEffect(() => {
-    if (me.error instanceof ApiError && me.error.status === 401) {
+    if (!isLoginPage && me.error instanceof ApiError && me.error.status === 401) {
       router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [me.error, pathname, router]);
+  }, [me.error, pathname, router, isLoginPage]);
   useEffect(() => setOpen(false), [pathname]);
+
+  if (isLoginPage) return <>{children}</>;
 
   if (!me.data) {
     return (

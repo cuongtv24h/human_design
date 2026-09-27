@@ -24,11 +24,11 @@ export function ReportTable({ reports, showClient = true }: { reports: ReportSum
             <tr key={r.id} className="border-b border-line/70 last:border-0 hover:bg-paper/60">
               {showClient && (
                 <td className="px-4 py-3">
-                  <Link href={`/reports/${r.id}`} className="font-medium text-ink hover:text-brand-600">{r.client_name}</Link>
+                  <Link href={`/admin/reports/${r.id}`} className="font-medium text-ink hover:text-brand-600">{r.client_name}</Link>
                 </td>
               )}
               <td className="px-4 py-3">
-                <Link href={`/reports/${r.id}`} className="hover:text-brand-600">
+                <Link href={`/admin/reports/${r.id}`} className="hover:text-brand-600">
                   {TIER_LABEL[r.tier] ?? r.tier} · {TEMPLATE_LABEL[r.template] ?? r.template}
                 </Link>
                 {r.domains.length > 0 && <div className="text-xs text-muted">+ {r.domains.length} chủ đề chuyên sâu</div>}

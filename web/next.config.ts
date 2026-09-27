@@ -12,9 +12,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.e2b.app", "localhost", "127.0.0.1"],
   async redirects() {
     // URL game cũ (/choi, /game) -> URL gốc mới, giữ nguyên query (?d=...).
+    // URL admin cũ (trước khi gom về /admin/*) -> tiền tố mới, giữ nguyên query.
     return [
       { source: "/choi/:path*", destination: "/:path*", permanent: true },
       { source: "/game/:path*", destination: "/:path*", permanent: true },
+      { source: "/login", destination: "/admin/login", permanent: true },
+      { source: "/reports/:path*", destination: "/admin/reports/:path*", permanent: true },
+      { source: "/clients/:path*", destination: "/admin/clients/:path*", permanent: true },
+      { source: "/settings/:path*", destination: "/admin/settings/:path*", permanent: true },
     ];
   },
   async rewrites() {
