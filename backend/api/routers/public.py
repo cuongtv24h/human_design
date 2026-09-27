@@ -6,16 +6,23 @@ payloads never include internal warnings, UTC datetimes or coach notes.
 
 from __future__ import annotations
 
+import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from pydantic import ValidationError
+
+from backend.reporting.contract import ReportRequest
+from backend.reporting.orchestrator import ReportOrchestrator
+
 from ..deps import client_ip, get_db
 from ..files import file_response
-from ..models import Organization, Report, ShareLink
-from ..schemas import PublicReportOut, PublicSection
+from ..models import GameEvent, GameLead, Organization, Report, ShareLink
+from ..schemas import (GameChartIn, GameChartOut, GameEventIn, GameLeadIn, PublicReportOut,
+                       PublicSection)
 from ..security import hash_token, verify_token
 from ..services import audit, chart_summary, load_document
 from .shares import share_status
@@ -100,3 +107,73 @@ def signed_file(token: str, request: Request, db: Session = Depends(get_db)) -> 
           actor=payload.get("u"), format=fmt)
     db.commit()
     return response
+
+# --- game landing công khai (G1) ------------------------------------------------
+
+_GAME_EVENT_NAMES = frozenset({"game_start", "game_complete", "bridge_view", "bridge_submit",
+                               "share_click", "cta_click", "lead_submit"})
+
+_HITS: dict[tuple[str, str], list[float]] = {}
+
+
+def _ratelimit(key: str, limit: int, window: float = 60.0):
+    """Giới hạn tần suất theo IP cho endpoint công khai (bộ nhớ cục bộ; production cần redis)."""
+
+    def dep(request: Request) -> None:
+        ip = client_ip(request) or "unknown"
+        now = time.monotonic()
+        slot = (ip, key)
+        hits = [t for t in _HITS.get(slot, []) if now - t < window]
+        if len(hits) >= limit:
+            raise HTTPException(status_code=429, detail="Bạn thao tác quá nhanh, thử lại sau ít phút.")
+        hits.append(now)
+        _HITS[slot] = hits
+
+    return dep
+
+
+@router.post("/public/game/chart", response_model=GameChartOut)
+def game_chart(payload: GameChartIn, db: Session = Depends(get_db),
+               _rl: None = Depends(_ratelimit("game_chart", 30))) -> GameChartOut:
+    """Mini chart cho game landing (không cần đăng nhập)."""
+    try:
+        req = ReportRequest.model_validate({
+            "subject": {"name": "Khách", "birth_date": payload.birth_date,
+                        "birth_time": payload.birth_time, "timezone": payload.timezone,
+                        "birth_location": payload.birth_place},
+            "tier": "deep_core", "template": "sections", "domains": []})
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail="Ngày giờ sinh chưa hợp lệ.") from exc
+    document = ReportOrchestrator().run(req)
+    raw_centers = document.chart.get("defined_centers", []) or []
+    return GameChartOut(
+        summary=chart_summary(document.chart),
+        centers=[c for c in raw_centers if isinstance(c, str)],
+        subject_display=display_birth(payload.birth_date, payload.birth_time, payload.timezone))
+
+
+@router.post("/public/game/events")
+def game_event(payload: GameEventIn, db: Session = Depends(get_db),
+               _rl: None = Depends(_ratelimit("game_events", 120))) -> dict:
+    """Ghi sự kiện funnel ẩn danh (tên phải nằm trong danh sách cho phép)."""
+    if payload.name not in _GAME_EVENT_NAMES:
+        raise HTTPException(status_code=422, detail="Tên sự kiện không hợp lệ.")
+    db.add(GameEvent(name=payload.name, theme=payload.theme[:32],
+                     session_id=payload.session_id[:64]))
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/public/game/leads")
+def game_lead(payload: GameLeadIn, db: Session = Depends(get_db),
+              _rl: None = Depends(_ratelimit("game_leads", 10))) -> dict:
+    """Nhận thông tin khách muốn báo cáo đầy đủ (G1, không cần đăng nhập)."""
+    if not payload.name.strip() or not payload.contact.strip():
+        raise HTTPException(status_code=422, detail="Vui lòng nhập tên và số điện thoại/Zalo.")
+    db.add(GameLead(
+        name=payload.name.strip()[:80], contact=payload.contact.strip()[:120],
+        birth_date=payload.birth_date[:10], birth_time=payload.birth_time[:8],
+        birth_place=payload.birth_place[:120], timezone=payload.timezone[:10],
+        theme=payload.theme[:32], quiz=dict(payload.quiz or {}), note=payload.note.strip()[:500]))
+    db.commit()
+    return {"ok": True}

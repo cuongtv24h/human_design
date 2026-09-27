@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Bot, FilePlus2, FileText, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, UserCog, Users, X } from "lucide-react";
+import { BookOpen, Bot, FilePlus2, FileText, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, UserCog, UserPlus, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
   const user = me.data;
   const nav = user.role === "admin"
-    ? [...NAV, { href: "/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/settings/llm", label: "AI / LLM", icon: Bot }, { href: "/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare }]
+    ? [...NAV, { href: "/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/settings/llm", label: "AI / LLM", icon: Bot }, { href: "/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare }, { href: "/leads", label: "Khách tiềm năng", icon: UserPlus }]
     : NAV;
 
   async function logout() {

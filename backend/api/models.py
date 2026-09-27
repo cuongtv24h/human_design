@@ -294,3 +294,33 @@ class TemplateStyleVersion(Base):
     source: Mapped[str] = mapped_column(String(16), default="manual")
     created_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+class GameEvent(Base):
+    """Sự kiện funnel game landing ẩn danh (G1)."""
+
+    __tablename__ = "game_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(32), index=True)
+    theme: Mapped[str] = mapped_column(String(32), default="")
+    session_id: Mapped[str] = mapped_column(String(64), default="", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class GameLead(Base):
+    """Khách tiềm năng từ game (muốn nhận báo cáo đầy đủ)."""
+
+    __tablename__ = "game_leads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(80))
+    contact: Mapped[str] = mapped_column(String(120))
+    birth_date: Mapped[str] = mapped_column(String(10), default="")
+    birth_time: Mapped[str] = mapped_column(String(8), default="")
+    birth_place: Mapped[str] = mapped_column(String(120), default="")
+    timezone: Mapped[str] = mapped_column(String(10), default="+07:00")
+    theme: Mapped[str] = mapped_column(String(32), default="")
+    quiz: Mapped[dict] = mapped_column(JSONType, default=dict)
+    note: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(16), default="new", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

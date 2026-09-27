@@ -405,3 +405,18 @@ export interface StyleHistoryOut {
   excerpt: string;
   sample_count: number;
 }
+
+export interface GameLeadOut {
+  id: number;
+  name: string;
+  contact: string;
+  birth_date: string;
+  birth_time: string;
+  birth_place: string;
+  timezone: string;
+  theme: string;
+  quiz: { style?: string; deviation?: number; theme?: string };
+  note: string;
+  status: string;
+  created_at: string;
+}

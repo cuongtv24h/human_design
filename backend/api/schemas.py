@@ -851,3 +851,54 @@ class BuiltinSectionOut(BaseModel):
     id: str
     title: str
     kind: str
+
+class GameChartIn(BaseModel):
+    birth_date: str
+    birth_time: str
+    timezone: str = "+07:00"
+    birth_place: str = ""
+
+
+class GameChartOut(BaseModel):
+    summary: ChartSummary
+    centers: list[str]
+    subject_display: str
+
+
+class GameEventIn(BaseModel):
+    name: str
+    theme: str = ""
+    session_id: str = ""
+
+
+class GameLeadIn(BaseModel):
+    name: str = Field("", max_length=80)
+    contact: str = Field("", max_length=120)
+    birth_date: str = ""
+    birth_time: str = ""
+    birth_place: str = Field("", max_length=120)
+    timezone: str = "+07:00"
+    theme: str = Field("", max_length=32)
+    quiz: dict = {}
+    note: str = Field("", max_length=500)
+
+
+class GameLeadStatusIn(BaseModel):
+    status: Literal["new", "contacted", "converted", "spam"]
+
+
+class GameLeadOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    contact: str
+    birth_date: str
+    birth_time: str
+    birth_place: str
+    timezone: str
+    theme: str
+    quiz: dict
+    note: str
+    status: str
+    created_at: datetime
