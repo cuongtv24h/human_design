@@ -27,7 +27,7 @@ function LoginForm() {
       setSessionToken(session_token);
       queryClient.setQueryData(["me"], user);
       const next = params.get("next");
-      router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
+      router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/admin");
     } catch (err) {
       setError(err);
       setLoading(false);

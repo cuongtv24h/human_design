@@ -13,12 +13,12 @@ import { useMe } from "@/lib/auth";
 import { setSessionToken } from "@/lib/session";
 
 const NAV = [
-  { href: "/", label: "Tổng quan", icon: LayoutDashboard, exact: true },
-  { href: "/clients", label: "Khách hàng", icon: Users },
-  { href: "/reports", label: "Báo cáo", icon: FileText, exclude: "/reports/new" },
-  { href: "/reports/new", label: "Tạo báo cáo", icon: FilePlus2 },
-  { href: "/templates", label: "Mẫu báo cáo", icon: LayoutTemplate },
-  { href: "/guide", label: "Hướng dẫn", icon: BookOpen },
+  { href: "/admin", label: "Tổng quan", icon: LayoutDashboard, exact: true },
+  { href: "/admin/clients", label: "Khách hàng", icon: Users },
+  { href: "/admin/reports", label: "Báo cáo", icon: FileText, exclude: "/admin/reports/new" },
+  { href: "/admin/reports/new", label: "Tạo báo cáo", icon: FilePlus2 },
+  { href: "/admin/templates", label: "Mẫu báo cáo", icon: LayoutTemplate },
+  { href: "/admin/guide", label: "Hướng dẫn", icon: BookOpen },
 ];
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
@@ -84,7 +84,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (me.error instanceof ApiError && me.error.status === 401) {
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
     }
   }, [me.error, pathname, router]);
   useEffect(() => setOpen(false), [pathname]);
@@ -102,14 +102,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
   const user = me.data;
   const nav = user.role === "admin"
-    ? [...NAV, { href: "/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/settings/llm", label: "AI / LLM", icon: Bot }, { href: "/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare }, { href: "/leads", label: "Khách tiềm năng", icon: UserPlus }]
+    ? [...NAV, { href: "/admin/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/admin/settings/llm", label: "AI / LLM", icon: Bot }, { href: "/admin/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare }, { href: "/admin/leads", label: "Khách tiềm năng", icon: UserPlus }]
     : NAV;
 
   async function logout() {
     await api.post("/auth/logout").catch(() => undefined);
     setSessionToken(null);
     queryClient.clear();
-    router.replace("/login");
+    router.replace("/admin/login");
   }
 
   const isActive = (item: (typeof nav)[number]) => {
@@ -120,7 +120,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <nav className="flex h-full flex-col">
-      <Link href="/" className="flex items-center gap-3 px-5 py-5">
+      <Link href="/admin" className="flex items-center gap-3 px-5 py-5">
         <Logo />
         <div className="leading-tight">
           <div className="text-sm font-bold text-ink">Human Design</div>

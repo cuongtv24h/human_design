@@ -139,7 +139,7 @@ function ClientPicker({ value, onChange }: { value: number | null; onChange: (c:
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <Input className="pl-9" placeholder="Tìm khách hàng…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Tìm khách hàng" />
         </div>
-        <LinkButton href="/clients/new" variant="secondary"><UserPlus className="size-4" /> Khách hàng mới</LinkButton>
+        <LinkButton href="/admin/clients/new" variant="secondary"><UserPlus className="size-4" /> Khách hàng mới</LinkButton>
       </div>
       <p className="text-xs font-semibold uppercase tracking-wider text-muted">
         {searching ? `Kết quả tìm kiếm (${data?.total ?? 0})` : "Tương tác gần đây"}
@@ -252,7 +252,7 @@ function Wizard() {
   return (
     <>
       <PageHeader title="Tạo báo cáo" description="4 bước — bạn luôn thấy trước BodyGraph và nội dung nháp trước khi tạo."
-        actions={<LinkButton href="/guide#tao-bao-cao" variant="ghost">Hướng dẫn</LinkButton>} />
+        actions={<LinkButton href="/admin/guide#tao-bao-cao" variant="ghost">Hướng dẫn</LinkButton>} />
       <Stepper step={step} onJump={go} maxStep={maxStep} />
       {/* Mọi bước: khối nội dung full-width, Xem trước nằm dưới. */}
       <div className="grid items-start gap-6">
@@ -285,7 +285,7 @@ function Wizard() {
                       } />
                   ))}
                 </div>
-                <div><LinkButton href="/templates" variant="ghost">Quản lý mẫu báo cáo →</LinkButton></div>
+                <div><LinkButton href="/admin/templates" variant="ghost">Quản lý mẫu báo cáo →</LinkButton></div>
               </div>
               <div className="space-y-3">
                 <div>

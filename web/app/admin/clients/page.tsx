@@ -22,7 +22,7 @@ export default function ClientsPage() {
   return (
     <>
       <PageHeader title="Khách hàng" description={data ? `${data.total} người` : undefined}
-        actions={<LinkButton href="/clients/new"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>} />
+        actions={<LinkButton href="/admin/clients/new"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>} />
       <div className="relative mb-4 max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
         <Input className="pl-9" placeholder="Tìm theo tên, email hoặc số điện thoại…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Tìm khách hàng" />
@@ -37,7 +37,7 @@ export default function ClientsPage() {
           ) : (
             <EmptyState icon={<Users className="size-8" />} title="Chưa có khách hàng nào"
               description="Thêm khách hàng với ngày và giờ sinh để bắt đầu tạo báo cáo."
-              action={<LinkButton href="/clients/new"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>} />
+              action={<LinkButton href="/admin/clients/new"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>} />
           )
         ) : (
           <div className="overflow-x-auto">

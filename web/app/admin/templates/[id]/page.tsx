@@ -642,7 +642,7 @@ function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boo
         <Badge tone={tone}>{STYLE_STATUS_LABEL[st] ?? st}</Badge>
       </div>
       <p className="text-xs text-muted">
-        AI học cách viết từ bài mẫu của mẫu này. Áp dụng khi tạo báo cáo ở chế độ AI biên tập (có công tắc tắt ở bước tạo). <Link href="/guide#van-phong" className="font-medium text-brand-700 hover:underline">Tìm hiểu thêm.</Link>
+        AI học cách viết từ bài mẫu của mẫu này. Áp dụng khi tạo báo cáo ở chế độ AI biên tập (có công tắc tắt ở bước tạo). <Link href="/admin/guide#van-phong" className="font-medium text-brand-700 hover:underline">Tìm hiểu thêm.</Link>
       </p>
       <ErrorBox error={analyze.error ?? save.error} />
       {editing ? (
@@ -797,7 +797,7 @@ function DetailView({ detail, isAdmin }: { detail: TemplateDetail; isAdmin: bool
         }
         actions={
           <>
-            <Link href="/templates"
+            <Link href="/admin/templates"
               className="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-paper">
               <ArrowLeft className="size-4" /> Danh sách
             </Link>
@@ -806,7 +806,7 @@ function DetailView({ detail, isAdmin }: { detail: TemplateDetail; isAdmin: bool
             {editable && (
               <Button variant="danger"
                 onClick={() => confirm(`Xóa mẫu “${detail.name}”? Báo cáo đã tạo không bị ảnh hưởng.`) &&
-                  m.removeTpl.mutate(detail.id, { onSuccess: () => router.push("/templates") })}>
+                  m.removeTpl.mutate(detail.id, { onSuccess: () => router.push("/admin/templates") })}>
                 <Trash2 className="size-4" /> Xóa
               </Button>
             )}

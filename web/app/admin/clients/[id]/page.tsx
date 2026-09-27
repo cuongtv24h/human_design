@@ -39,7 +39,7 @@ function ClientDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      router.replace("/clients");
+      router.replace("/admin/clients");
     },
   });
 

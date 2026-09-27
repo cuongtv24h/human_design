@@ -33,8 +33,8 @@ export default function DashboardPage() {
         description="Tổng quan khách hàng và báo cáo của bạn."
         actions={
           <>
-            <LinkButton href="/clients/new" variant="secondary"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>
-            <LinkButton href="/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo</LinkButton>
+            <LinkButton href="/admin/clients/new" variant="secondary"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>
+            <LinkButton href="/admin/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo</LinkButton>
           </>
         }
       />
@@ -52,17 +52,17 @@ export default function DashboardPage() {
           <Card>
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <h2 className="font-semibold text-ink">Báo cáo gần đây</h2>
-              <LinkButton href="/reports" variant="ghost" className="px-2 py-1">Xem tất cả</LinkButton>
+              <LinkButton href="/admin/reports" variant="ghost" className="px-2 py-1">Xem tất cả</LinkButton>
             </div>
             {data.recent_reports.length ? (
               <ReportTable reports={data.recent_reports} />
             ) : data.clients === 0 ? (
               <EmptyState icon={<Users className="size-8" />} title="Bắt đầu bằng việc thêm khách hàng đầu tiên"
                 description="Nhập họ tên, ngày và giờ sinh (giờ Việt Nam). Sau đó bạn có thể tạo báo cáo chỉ trong vài giây."
-                action={<LinkButton href="/clients/new"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>} />
+                action={<LinkButton href="/admin/clients/new"><UserPlus className="size-4" /> Thêm khách hàng</LinkButton>} />
             ) : (
               <EmptyState icon={<FileText className="size-8" />} title="Chưa có báo cáo nào"
-                action={<LinkButton href="/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo đầu tiên</LinkButton>} />
+                action={<LinkButton href="/admin/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo đầu tiên</LinkButton>} />
             )}
           </Card>
         </>

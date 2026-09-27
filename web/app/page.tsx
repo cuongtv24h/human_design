@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import LandingView from "./_components/LandingView";
+import LandingView from "./(game)/choi/_components/LandingView";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GameLandingPage() {
+export default function HomePage() {
   return <LandingView />;
 }

@@ -31,7 +31,7 @@ export default function ReportsPage() {
   return (
     <>
       <PageHeader title="Báo cáo" description={data ? `${data.total} báo cáo` : undefined}
-        actions={<LinkButton href="/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo</LinkButton>} />
+        actions={<LinkButton href="/admin/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo</LinkButton>} />
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
@@ -50,7 +50,7 @@ export default function ReportsPage() {
       <Card>
         {isLoading ? <Spinner /> : data?.items.length ? <ReportTable reports={data.items} /> : (
           <EmptyState icon={<FileText className="size-8" />} title="Không có báo cáo nào"
-            action={<LinkButton href="/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo</LinkButton>} />
+            action={<LinkButton href="/admin/reports/new"><FilePlus2 className="size-4" /> Tạo báo cáo</LinkButton>} />
         )}
       </Card>
     </>

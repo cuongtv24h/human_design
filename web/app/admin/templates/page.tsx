@@ -469,7 +469,7 @@ export default function TemplatesPage() {
     <>
       <PageHeader title="Mẫu báo cáo"
         description="Soạn mẫu riêng của tổ chức, trình duyệt, chia sẻ ra thư viện chung và dùng lại khối nội dung."
-        actions={<LinkButton href="/guide#dung-mau" variant="ghost">Hướng dẫn</LinkButton>} />
+        actions={<LinkButton href="/admin/guide#dung-mau" variant="ghost">Hướng dẫn</LinkButton>} />
       <div className="mb-5 flex gap-1 border-b border-line" role="tablist">
         {tabs.filter((t) => !t.admin || isAdmin).map((t) => {
           const Icon = t.icon;
