@@ -215,8 +215,8 @@ function Wizard() {
     <>
       <PageHeader title="Tạo báo cáo" description="4 bước — bạn luôn thấy trước BodyGraph và nội dung nháp trước khi tạo." />
       <Stepper step={step} onJump={go} maxStep={maxStep} />
-      {/* Bước 1: khối chọn khách hàng full-width, Xem trước đẩy xuống dưới. */}
-      <div className={step === 0 ? "grid items-start gap-6" : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]"}>
+      {/* Mọi bước: khối nội dung full-width, Xem trước nằm dưới. */}
+      <div className="grid items-start gap-6">
         <Card className="p-6">
           {step === 0 && (
             <section className="space-y-4">
@@ -333,7 +333,7 @@ function Wizard() {
           </div>
         </Card>
 
-        <Card className={step === 0 ? undefined : "lg:sticky lg:top-6"}>
+        <Card>
           <div className="border-b border-line px-5 py-4">
             <h2 className="font-semibold text-ink">Xem trước</h2>
             {client && <p className="text-xs text-muted">{client.full_name}</p>}
