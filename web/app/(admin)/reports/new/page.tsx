@@ -238,9 +238,15 @@ function Wizard() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {cat.templates.map((o) => (
                     <OptionCard key={o.value} option={o} selected={template === o.value} onSelect={() => setTemplate(o.value)}
-                      extra={o.value === "operating_manual" ? <div className="mt-2"><Badge tone="gold">Khuyên dùng cho người mới</Badge></div> : undefined} />
+                      extra={
+                        <>
+                          {o.value === "operating_manual" ? <div className="mt-2"><Badge tone="gold">Khuyên dùng cho người mới</Badge></div> : null}
+                          {o.badge ? <div className="mt-2 flex flex-wrap items-center gap-2"><Badge tone={o.badge === "Thư viện chung" ? "gold" : "brand"}>{o.badge}</Badge>{o.meta ? <span className="text-xs text-muted">{o.meta}</span> : null}</div> : null}
+                        </>
+                      } />
                   ))}
                 </div>
+                <div><LinkButton href="/templates" variant="ghost">Quản lý mẫu báo cáo →</LinkButton></div>
               </div>
               <div className="space-y-3">
                 <div>
@@ -296,7 +302,7 @@ function Wizard() {
                 {[
                   ["Khách hàng", `${client.full_name} — ${client.birth_display}`],
                   ["Mức độ", TIER_LABEL[tier]],
-                  ["Trình bày", TEMPLATE_LABEL[template]],
+                  ["Trình bày", TEMPLATE_LABEL[template] ?? cat.templates.find((t) => t.value === template)?.label ?? template],
                   ["Chủ đề chuyên sâu", domains.length ? cat.domains.filter((d) => domains.includes(d.value)).map((d) => d.label).join(", ") : "Không"],
                   ["Nội dung", mode === "llm" && cat.llm_providers.length
                     ? `${MODE_LABEL[mode]} (${cat.llm_providers.map((p) => `${p.name} · ${p.model}`).join(" → ")})`

@@ -26,6 +26,7 @@ from ..schemas import (
     BlockOut,
     BlockUpdate,
     BlockVariableOut,
+    BuiltinSectionOut,
     FromBuiltinIn,
     OrgVarsIn,
     OrgVarsOut,
@@ -108,10 +109,21 @@ def _validate_sections(db: Session, user: User, sections) -> list[dict]:
                 raise HTTPException(status_code=422, detail=f"Mục dựng sẵn không tồn tại: {entry.ref!r}.")
             out.append({"type": "builtin", "ref": entry.ref, "title_override": (entry.title_override or "")[:160]})
         else:
-            blk = db.get(TemplateBlock, entry.block_id) if entry.block_id else None
-            if blk is None or blk.org_id != user.org_id:
-                raise HTTPException(status_code=422, detail="Khối nội dung không tồn tại.")
-            out.append({"type": "block", "block_id": blk.id, "title_override": (entry.title_override or "")[:160]})
+            if entry.block_id:
+                blk = db.get(TemplateBlock, entry.block_id)
+                if blk is None or blk.org_id != user.org_id:
+                    raise HTTPException(status_code=422, detail="Khối nội dung không tồn tại.")
+                out.append({"type": "block", "block_id": blk.id,
+                            "title_override": (entry.title_override or "")[:160]})
+                continue
+            kind = entry.kind or "core"
+            if kind not in BLOCK_KINDS:
+                raise HTTPException(status_code=422, detail="Loại khối không hợp lệ.")
+            if not (entry.body or "").strip():
+                raise HTTPException(status_code=422, detail="Khối viết trực tiếp chưa có nội dung.")
+            out.append({"type": "block", "block_id": None,
+                        "name": (entry.name or "").strip()[:120] or "Khối nội dung",
+                        "kind": kind, "title": (entry.title or "").strip()[:160], "body": entry.body})
     return out
 
 
@@ -592,6 +604,12 @@ def delete_block(block_id: int, request: Request, user: User = Depends(current_u
 @router.get("/variables", response_model=list[BlockVariableOut])
 def block_variables(user: User = Depends(current_user)):
     return [BlockVariableOut(**var) for var in BLOCK_VARIABLES]
+
+
+@router.get("/builtin-sections", response_model=list[BuiltinSectionOut])
+def builtin_sections():
+    return [BuiltinSectionOut(id=key, title=meta["title"], kind=meta["kind"])
+            for key, meta in BUILTIN_SECTIONS.items()]
 
 
 @router.get("/org-vars", response_model=OrgVarsOut)

@@ -613,6 +613,10 @@ class TemplateSectionIn(BaseModel):
     ref: str = ""
     block_id: int | None = None
     title_override: str = Field(default="", max_length=160)
+    name: str = Field(default="", max_length=120)
+    kind: str = "core"
+    title: str = Field(default="", max_length=160)
+    body: str = Field(default="", max_length=20000)
 
 
 class TemplateCreate(BaseModel):
@@ -758,3 +762,9 @@ class FromBuiltinIn(BaseModel):
 class TemplatePublishIn(BaseModel):
     badge: str = ""
     origin_label: str = ""
+
+
+class BuiltinSectionOut(BaseModel):
+    id: str
+    title: str
+    kind: str

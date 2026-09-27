@@ -82,3 +82,27 @@ export const STATUS_LABEL: Record<string, string> = {
 export const TIER_LABEL: Record<string, string> = { free_basic: "Cơ bản", deep_core: "Chuyên sâu" };
 export const TEMPLATE_LABEL: Record<string, string> = { sections: "Theo mục", operating_manual: "Cẩm nang vận hành" };
 export const MODE_LABEL: Record<string, string> = { template: "Nội dung chuẩn", llm: "AI biên tập" };
+
+
+export const TEMPLATE_STATUS_LABEL: Record<string, string> = {
+  draft: "Nháp",
+  pending: "Chờ duyệt",
+  active: "Đang dùng",
+  rejected: "Bị từ chối",
+  archived: "Đã lưu trữ",
+};
+
+export const BLOCK_KIND_LABEL: Record<string, string> = {
+  intro: "Mở bài",
+  core: "Nội dung chính",
+  practice: "Thực hành",
+  outro: "Kết bài",
+  disclaimer: "Lưu ý",
+};
+
+export const SECTION_KIND_LABEL: Record<string, string> = {
+  summary: "Tóm tắt",
+  core: "Cốt lõi",
+  narrative: "Cẩm nang",
+  domain: "Chủ đề",
+};

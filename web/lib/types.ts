@@ -14,7 +14,7 @@ export interface User {
   last_login_at: string | null;
 }
 
-export interface CatalogOption { value: string; label: string; description: string }
+export interface CatalogOption { value: string; label: string; description: string; badge?: string; meta?: string }
 export interface CatalogSection { id: string; title: string }
 
 export interface Catalog {
@@ -76,6 +76,7 @@ export interface ReportSummary extends ReportOptions {
   id: string;
   client_id: number;
   client_name: string;
+  template_name: string;
   content_mode: string;
   status: ReportStatus;
   editor: string;
@@ -285,3 +286,61 @@ export interface PublicReport {
   sections: { id: string; title: string; content_markdown: string }[];
   org_name: string;
 }
+
+
+// --- mẫu báo cáo (P1) ---
+export type TemplateStatus = "draft" | "pending" | "active" | "rejected" | "archived";
+
+export interface TemplateSummary {
+  id: number;
+  key: string;
+  name: string;
+  description: string;
+  badge: string;
+  visibility: "private" | "shared";
+  status: TemplateStatus;
+  version: number;
+  sections_count: number;
+  samples_count: number;
+  reports_count: number;
+  origin_label: string;
+  import_count: number;
+  created_by_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ResolvedSection {
+  type: string;
+  ref: string;
+  block_id: number | null;
+  title: string;
+  title_default: string;
+  kind: string;
+  name: string;
+  body: string;
+}
+
+export interface TemplateSample { id: number; title: string; body: string; sort: number }
+
+export interface TemplateDetail extends TemplateSummary {
+  review_note: string;
+  sections: ResolvedSection[];
+  samples: TemplateSample[];
+}
+
+export interface TemplateBlock {
+  id: number;
+  name: string;
+  kind: string;
+  body: string;
+  variables: string[];
+  used_in: string[];
+}
+
+export interface BlockVariable { path: string; label: string; example: string }
+export interface BuiltinSection { id: string; title: string; kind: string }
+export interface OrgVar { key: string; label: string; value: string }
+export interface OrgVars { vars: OrgVar[] }
+export interface PreviewSection { id: string; title: string; markdown: string }
+export interface TemplatePreview { title: string; sections: PreviewSection[]; warnings: string[] }

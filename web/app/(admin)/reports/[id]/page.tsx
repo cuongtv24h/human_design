@@ -101,7 +101,7 @@ export default function ReportPage() {
         description={
           <span className="flex flex-wrap items-center gap-2">
             <StatusBadge status={r.status} />
-            <span>{TIER_LABEL[r.tier]} · {TEMPLATE_LABEL[r.template]}</span>
+            <span>{TIER_LABEL[r.tier]} · {r.template_name || TEMPLATE_LABEL[r.template]}</span>
             <Badge tone={r.content_mode === "llm" ? "gold" : "brand"}>{MODE_LABEL[r.content_mode]}</Badge>
             {r.llm_provider && <span>· Viết bởi {r.llm_provider}{r.llm_cost_usd !== null && r.llm_cost_usd !== undefined ? ` (${formatUsd(r.llm_cost_usd)})` : ""}</span>}
             <span>· Tạo {formatTimestamp(r.created_at)} · v{r.version}</span>

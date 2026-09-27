@@ -184,3 +184,23 @@ def test_custom_report_end_to_end(app):
     bad = dict(payload, template="mau-khong-co")
     assert c.post("/api/v1/reports/preview", json=bad, headers=H).status_code == 422
     assert c.post("/api/v1/reports", json=bad, headers=H).status_code == 422
+
+
+def test_builtin_sections_and_inline_edit(app):
+    c = login(app)
+    refs = c.get("/api/v1/templates/builtin-sections").json()
+    ids = {s["id"] for s in refs}
+    assert "summary" in ids and "domain_money" in ids
+    tpl = _mktpl(c, [{"type": "builtin", "ref": "summary"}], name="Goc")
+    dup = c.post(f"/api/v1/templates/{tpl['id']}/duplicate", headers=H).json()
+    assert c.get(f"/api/v1/templates/{dup['id']}").json()["sections"][0]["ref"] == "summary"
+    r = c.patch(f"/api/v1/templates/{dup['id']}", json={"sections": [
+        {"type": "builtin", "ref": "summary", "title_override": "Tom tat"},
+        {"type": "block", "name": "Ket", "kind": "outro", "title": "Loi ket",
+         "body": "Hen gap {{subject.name}}!"}]}, headers=H)
+    assert r.status_code == 200, r.text
+    secs = r.json()["sections"]
+    assert secs[0]["title"] == "Tom tat" and secs[1]["body"].startswith("Hen gap")
+    bad = c.patch(f"/api/v1/templates/{dup['id']}",
+                  json={"sections": [{"type": "block", "body": "  "}]}, headers=H)
+    assert bad.status_code == 422
