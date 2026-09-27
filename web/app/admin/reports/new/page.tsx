@@ -158,11 +158,11 @@ function ClientPicker({ value, onChange }: { value: number | null; onChange: (c:
   );
 }
 
-function PreviewPanel({ clientId, tier, template, domains }: { clientId: number | null; tier: string; template: string; domains: string[] }) {
+function PreviewPanel({ clientId, tier, template, domains, partner }: { clientId: number | null; tier: string; template: string; domains: string[]; partner?: object }) {
   const [showDraft, setShowDraft] = useState(false);
   const preview = useQuery({
-    queryKey: ["preview", clientId, tier, template, [...domains].sort().join(",")],
-    queryFn: () => api.post<Preview>("/reports/preview", { client_id: clientId, tier, template, domains }),
+    queryKey: ["preview", clientId, tier, template, [...domains].sort().join(","), JSON.stringify(partner ?? null)],
+    queryFn: () => api.post<Preview>("/reports/preview", { client_id: clientId, tier, template, domains, ...(partner ? { partner } : {}) }),
     enabled: clientId !== null,
     placeholderData: keepPreviousData,
     staleTime: 5 * 60_000,
@@ -216,6 +216,8 @@ function Wizard() {
   const [domains, setDomains] = useState<string[]>([]);
   const [mode, setMode] = useState("template");
   const [useStyle, setUseStyle] = useState(true);
+  const [partner, setPartner] = useState({ name: "", birth_date: "", birth_time: "", timezone: "+07:00" });
+  const partnerPayload = partner.birth_date && partner.birth_time ? partner : undefined;
 
   useEffect(() => {
     if (preset.data && !client) {
@@ -231,7 +233,7 @@ function Wizard() {
   };
 
   const create = useMutation({
-    mutationFn: () => api.post<ReportDetail>("/reports", { client_id: client!.id, tier, template, domains, content_mode: mode, use_style: useStyle }),
+    mutationFn: () => api.post<ReportDetail>("/reports", { client_id: client!.id, tier, template, domains, content_mode: mode, use_style: useStyle, ...(partnerPayload ? { partner: partnerPayload } : {}) }),
     onSuccess: (report) => {
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -297,6 +299,26 @@ function Wizard() {
                     <Checkbox key={d.value} label={d.label} checked={domains.includes(d.value)} onChange={(on) => toggleDomain(d.value, on)} />
                   ))}
                 </div>
+                {domains.includes("relationship") && (
+                  <div className="rounded-xl border border-line bg-white p-4">
+                    <h3 className="text-sm font-semibold">Đối tác composite <span className="font-normal text-muted">(không bắt buộc — để trống nếu chỉ phân tích một người)</span></h3>
+                    <p className="mb-3 text-xs text-muted">Nhập ngày + giờ sinh đối tác để báo cáo Tình yêu có thêm mục Composite 2 người.</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="block text-xs text-muted">Tên đối tác
+                        <Input className="mt-1" value={partner.name} onChange={(e) => setPartner({ ...partner, name: e.target.value })} placeholder="Tên đối tác" />
+                      </label>
+                      <label className="block text-xs text-muted">Múi giờ
+                        <Input className="mt-1" value={partner.timezone} onChange={(e) => setPartner({ ...partner, timezone: e.target.value })} placeholder="+07:00" />
+                      </label>
+                      <label className="block text-xs text-muted">Ngày sinh (YYYY-MM-DD)
+                        <Input className="mt-1" value={partner.birth_date} onChange={(e) => setPartner({ ...partner, birth_date: e.target.value })} placeholder="1992-03-10" />
+                      </label>
+                      <label className="block text-xs text-muted">Giờ sinh (HH:MM)
+                        <Input className="mt-1" value={partner.birth_time} onChange={(e) => setPartner({ ...partner, birth_time: e.target.value })} placeholder="14:20" />
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
           )}
@@ -359,6 +381,7 @@ function Wizard() {
                   ["Mức độ", TIER_LABEL[tier]],
                   ["Trình bày", TEMPLATE_LABEL[template] ?? cat.templates.find((t) => t.value === template)?.label ?? template],
                   ["Chủ đề chuyên sâu", domains.length ? cat.domains.filter((d) => domains.includes(d.value)).map((d) => d.label).join(", ") : "Không"],
+                  ...(partnerPayload ? [["Đối tác (composite)", `${partnerPayload.name || "Đối tác"} — ${partnerPayload.birth_date} ${partnerPayload.birth_time} (${partnerPayload.timezone})`] as [string, string][]] : []),
                   ["Nội dung", mode === "llm" && cat.llm_providers.length
                     ? `${MODE_LABEL[mode]} (${cat.llm_providers.map((p) => `${p.name} · ${p.model}`).join(" → ")})`
                     : MODE_LABEL[mode]],
@@ -404,7 +427,7 @@ function Wizard() {
             <h2 className="font-semibold text-ink">Xem trước</h2>
             {client && <p className="text-xs text-muted">{client.full_name}</p>}
           </div>
-          <PreviewPanel clientId={client?.id ?? null} tier={tier} template={template} domains={domains} />
+          <PreviewPanel clientId={client?.id ?? null} tier={tier} template={template} domains={domains} partner={partnerPayload} />
         </Card>
       </div>
     </>

@@ -905,6 +905,24 @@ def generate_bodygraph_svg(chart, name="", birth_local_str="", utc_str="",
                      f'fill="#B7B2A4">{g}</text>')
     S.append('</g>')
 
+    # ---------- Mũi tên Variables (4 arrows quanh Head) ----------
+    _v = chart.get("variables") or {}
+    _arrows = [(_v.get(k) or {}).get("arrow") for k in
+               ("determination", "environment", "motivation", "perspective")]
+    if all(a in ("L", "R") for a in _arrows):
+        S.append('<g id="variable-arrows" opacity="0.9">')
+        _spots = ((400, 72, "DET", "Determination"), (400, 116, "ENV", "Environment"),
+                  (600, 72, "MOT", "Motivation"), (600, 116, "PER", "Perspective"))
+        for (x, y, short, long), a in zip(_spots, _arrows):
+            if a == "L":
+                d = f"M {x} {y} L {x + 30} {y - 12} L {x + 30} {y + 12} Z"
+            else:
+                d = f"M {x} {y} L {x - 30} {y - 12} L {x - 30} {y + 12} Z"
+            S.append(f'<path d="{d}" fill="#57534B"><title>{long} {"trai" if a == "L" else "phai"}</title></path>')
+            lx = x + 15 if x < 500 else x - 15
+            S.append(f'<text x="{lx}" y="{y + 24}" text-anchor="middle" font-size="9" fill="#8C8578">{short}</text>')
+        S.append('</g>')
+
     # ---------- Mũi tên aura ----------
     if str(chart["type"]).startswith("Manifest"):
         S.append('<g id="aura-arrows" opacity="0.75">')

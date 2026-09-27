@@ -83,6 +83,7 @@ from hd_relationship_analysis import analyze_relationship, format_relationship_r
 from hd_career_analysis import analyze_career, format_career_report  # noqa: E402
 from hd_parenting_analysis import analyze_parenting, format_parenting_report  # noqa: E402
 from hd_team_analysis import analyze_team, format_team_report  # noqa: E402
+from hd_transits import transit_snapshot  # noqa: E402
 
 
 ORCHESTRATOR_VERSION = "0.2.0"
@@ -274,6 +275,21 @@ def _core_section(spec: SectionSpec, chart: dict[str, Any], subject_name: str) -
             "authority": chart["authority"],
         }
         markdown = "\n".join(f"- {item}" for item in data["first_7_days"])
+        try:
+            snap = transit_snapshot(chart["birth_datetime"])
+            hits = [f"{h['planet']}→{h['center']} mở" for h in snap["undefined_hits"]]
+            elec = [f"{e['planet']} nối kênh {e['channel']}" for e in snap["electromagnetics"]]
+            data["transit_today"] = {
+                "asof": snap["asof"], "undefined_hits": snap["undefined_hits"],
+                "electromagnetics": snap["electromagnetics"],
+            }
+            extra = [f"Transit hôm nay ({snap['asof']:%Y-%m-%d}): " +
+                     (", ".join(hits) if hits else "không hành tinh nào vào trung tâm mở") + "."]
+            if elec:
+                extra.append("Nối điện từ với cổng treo natal: " + ", ".join(elec) + ".")
+            markdown += "\n" + "\n".join(f"- {item}" for item in extra)
+        except Exception:
+            pass
     else:
         raise KeyError(f"Unknown core section: {spec.id}")
     return _json_safe(data), markdown

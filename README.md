@@ -6,9 +6,9 @@ Hệ thống tính toán và phân tích Human Design bằng tiếng Việt, dù
 
 ## Tính năng
 
-- Tính BodyGraph từ ngày, giờ và múi giờ sinh: Personality, Design 88°, 64 Gates, 36 Channels, 9 Centers, Type, Strategy, Authority, Profile, Definition và Incarnation Cross.
-- Phân tích cơ bản và 6 nhóm ứng dụng v3.0: Health, Relationship, Decision, Deconditioning, Purpose và Team.
-- Các nhóm mở rộng: Fear Gates, Love Gates, 192 Incarnation Crosses, Manifestor, Consultation General, Money Map và Potential/Blind Spots.
+- Tính BodyGraph từ ngày, giờ và múi giờ sinh: Personality, Design 88°, 64 Gates, 36 Channels, 9 Centers, Type, Strategy, Authority, Profile, Definition và Incarnation Cross (tên chuẩn từ bảng 192).
+- Phân tích cơ bản và 10 domain: Money, Potential, Health, Relationship (composite 2 người), Decision, Deconditioning, Purpose, Team, Parenting và Career.
+- Tầng nâng cao: Variables/PHS (4 mũi tên Color/Tone, vẽ lên SVG), Transits & chu kỳ (Solar/Jupiter/Saturn return, Uranus đối đỉnh), 64 Gene Keys, 192 Incarnation Crosses.
 - CLI, xuất BodyGraph SVG/PNG và báo cáo PDF tiếng Việt.
 - MCP stdio cho Claude Desktop/Cursor/Windsurf và FastAPI/OpenAPI cho Custom GPT Actions hoặc client REST.
 
@@ -24,8 +24,8 @@ human_design/
 │   ├── openapi_server.py        # FastAPI bridge: 44 route decorator
 │   ├── tools_manifest_latest.json
 │   ├── mcp_config.json
-│   └── skills/                  # 25 skill markdown; không phải MCP prompt decorator
-├── knowledge/                   # 21 tài liệu kiến thức chuẩn hóa, đánh số 00–20
+│   └── skills/                  # 26 skill markdown; không phải MCP prompt decorator
+├── knowledge/                   # 28 tài liệu kiến thức chuẩn hóa, đánh số 00–27
 ├── docs/                        # Wiki nguồn và catalog tài liệu cá nhân
 └── report/                      # báo cáo lịch sử triển khai, giữ nguyên để tham chiếu
 ```
@@ -34,7 +34,7 @@ human_design/
 
 ### Report layer cho Admin/Coach
 
-`docs/REPORTING_ARCHITECTURE.md` mô tả `ReportRequest` → `ChartSnapshot` → `ReportPlan` → `ReportSection[]` → `ReportDocument`. Application layer hiện hỗ trợ `free_basic`/`deep_core` và 8 domain add-on; frontend, billing và payment chưa thuộc scope. Orchestrator gọi analyzer hiện có trong `tools/`, giữ raw structured output và provenance để renderer/LLM diễn giải sau này.
+`docs/REPORTING_ARCHITECTURE.md` mô tả `ReportRequest` → `ChartSnapshot` → `ReportPlan` → `ReportSection[]` → `ReportDocument`. Application layer hiện hỗ trợ `free_basic`/`deep_core` và 10 domain add-on (gồm composite đối tác ở relationship); billing và payment chưa thuộc scope. Orchestrator gọi analyzer hiện có trong `tools/`, giữ raw structured output và provenance để renderer/LLM diễn giải sau này.
 
 ## Cài đặt
 

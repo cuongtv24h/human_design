@@ -57,8 +57,10 @@ def preview(payload: PreviewIn, user: User = Depends(current_user), db: Session 
     if custom_template is not None:
         org = db.get(Organization, user.org_id)
         options = {"custom_template": custom_template, "org_vars": org_var_map(org)}
+    partner = payload.partner.model_dump() if payload.partner else None
     try:
-        request = ReportRequest.model_validate({"subject": subject, **_values(payload), "options": options})
+        request = ReportRequest.model_validate({"subject": subject, **_values(payload), "options": options,
+                                                **({"partner": partner} if partner else {})})
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=f"Dữ liệu không hợp lệ: {exc.errors()[0].get('msg')}") from exc
     document = ReportOrchestrator().run(request)
@@ -81,11 +83,15 @@ def create(payload: ReportCreate, request: Request, background: BackgroundTasks,
         raise HTTPException(status_code=422, detail="Mẫu báo cáo không tồn tại hoặc chưa được duyệt.")
     org = db.get(Organization, user.org_id)
     style_profile = resolve_template_style(db, user, payload.template) if payload.use_style else None
-    report = create_report(db, user, client, content_mode=payload.content_mode.value,
-                           custom_template=custom_template,
-                           org_vars=org_var_map(org) if custom_template else None,
-                           style_profile=style_profile,
-                           **_values(payload))
+    try:
+        report = create_report(db, user, client, content_mode=payload.content_mode.value,
+                               custom_template=custom_template,
+                               org_vars=org_var_map(org) if custom_template else None,
+                               style_profile=style_profile,
+                               partner=payload.partner.model_dump() if payload.partner else None,
+                               **_values(payload))
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=f"Dữ liệu đối tác không hợp lệ: {exc.errors()[0].get('msg')}") from exc
     audit(db, user, "report.create", "report", report.id, ip=client_ip(request),
           content_mode=report.content_mode, tier=report.tier, template=report.template)
     db.commit()

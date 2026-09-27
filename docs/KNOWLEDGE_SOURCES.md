@@ -93,3 +93,14 @@ Engine mới đợt 5: `hd_variables.analyze_variables` (4 mũi tên + Cognition
 trong chart) và `hd_transits` (Solar/Jupiter/Saturn return, Uranus đối đỉnh,
 snapshot transit + nối điện từ; Chiron chưa tính vì thiếu ephemeris offline).
 Tool chat mới `calculate_transits`; skill 19 lấp số đã giữ sẵn cho PHS.
+
+## Đợt 6 — 64 Gene Keys + wiring engine vào báo cáo (2026-09-28)
+
+| # | Nguồn | Ngày crawl | Điểm chính khai thác | File đích |
+|---|-------|-----------|----------------------|-----------|
+| 26 | Scribd — "64 Gene Keys: Spectrum of Consciousness" (https://www.scribd.com/document/388253326/64-GKs-Spectrum-of-Consciousness-1) | 2026-09-28 | Bảng đủ 64 bộ Shadow/Gift/Siddhi (sửa lỗi chính tả nguồn: Intolerance, Mindfulness, Discrimination) | `knowledge/27_gene_keys_64_chi_tiet.md` |
+| 27 | Thalira — "Gene Keys Guide" (https://thalira.com/blogs/quantum-codex/gene-keys-richard-rudd-guide) + modernphilosophystandards (https://modernphilosophystandards.com/youth-group-archive/) | 2026-09-28 | Đối chiếu chéo ~20 Key (1,2,6,13-19,22,25,27,28,33-37,48,51,55,64) — khớp 100% | kiểm chứng |
+
+Wiring đợt 6: PHS vào báo cáo Health (mục 7), mốc chu kỳ vào Purpose (mục 7),
+transit hôm nay vào Practical; 4 mũi tên Variables lên BodyGraph SVG;
+file 27 gắn domain PURPOSE.

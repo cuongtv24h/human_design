@@ -197,10 +197,18 @@ class ReportOptions(BaseModel):
         raise ValueError("Mẫu báo cáo không hợp lệ.")
 
 
+class PartnerIn(BaseModel):
+    name: str = ""
+    birth_date: str
+    birth_time: str
+    timezone: str = "+07:00"
+
+
 class ReportCreate(ReportOptions):
     client_id: int
     content_mode: ContentMode = ContentMode.TEMPLATE
     use_style: bool = True
+    partner: PartnerIn | None = None
 
 
 class PreviewIn(ReportOptions):
@@ -210,6 +218,7 @@ class PreviewIn(ReportOptions):
     birth_time: str | None = None
     birth_place: str = ""
     timezone: str = "+07:00"
+    partner: PartnerIn | None = None
 
 
 class PreviewOut(BaseModel):

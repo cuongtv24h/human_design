@@ -153,7 +153,8 @@ def report_detail(report: Report) -> ReportDetailOut:
 # --- generation -------------------------------------------------------------
 
 def build_request(client: Client, *, tier: str, template: str, content_mode: str,
-                  domains: list[str], report_id: str | None = None) -> ReportRequest:
+                  domains: list[str], report_id: str | None = None,
+                  partner: dict | None = None) -> ReportRequest:
     payload: dict[str, Any] = {
         "subject": {
             "name": client.full_name,
@@ -166,6 +167,8 @@ def build_request(client: Client, *, tier: str, template: str, content_mode: str
     }
     if report_id:
         payload["report_id"] = report_id
+    if partner:
+        payload["partner"] = partner
     return ReportRequest.model_validate(payload)
 
 
@@ -185,10 +188,11 @@ def store_document(db: Session, report: Report, document: ReportDocument, author
 
 def create_report(db: Session, user: User, client: Client, *, tier: str, template: str,
                   content_mode: str, domains: list[str], custom_template: dict | None = None,
+                  partner: dict | None = None,
                   org_vars: dict | None = None, style_profile: dict | None = None) -> Report:
     report_id = str(uuid4())
     request = build_request(client, tier=tier, template=template, content_mode=content_mode,
-                            domains=domains, report_id=report_id)
+                            domains=domains, report_id=report_id, partner=partner)
     if custom_template is not None:
         request.options = {**(request.options or {}), "custom_template": custom_template,
                            "org_vars": org_vars or {}}

@@ -180,3 +180,17 @@ def test_outside_labels_clear_of_side_panels():
         y = cfg["nl"][1] + B.CHART_DY
         for px1, py1, px2, py2 in panels:
             assert x2 < px1 or x1 > px2 or y - 14 > py2 or y + 6 < py1, cname
+
+
+def test_variable_arrows_rendered_from_chart():
+    from datetime import datetime
+    from hd_calculator import calculate_hd_chart
+    svg = B.generate_bodygraph_svg(calculate_hd_chart(datetime(1990, 5, 15, 1, 30)))
+    assert 'id="variable-arrows"' in svg
+    group = svg.split('id="variable-arrows"')[1].split("</g>")[0]
+    assert group.count("<path") == 4
+    assert ("DET" in group and "ENV" in group and "MOT" in group and "PER" in group)
+
+
+def test_variable_arrows_skipped_without_data():
+    assert 'id="variable-arrows"' not in B.generate_bodygraph_svg(_synth_chart())

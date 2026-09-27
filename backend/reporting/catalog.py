@@ -46,7 +46,7 @@ DOMAIN_SPECS: dict[DomainName, DomainSpec] = {
     DomainName.RELATIONSHIP: DomainSpec(DomainName.RELATIONSHIP, "Relationship & Intimacy", "analyze_relationship", "format_relationship_report", ("16_relationship_intimacy_deep.md", "10_dong_luc_tinh_yeu_ket_noi.md",)),
     DomainName.DECISION: DomainSpec(DomainName.DECISION, "Decision & Authority", "analyze_decision", "format_decision_report", ("17_decision_authority.md",)),
     DomainName.DECONDITIONING: DomainSpec(DomainName.DECONDITIONING, "Deconditioning & Not-Self", "analyze_deconditioning", "format_deconditioning_report", ("18_deconditioning_notsel.md", "09_tam_ly_so_hai_co_che_tri_oc.md",)),
-    DomainName.PURPOSE: DomainSpec(DomainName.PURPOSE, "Purpose & Mission", "analyze_purpose", "format_purpose_report", ("19_purpose_mission_practical.md", "26_chu_de_nang_cao.md",)),
+    DomainName.PURPOSE: DomainSpec(DomainName.PURPOSE, "Purpose & Mission", "analyze_purpose", "format_purpose_report", ("19_purpose_mission_practical.md", "26_chu_de_nang_cao.md", "27_gene_keys_64_chi_tiet.md")),
     DomainName.TEAM: DomainSpec(DomainName.TEAM, "Team & Leadership", "analyze_team", "format_team_report", ("20_team_leadership_dynamics.md",)),
     DomainName.PARENTING: DomainSpec(DomainName.PARENTING, "Parenting by Design", "analyze_parenting", "format_parenting_report", ("22_nuoi_day_con_theo_thiet_ke.md",)),
     DomainName.CAREER: DomainSpec(DomainName.CAREER, "Career & Business", "analyze_career", "format_career_report", ("23_career_business_deep.md",)),

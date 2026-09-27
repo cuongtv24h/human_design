@@ -426,3 +426,27 @@ def test_change_own_password(app):
     new = anon.post("/api/v1/auth/login", json={"email": "admin@example.com", "password": "mat-khau-moi-789"},
                     headers=H)
     assert new.status_code == 200
+
+
+def test_report_with_partner_composite(app):
+    client = login(app)
+    person = client.post("/api/v1/clients", json=CLIENT, headers=H).json()
+    partner = {"name": "Trần Thị B", "birth_date": "1992-03-10", "birth_time": "14:20",
+               "timezone": "+07:00"}
+    preview = client.post("/api/v1/reports/preview", json={
+        "client_id": person["id"], "tier": "deep_core", "template": "sections",
+        "domains": ["relationship"], "partner": partner}, headers=H)
+    assert preview.status_code == 200, preview.text
+    assert "COMPOSITE 2 NGƯỜI" in preview.json()["markdown"]
+
+    created = client.post("/api/v1/reports", json={
+        "client_id": person["id"], "tier": "deep_core", "template": "sections",
+        "domains": ["relationship"], "partner": partner}, headers=H)
+    assert created.status_code == 201, created.text
+    md = client.get(f"/api/v1/reports/{created.json()['id']}/markdown")
+    assert md.status_code == 200
+    assert "COMPOSITE 2 NGƯỜI" in md.text
+
+    bad = client.post("/api/v1/reports/preview", json={
+        "client_id": person["id"], "partner": {**partner, "birth_time": "25:00"}}, headers=H)
+    assert bad.status_code == 422

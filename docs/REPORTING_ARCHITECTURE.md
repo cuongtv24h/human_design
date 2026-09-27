@@ -243,3 +243,9 @@ Nếu một domain lỗi, section được đánh dấu `failed` và warning đ�
 - Không có billing/payment hoặc frontend trong layer này.
 - Không dùng LLM để tính gate, channel, center, type, authority hay profile.
 - `health` là nội dung tự quan sát Human Design; không thay thế chẩn đoán y khoa.
+- Ngoại lệ tái lập: mục `practical_actions` chứa transit "hôm nay" (tính tại lúc
+  generate, kèm ngày `asof`); mốc chu kỳ Purpose cũng neo theo ngày generate.
+  Mọi phần còn lại là hàm thuần túy của ngày giờ sinh.
+- Engine mới gắn trong chart: `variables` (PHS, cần giờ sinh chuẩn phút),
+  tên Cross chuẩn (`hd_crosses`), transit/chu kỳ (`hd_transits`, tool chat
+  `calculate_transits`).

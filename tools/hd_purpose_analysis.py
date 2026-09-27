@@ -11,6 +11,8 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER
 from hd_language import vn_authority, vn_strategy
+from hd_transits import cycle_events
+from datetime import datetime as _dt
 
 QUARTERS = {
     "Initiation": {"vn": "Khởi xướng (Tâm trí)", "purpose": "Mục đích qua TÂM TRÍ - học hỏi, đặt câu hỏi, tìm hiểu, khởi đầu. Bạn ở đây để tâm trí dẫn đường cho hành trình."},
@@ -138,11 +140,36 @@ def analyze_purpose(birth_datetime, name=""):
             "type_contribution": TYPE_CONTRIBUTION[t],
             "vocations": vocations,
             "practical_steps": steps,
+            "milestones": _purpose_milestones(chart.get("birth_datetime")),
             "summary": (f"{name or 'Bạn'} ({t} {p}): Sứ mệnh {chart['incarnation_cross']} - {ANGLES.get(chart['cross_type'], '')[:60]}... "
                         f"Việc đời (70%): cổng {sun_work['gate']} {sun_work['meaning']}. Vai trò: {PROFILE_ROLE_PURPOSE.get(p, '')}"),
         },
         "áp_dụng_cho": "100% dân số - 192 Crosses - 60 biến thể",
     }
+
+
+_MILESTONE_GUIDE = {
+    "Solar Return": "năm mới năng lượng: đặt ý định cho tuổi mới.",
+    "Jupiter Return": "chu kỳ mở rộng ~12 năm: cơ hội lớn, học hỏi, bành trướng.",
+    "Saturn Return": "kỳ trưởng thành ~30 năm: trả giá, chín chắn, gánh trách nhiệm.",
+    "Uranus Opposition": "giữa đời ~42t: lột xác, sống thật, bẻ lái nếu cần.",
+    "Uranus Return": "tuổi già ~84t: truyền lại minh triết.",
+}
+
+
+def _purpose_milestones(birth_datetime):
+    """Mốc chu kỳ đã qua gần nhất + 4 mốc sắp tới (ISO, an toàn JSON)."""
+    try:
+        events = cycle_events(birth_datetime)
+    except Exception:
+        return []
+    now = _dt.utcnow()
+    past = [e for e in events if e["date"] <= now]
+    future = [e for e in events if e["date"] > now]
+    picked = (past[-1:] if past else []) + future[:4]
+    return [{"date": e["date"].strftime("%Y-%m-%d"), "event_en": e["event_en"],
+             "event_vi": e["event_vi"], "extra": e.get("extra", ""),
+             "guide": _MILESTONE_GUIDE.get(e["event_en"], "")} for e in picked]
 
 
 def format_purpose_report(d):
@@ -169,4 +196,9 @@ def format_purpose_report(d):
     L += ["", "## 6. KẾT LUẬN", r["summary"], "",
           "> \"Sứ mệnh không phải tìm - mà là sống ra mỗi ngày\"",
           "> \"Strategy + Authority trước, sứ mệnh tự lộ sau\""]
+    if r.get("milestones"):
+        L += ["", "## 7. MỐC CHU KỲ LỚN CỦA SỨ MỆNH"]
+        for m in r["milestones"]:
+            extra = f" {m['extra']}" if m["extra"] else ""
+            L.append(f"- **{m['date']}**: {m['event_vi']}{extra} — {m['guide']}")
     return "\n".join(L)
