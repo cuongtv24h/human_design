@@ -49,14 +49,14 @@ export default function PlayedProgress() {
         </div>
         {next ? (
           <Link
-            href={`/choi/${next.slug}`}
+            href={`/game/${next.slug}`}
             className="ml-auto rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
           >
             Chơi tiếp: {next.entryLabel} →
           </Link>
         ) : (
           <Link
-            href={`/choi/${daily.slug}?daily=1`}
+            href={`/game/${daily.slug}?daily=1`}
             className="ml-auto rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
           >
             Cả 3 cửa xong 🎉 Luyện đề hôm nay →

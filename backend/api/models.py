@@ -347,3 +347,47 @@ class GameStreakDay(Base):
     session_id: Mapped[str] = mapped_column(String(64), index=True)
     day: Mapped[date] = mapped_column(Date, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+class GameConcept(Base):
+    """Concept game: built-in (nội dung trong code) hoặc custom (admin thêm)."""
+
+    __tablename__ = "game_concepts"
+
+    slug: Mapped[str] = mapped_column(String(32), primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), default="")
+    entry_label: Mapped[str] = mapped_column(String(120), default="")
+    entry_desc: Mapped[str] = mapped_column(String(200), default="")
+    icon: Mapped[str] = mapped_column(String(16), default="")
+    entry_desc: Mapped[str] = mapped_column(String(200), default="")
+    icon: Mapped[str] = mapped_column(String(16), default="")
+    intro: Mapped[str] = mapped_column(Text, default="")
+    bridge: Mapped[str] = mapped_column(Text, default="")
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_builtin: Mapped[bool] = mapped_column(Boolean, default=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=100)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class GameCustomQuestion(Base):
+    """Câu hỏi do admin thêm (qid tự sinh cxNNNN, không đụng kho built-in)."""
+
+    __tablename__ = "game_custom_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    concept_slug: Mapped[str] = mapped_column(String(32), ForeignKey("game_concepts.slug", ondelete="CASCADE"), index=True)
+    qid: Mapped[str] = mapped_column(String(24), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(200), default="")
+    sit: Mapped[str] = mapped_column(String(2000), default="")
+    options: Mapped[list] = mapped_column(JSONType, default=list)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class GameDisabledQuestion(Base):
+    """Câu built-in bị admin ẩn theo concept."""
+
+    __tablename__ = "game_disabled_questions"
+
+    concept_slug: Mapped[str] = mapped_column(String(32), primary_key=True)
+    qid: Mapped[str] = mapped_column(String(24), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

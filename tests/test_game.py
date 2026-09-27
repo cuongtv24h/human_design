@@ -84,3 +84,58 @@ def test_streak_flow(app):
     assert post("streaky").json() == {"streak": 1, "today_done": True}  # cùng ngày không tăng
     assert c.get("/api/v1/public/game/streak?session_id=streaky").json() == {"streak": 1, "today_done": True}
     assert c.get("/api/v1/public/game/streak?session_id=nobody").json() == {"streak": 0, "today_done": False}
+
+
+def test_game_manager(app):
+    admin = login(app)
+    anon = TestClient(app)
+    G = "/api/v1/game"
+    assert anon.get(f"{G}/concepts").status_code == 401
+    concepts = admin.get(f"{G}/concepts", headers=H).json()
+    assert {"nguoc-dong", "thuong-vu", "linh-thu"} <= {c["slug"] for c in concepts}
+    assert all(c["enabled"] and c["is_builtin"] for c in concepts)
+    # Bật/tắt built-in; nội dung built-in không sửa được
+    assert admin.patch(f"{G}/concepts/nguoc-dong", json={"enabled": False}, headers=H).json()["enabled"] is False
+    assert admin.patch(f"{G}/concepts/nguoc-dong", json={"name": "X"}, headers=H).status_code == 422
+    admin.patch(f"{G}/concepts/nguoc-dong", json={"enabled": True}, headers=H)
+    # Concept custom: validate slug + đủ nội dung
+    assert admin.post(f"{G}/concepts", json={"slug": "Bad Slug!", "name": "x"}, headers=H).status_code == 422
+    assert admin.post(f"{G}/concepts", json={"slug": "nguoc-dong", "name": "x"}, headers=H).status_code == 422
+    cc = admin.post(f"{G}/concepts", json={
+        "slug": "tuoi-tho", "name": "Tuổi Thơ", "entry_label": "Chơi Tuổi Thơ",
+        "entry_desc": "Về lại sân trường.", "icon": "🪁", "intro": "I", "bridge": "B"},
+        headers=H).json()
+    assert cc["enabled"] is False and cc["is_builtin"] is False
+    assert admin.post(f"{G}/concepts", json={"slug": "tuoi-tho", "name": "y"}, headers=H).status_code in (409, 422)
+    # Câu hỏi: phải đủ 4 đáp án đúng style
+    bad = admin.post(f"{G}/questions", json={
+        "concept_slug": "tuoi-tho", "title": "T", "sit": "S",
+        "options": [{"t": "a", "s": "khoi_xuong"}]}, headers=H)
+    assert bad.status_code == 422
+    opts = [{"t": f"Đáp án {i}", "s": s} for i, s in
+            enumerate(["khoi_xuong", "kien_tao", "dan_duong", "tam_guong"])]
+    q = admin.post(f"{G}/questions", json={
+        "concept_slug": "tuoi-tho", "title": "Tình huống", "sit": "Chi tiết",
+        "options": opts}, headers=H).json()
+    assert q["qid"].startswith("cx")
+    assert admin.patch(f"{G}/questions/{q['id']}", json={"enabled": False}, headers=H).json()["enabled"] is False
+    concepts = admin.get(f"{G}/concepts", headers=H).json()
+    ct = next(c for c in concepts if c["slug"] == "tuoi-tho")
+    assert (ct["custom_total"], ct["custom_enabled"]) == (1, 0)
+    # Ẩn câu built-in
+    assert admin.post(f"{G}/questions/disabled",
+                      json={"concept_slug": "nguoc-dong", "qid": "nd001"}, headers=H).status_code == 200
+    # Config công khai phản ánh đúng
+    cfg = anon.get("/api/v1/public/game/config").json()
+    by_slug = {c["slug"]: c for c in cfg["concepts"]}
+    assert by_slug["tuoi-tho"]["name"] == "Tuổi Thơ"
+    assert by_slug["tuoi-tho"]["enabled"] is False
+    assert "nd001" in cfg["disabled_builtin"]["nguoc-dong"]
+    assert cfg["custom_questions"].get("tuoi-tho", []) == []
+    # Dọn: xóa câu hỏi + concept + bỏ ẩn
+    assert admin.delete(f"{G}/questions/{q['id']}", headers=H).status_code == 200
+    assert admin.delete(f"{G}/concepts/tuoi-tho", headers=H).status_code == 200
+    assert admin.delete(f"{G}/concepts/nguoc-dong", headers=H).status_code == 422
+    assert anon.get("/api/v1/public/game/config").json()["custom_questions"].get("tuoi-tho") is None
+    assert admin.delete(f"{G}/questions/disabled?concept_slug=nguoc-dong&qid=nd001",
+                        headers=H).status_code == 200

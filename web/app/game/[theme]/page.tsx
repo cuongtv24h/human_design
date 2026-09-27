@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { STYLES, THEMES } from "@/lib/game/content";
+import { STYLES } from "@/lib/game/content";
 import {
   checkPlayBadges,
   dailyLabel,
@@ -18,6 +18,13 @@ import {
   trackGameEvent,
   type BadgeDef,
 } from "@/lib/game/engine";
+import {
+  getRuntimeBank,
+  getRuntimeTheme,
+  isBuiltinSlug,
+  toGameTheme,
+} from "@/lib/game/runtime";
+import { useGameConfig } from "@/lib/game/use-game-config";
 import { FreshBadges } from "../_components/BadgesShelf";
 import PlayFlow from "../_components/PlayFlow";
 import { ShareRow, StyleCard } from "../_components/cards";
@@ -26,7 +33,11 @@ export default function PlayPage() {
   const { theme: slug } = useParams<{ theme: string }>();
   const params = useSearchParams();
   const daily = params.get("daily") === "1";
-  const theme = THEMES[slug];
+  const preview = params.get("preview") === "1";
+  const { config, ready } = useGameConfig();
+  const runtime = useMemo(() => getRuntimeTheme(slug, config), [slug, config]);
+  const theme = useMemo(() => (runtime ? toGameTheme(runtime) : undefined), [runtime]);
+  const bank = useMemo(() => getRuntimeBank(slug, config), [slug, config]);
   const [phase, setPhase] = useState<"intro" | "playing" | "done">("intro");
   const [answers, setAnswers] = useState<string[]>([]);
   const [playSeed, setPlaySeed] = useState("");
@@ -42,6 +53,10 @@ export default function PlayPage() {
     [result, playSeed],
   );
 
+  if (!runtime && !isBuiltinSlug(slug) && !ready) {
+    return <p className="py-16 text-center text-white/60">Đang tải…</p>;
+  }
+
   if (!theme) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
@@ -49,7 +64,23 @@ export default function PlayPage() {
         <h1 className="mt-4 text-2xl font-black">Cửa này sắp mở</h1>
         <p className="mt-2 text-white/60">Theme này đang được soạn. Chơi theme khác trước nhé.</p>
         <Link
-          href="/choi"
+          href="/game"
+          className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
+        >
+          ← Chọn cửa khác
+        </Link>
+      </div>
+    );
+  }
+
+  if (!preview && runtime && !runtime.enabled) {
+    return (
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+        <div className="text-5xl">🚧</div>
+        <h1 className="mt-4 text-2xl font-black">{runtime.name} đang bảo trì</h1>
+        <p className="mt-2 text-white/60">Concept này tạm đóng. Chơi concept khác trước nhé.</p>
+        <Link
+          href="/game"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           ← Chọn cửa khác
@@ -94,6 +125,7 @@ export default function PlayPage() {
       <PlayFlow
         theme={theme}
         seed={playSeed}
+        bank={bank}
         onDone={async (a) => {
           setAnswers(a);
           const r = scoreQuiz(theme, a);
@@ -116,7 +148,7 @@ export default function PlayPage() {
   if (!result) return null;
   const style = STYLES[result.style];
   const shareUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/choi/ket-qua?d=${code}` : "";
+    typeof window !== "undefined" ? `${window.location.origin}/game/ket-qua?d=${code}` : "";
   const shareText = daily
     ? `Đề hôm nay (${dailyLabel()}): tôi là “${style.name}” — bạn có dám thử?`
     : `Tôi vừa khám phá ra mình là “${style.name}” — bạn thì sao?`;
@@ -131,7 +163,7 @@ export default function PlayPage() {
       <StyleCard result={result} />
 
       <Link
-        href={`/choi/doi-chieu?d=${code}`}
+        href={`/game/doi-chieu?d=${code}`}
         className="block rounded-2xl bg-amber-300 p-5 text-center font-black text-[#14122b] hover:bg-amber-200"
       >
         <span className="text-lg">Đối chiếu với thiết kế gốc →</span>
@@ -143,7 +175,7 @@ export default function PlayPage() {
       <div className="flex flex-wrap gap-2">
         <ShareRow url={shareUrl} text={shareText} theme={theme.slug} />
         <Link
-          href={`/choi/so-bai?d=${code}`}
+          href={`/game/so-bai?d=${code}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"
         >
           ⚔️ So bài với bạn

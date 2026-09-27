@@ -932,3 +932,93 @@ class GameStreakIn(BaseModel):
 class GameStreakOut(BaseModel):
     streak: int
     today_done: bool
+
+class GameConceptOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    slug: str
+    name: str
+    entry_label: str
+    entry_desc: str
+    icon: str
+    intro: str
+    bridge: str
+    enabled: bool
+    is_builtin: bool
+    sort_order: int
+
+
+class GameConceptAdminOut(GameConceptOut):
+    custom_total: int = 0
+    custom_enabled: int = 0
+    disabled_builtin: int = 0
+
+
+class GameConceptIn(BaseModel):
+    slug: str = Field("", max_length=32)
+    name: str = Field("", max_length=80)
+    entry_label: str = Field("", max_length=120)
+    entry_desc: str = Field("", max_length=200)
+    icon: str = Field("", max_length=16)
+    intro: str = Field("", max_length=2000)
+    bridge: str = Field("", max_length=2000)
+
+
+class GameConceptPatch(BaseModel):
+    enabled: bool | None = None
+    sort_order: int | None = None
+    name: str | None = Field(None, max_length=80)
+    entry_label: str | None = Field(None, max_length=120)
+    entry_desc: str | None = Field(None, max_length=200)
+    icon: str | None = Field(None, max_length=16)
+    intro: str | None = Field(None, max_length=2000)
+    bridge: str | None = Field(None, max_length=2000)
+
+
+class GameQuestionOption(BaseModel):
+    t: str = Field("", max_length=500)
+    s: str = ""
+
+
+class GameQuestionIn(BaseModel):
+    concept_slug: str = ""
+    title: str = Field("", max_length=200)
+    sit: str = Field("", max_length=2000)
+    options: list[GameQuestionOption] = []
+    enabled: bool = True
+
+
+class GameQuestionPatch(BaseModel):
+    title: str | None = Field(None, max_length=200)
+    sit: str | None = Field(None, max_length=2000)
+    options: list[GameQuestionOption] | None = None
+    enabled: bool | None = None
+
+
+class GameQuestionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    concept_slug: str
+    qid: str
+    title: str = ""
+    sit: str = ""
+    options: list
+    enabled: bool
+    created_at: datetime
+
+
+class GameQuestionsOut(BaseModel):
+    custom: list[GameQuestionOut]
+    disabled_builtin: list[str]
+
+
+class GameDisabledIn(BaseModel):
+    concept_slug: str = ""
+    qid: str = ""
+
+
+class GamePublicConfig(BaseModel):
+    concepts: list[GameConceptOut]
+    custom_questions: dict[str, list[GameQuestionOut]]
+    disabled_builtin: dict[str, list[str]]

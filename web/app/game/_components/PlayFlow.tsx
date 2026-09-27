@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { BankQuestion } from "@/lib/game/bank";
 import type { GameTheme } from "@/lib/game/content";
-import { sampleQuestions } from "@/lib/game/engine";
+import { QUESTIONS_PER_PLAY, sampleQuestions } from "@/lib/game/engine";
 
 const LETTERS = ["A", "B", "C", "D"];
 
@@ -11,13 +12,16 @@ const LETTERS = ["A", "B", "C", "D"];
 export default function PlayFlow({
   theme,
   seed,
+  bank,
   onDone,
 }: {
   theme: GameTheme;
   seed: string;
+  /** Kho runtime (built-in đã lọc + custom) — thiếu thì dùng kho TS. */
+  bank?: BankQuestion[];
   onDone: (answers: string[]) => void;
 }) {
-  const [picked] = useState(() => sampleQuestions(theme.slug, seed));
+  const [picked] = useState(() => sampleQuestions(theme.slug, seed, QUESTIONS_PER_PLAY, bank));
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
@@ -28,7 +32,7 @@ export default function PlayFlow({
         <h1 className="mt-4 text-2xl font-black">Kho câu hỏi đang cập nhật</h1>
         <p className="mt-2 text-white/60">Quay lại sau ít phút nhé.</p>
         <Link
-          href="/choi"
+          href="/game"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           ← Chọn cửa khác

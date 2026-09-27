@@ -5,19 +5,19 @@ export default function GameLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#14122b] text-white">
       <header className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-        <Link href="/choi" className="text-lg font-bold tracking-tight">
+        <Link href="/game" className="text-lg font-bold tracking-tight">
           🧭 Đúng Thiết Kế
         </Link>
         <nav className="hidden items-center gap-5 text-sm font-bold text-white/70 sm:flex">
-          <Link href="/choi#bang-vang" className="transition hover:text-white">
+          <Link href="/game#bang-vang" className="transition hover:text-white">
             Bảng vàng
           </Link>
-          <Link href="/choi" className="transition hover:text-white">
+          <Link href="/game" className="transition hover:text-white">
             Huy hiệu
           </Link>
         </nav>
         <Link
-          href="/choi"
+          href="/game"
           className="rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
         >
           Chơi ngay

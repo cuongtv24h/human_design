@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { STYLES, THEMES } from "@/lib/game/content";
-import { compatibility, decodeResultParam, scoreQuiz, styleName } from "@/lib/game/engine";
+import { STYLES } from "@/lib/game/content";
+import {
+  compatibility,
+  decodeResultParam,
+  registerCustomOptions,
+  scoreQuiz,
+  styleName,
+} from "@/lib/game/engine";
+import { customBankMap, getRuntimeTheme, toGameTheme } from "@/lib/game/runtime";
+import { fetchServerConfig } from "@/lib/game/server-config";
 import SoBaiFlow from "../_components/SoBaiFlow";
 
 export async function generateMetadata({
@@ -12,8 +20,15 @@ export async function generateMetadata({
   const { d, e } = await searchParams;
   const da = decodeResultParam(d ?? null);
   const db = decodeResultParam(e ?? null);
-  const ta = da ? THEMES[da.theme] : undefined;
-  const tb = db ? THEMES[db.theme] : undefined;
+  const config = await fetchServerConfig();
+  registerCustomOptions(customBankMap(config));
+  const themeOf = (slug: string | undefined) => {
+    if (!slug) return undefined;
+    const rc = getRuntimeTheme(slug, config);
+    return rc ? toGameTheme(rc) : undefined;
+  };
+  const ta = themeOf(da?.theme);
+  const tb = themeOf(db?.theme);
   if (ta && tb && da && db && da.answers.length > 0 && db.answers.length > 0) {
     const ra = scoreQuiz(ta, da.answers);
     const rb = scoreQuiz(tb, db.answers);

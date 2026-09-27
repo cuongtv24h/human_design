@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { STYLES, THEMES } from "@/lib/game/content";
-import { decodeResultParam, scoreQuiz } from "@/lib/game/engine";
+import { STYLES } from "@/lib/game/content";
+import { decodeResultParam, registerCustomOptions, scoreQuiz } from "@/lib/game/engine";
+import { customBankMap, getRuntimeTheme, toGameTheme } from "@/lib/game/runtime";
+import { fetchServerConfig } from "@/lib/game/server-config";
 
 function parseRank(v: string | undefined): number | null {
   const n = Number.parseInt(v ?? "", 10);
   return Number.isInteger(n) && n >= 1 && n <= 9999 ? n : null;
+}
+
+/** Theme cho link share (kể cả concept custom) — link cũ luôn mở được. */
+async function resolveTheme(slug: string | undefined) {
+  if (!slug) return undefined;
+  const config = await fetchServerConfig();
+  registerCustomOptions(customBankMap(config));
+  const rc = getRuntimeTheme(slug, config);
+  return rc ? toGameTheme(rc) : undefined;
 }
 
 export async function generateMetadata({
@@ -15,7 +26,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { d, rank: rankRaw } = await searchParams;
   const decoded = decodeResultParam(d ?? null);
-  const theme = decoded ? THEMES[decoded.theme] : undefined;
+  const theme = await resolveTheme(decoded?.theme);
   if (!theme || !decoded) {
     return { title: "Đúng Thiết Kế — Kết quả trò chơi" };
   }
@@ -53,7 +64,7 @@ export default async function SharedResultPage({
 }) {
   const { d, rank: rankRaw } = await searchParams;
   const decoded = decodeResultParam(d ?? null);
-  const theme = decoded ? THEMES[decoded.theme] : undefined;
+  const theme = await resolveTheme(decoded?.theme);
   if (!theme || !decoded || decoded.answers.length === 0) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
@@ -61,7 +72,7 @@ export default async function SharedResultPage({
         <h1 className="mt-4 text-2xl font-black">Link này hết hạn hoặc không hợp lệ</h1>
         <p className="mt-2 text-white/60">Chơi một ván mới chỉ mất 3 phút.</p>
         <Link
-          href="/choi"
+          href="/game"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           Chơi ngay
@@ -96,13 +107,13 @@ export default async function SharedResultPage({
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <Link
-            href={`/choi/${theme.slug}`}
+            href={`/game/${theme.slug}`}
             className="rounded-full bg-amber-300 px-8 py-3 font-black text-[#14122b] hover:bg-amber-200"
           >
             Tôi cũng muốn biết
           </Link>
           <Link
-            href="/choi"
+            href="/game"
             className="rounded-full border border-white/20 px-6 py-3 font-bold hover:bg-white/10"
           >
             Xem tất cả

@@ -20,11 +20,12 @@ from backend.reporting.orchestrator import ReportOrchestrator
 
 from ..deps import client_ip, get_db
 from ..files import file_response
-from ..models import (GameEvent, GameLead, GameScore, GameStreakDay, Organization,
-                                Report, ShareLink)
-from ..schemas import (GameChartIn, GameChartOut, GameEventIn, GameLeadIn, GameScoreIn,
-                       GameScoreOut, GameStreakIn, GameStreakOut, PublicReportOut,
-                       PublicSection)
+from ..models import (GameCustomQuestion, GameDisabledQuestion, GameEvent, GameLead, GameScore,
+                                GameStreakDay, Organization, Report, ShareLink)
+from ..schemas import (GameChartIn, GameChartOut, GameConceptOut, GameEventIn, GameLeadIn,
+                       GamePublicConfig, GameQuestionOut, GameScoreIn, GameScoreOut,
+                       GameStreakIn, GameStreakOut, PublicReportOut, PublicSection)
+from .game_admin import ensure_builtin_concepts
 from ..security import hash_token, verify_token
 from ..services import audit, chart_summary, load_document
 from .shares import share_status
@@ -278,3 +279,20 @@ def game_streak(payload: GameStreakIn, db: Session = Depends(get_db),
 def get_streak(session_id: str = "", db: Session = Depends(get_db)) -> GameStreakOut:
     """Xem streak hiện tại mà không điểm danh (G4)."""
     return _streak_of(db, session_id.strip()[:64])
+
+@router.get("/public/game/config", response_model=GamePublicConfig)
+def game_config(db: Session = Depends(get_db)) -> GamePublicConfig:
+    """Cấu hình game công khai cho client (Game Manager)."""
+    concepts = ensure_builtin_concepts(db)
+    custom: dict[str, list[GameQuestionOut]] = {}
+    for q in db.scalars(select(GameCustomQuestion).where(
+            GameCustomQuestion.enabled == True).order_by(GameCustomQuestion.id)).all():  # noqa: E712
+        custom.setdefault(q.concept_slug, []).append(
+            GameQuestionOut.model_validate(q, from_attributes=True))
+    disabled: dict[str, list[str]] = {}
+    for slug, qid in db.execute(select(GameDisabledQuestion.concept_slug,
+                                       GameDisabledQuestion.qid)).all():
+        disabled.setdefault(slug, []).append(qid)
+    return GamePublicConfig(
+        concepts=[GameConceptOut.model_validate(c, from_attributes=True) for c in concepts],
+        custom_questions=custom, disabled_builtin=disabled)

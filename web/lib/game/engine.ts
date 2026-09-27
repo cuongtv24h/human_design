@@ -10,7 +10,7 @@ import {
   type GameTheme,
   type StyleId,
 } from "./content";
-import { BANKS } from "./bank";
+import { BANKS, type BankQuestion } from "./bank";
 
 export interface QuizResult {
   theme: string;
@@ -70,15 +70,10 @@ function getOptionMap(): Map<string, ScoredOption> {
   const map = new Map<string, ScoredOption>();
   for (const [slug, bank] of Object.entries(BANKS)) {
     for (const q of bank) {
-      q.opts.forEach((o, oi) => {
-        const id = `${q.id}${"abcd"[oi]}`;
-        const v = STYLE_VECTORS[o.s];
-        const je = ((hashSeed(id) % 31) / 100 - 0.15) * 2;
-        const jp = ((hashSeed(`p${id}`) % 31) / 100 - 0.15) * 2;
-        const points: Record<StyleId, number> = { khoi_xuong: 0, kien_tao: 0, dan_duong: 0, tam_guong: 0 };
-        points[o.s] = 2;
-        map.set(id, { theme: slug, points, energy: v.energy + je, pace: v.pace + jp, decision: v.decision });
-      });
+      for (let oi = 0; oi < q.opts.length; oi++) {
+        const [id, entry] = bankOptionEntry(slug, q, oi);
+        map.set(id, entry);
+      }
     }
   }
   for (const theme of Object.values(THEMES)) {
@@ -100,6 +95,30 @@ function getOptionMap(): Map<string, ScoredOption> {
   }
   optionMap = map;
   return map;
+}
+
+function bankOptionEntry(slug: string, q: BankQuestion, oi: number): [string, ScoredOption] {
+  const o = q.opts[oi];
+  const id = `${q.id}${"abcd"[oi]}`;
+  const v = STYLE_VECTORS[o.s];
+  const je = ((hashSeed(id) % 31) / 100 - 0.15) * 2;
+  const jp = ((hashSeed(`p${id}`) % 31) / 100 - 0.15) * 2;
+  const points: Record<StyleId, number> = { khoi_xuong: 0, kien_tao: 0, dan_duong: 0, tam_guong: 0 };
+  points[o.s] = 2;
+  return [id, { theme: slug, points, energy: v.energy + je, pace: v.pace + jp, decision: v.decision }];
+}
+
+/** Đăng ký đáp án custom từ Game Manager vào map chấm điểm (gọi khi config về). */
+export function registerCustomOptions(custom: Record<string, BankQuestion[]>): void {
+  const map = getOptionMap();
+  for (const [slug, bank] of Object.entries(custom)) {
+    for (const q of bank) {
+      for (let oi = 0; oi < q.opts.length; oi++) {
+        const [id, entry] = bankOptionEntry(slug, q, oi);
+        if (!map.has(id)) map.set(id, entry);
+      }
+    }
+  }
 }
 
 export function scoreQuiz(theme: GameTheme, answers: string[]): QuizResult {
@@ -171,8 +190,9 @@ export function sampleQuestions(
   themeSlug: string,
   seed: string,
   n = QUESTIONS_PER_PLAY,
+  bankOverride?: BankQuestion[],
 ): PlayQuestion[] {
-  const bank = BANKS[themeSlug] ?? [];
+  const bank = bankOverride ?? BANKS[themeSlug] ?? [];
   const picked = shuffled(bank, mulberry32(hashSeed(`q:${seed}:${themeSlug}`))).slice(
     0,
     Math.min(n, bank.length),

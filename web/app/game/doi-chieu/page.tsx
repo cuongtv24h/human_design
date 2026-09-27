@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import { STYLES, THEMES } from "@/lib/game/content";
+import { STYLES } from "@/lib/game/content";
+import { getRuntimeTheme, toGameTheme } from "@/lib/game/runtime";
+import { useGameConfig } from "@/lib/game/use-game-config";
 import {
   contrastFor,
   decodeResultParam,
@@ -26,7 +28,12 @@ const TIMEZONES = Array.from({ length: 27 }, (_, i) => {
 function PageInner() {
   const params = useSearchParams();
   const decoded = useMemo(() => decodeResultParam(params.get("d")), [params]);
-  const theme = decoded ? THEMES[decoded.theme] : undefined;
+  const { config, ready } = useGameConfig();
+  const theme = useMemo(() => {
+    if (!decoded) return undefined;
+    const rc = getRuntimeTheme(decoded.theme, config);
+    return rc ? toGameTheme(rc) : undefined;
+  }, [decoded, config]);
   const result = useMemo(
     () =>
       theme && decoded && decoded.answers.length > 0 ? scoreQuiz(theme, decoded.answers) : null,
@@ -66,6 +73,10 @@ function PageInner() {
     }
   }, [result, chart]);
 
+  if (!ready) {
+    return <p className="py-16 text-center text-white/60">Đang tải…</p>;
+  }
+
   if (!result || !theme) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
@@ -75,7 +86,7 @@ function PageInner() {
           Cần kết quả 16 câu trả lời mới đối chiếu được với thiết kế gốc.
         </p>
         <Link
-          href="/choi"
+          href="/game"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           Chơi 3 phút
@@ -222,7 +233,7 @@ function PageInner() {
   const shareCode = encodeResult(result);
   const boardUrl =
     typeof window !== "undefined" && rank !== null
-      ? `${window.location.origin}/choi/ket-qua?d=${shareCode}&rank=${rank}`
+      ? `${window.location.origin}/game/ket-qua?d=${shareCode}&rank=${rank}`
       : "";
   const facts = [
     ["Loại năng lượng", chart.summary.type_vn || chart.summary.type],
@@ -244,7 +255,7 @@ function PageInner() {
         <p className="mt-1 text-xs text-white/50">độ lệch khỏi thiết kế gốc</p>
         {rank !== null && (
           <Link
-            href="/choi#bang-vang"
+            href="/game#bang-vang"
             className="mt-2 inline-block rounded-full bg-amber-300/20 px-4 py-1 text-sm font-bold text-amber-200 hover:bg-amber-300/30"
           >
             🏆 Bạn đứng #{rank} bảng {theme.name} tuần này
@@ -334,13 +345,13 @@ function PageInner() {
           />
         )}
         <Link
-          href={`/choi/ket-qua?d=${shareCode}`}
+          href={`/game/ket-qua?d=${shareCode}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"
         >
           ↗ Thách bạn chơi
         </Link>
         <Link
-          href={`/choi/${theme.slug}`}
+          href={`/game/${theme.slug}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"
         >
           ↻ Chơi lại

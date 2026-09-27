@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fetchServerConfig } from "@/lib/game/server-config";
 import LandingView from "./_components/LandingView";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GameLandingPage() {
-  return <LandingView />;
+export default async function GameLandingPage() {
+  const config = await fetchServerConfig();
+  return <LandingView config={config} />;
 }

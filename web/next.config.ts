@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   experimental: { proxyTimeout: 180_000 },
   // Dev previews are served through proxied hosts (e.g. *.e2b.app).
   allowedDevOrigins: ["*.e2b.app", "localhost", "127.0.0.1"],
+  async redirects() {
+    // /choi cũ (link share) -> /game mới, giữ nguyên query (?d=...).
+    return [{ source: "/choi/:path*", destination: "/game/:path*", permanent: true }];
+  },
   async rewrites() {
     // afterFiles: route handler nội bộ (vd proxy stream SSE ở app/api/...)
     // được ưu tiên trước rewrite, còn lại vẫn proxy sang FastAPI như cũ.

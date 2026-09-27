@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { STYLES, THEMES } from "@/lib/game/content";
+import { STYLES } from "@/lib/game/content";
 import {
   checkPlayBadges,
   compatibility,
@@ -17,6 +17,8 @@ import {
   trackGameEvent,
   type BadgeDef,
 } from "@/lib/game/engine";
+import { getRuntimeBank, getRuntimeTheme, toGameTheme } from "@/lib/game/runtime";
+import { useGameConfig } from "@/lib/game/use-game-config";
 import { FreshBadges } from "./BadgesShelf";
 import PlayFlow from "./PlayFlow";
 import { ShareRow, StyleCard } from "./cards";
@@ -26,23 +28,27 @@ export default function SoBaiFlow() {
   const router = useRouter();
   const d = params.get("d");
   const e = params.get("e");
+  const { config, ready } = useGameConfig();
 
   const challenger = useMemo(() => {
     const decoded = decodeResultParam(d);
     if (!decoded) return null;
-    const theme = THEMES[decoded.theme];
-    if (!theme || decoded.answers.length === 0) return null;
+    const rc = getRuntimeTheme(decoded.theme, config);
+    if (!rc || decoded.answers.length === 0) return null;
+    const theme = toGameTheme(rc);
     return { theme, result: scoreQuiz(theme, decoded.answers), seed: decoded.seed };
-  }, [d]);
+  }, [d, config]);
 
   // Bạn chơi cùng seed với người thách → cả hai ra cùng 16 câu.
   const friendSeed = useMemo(() => challenger?.seed ?? randomSeed(), [challenger]);
+  const bank = useMemo(
+    () => (challenger ? getRuntimeBank(challenger.theme.slug, config) : []),
+    [challenger, config],
+  );
 
   const [mine, setMine] = useState<string[] | null>(() => {
     const decoded = decodeResultParam(e);
     if (!decoded || decoded.answers.length === 0) return null;
-    const theme = decoded.theme ? THEMES[decoded.theme] : undefined;
-    if (!theme) return null;
     return decoded.answers;
   });
   const [fresh, setFresh] = useState<BadgeDef[]>([]);
@@ -55,6 +61,10 @@ export default function SoBaiFlow() {
     }
   }, [challenger]);
 
+  if (!ready) {
+    return <p className="py-16 text-center text-white/60">Đang tải…</p>;
+  }
+
   if (!challenger) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
@@ -62,7 +72,7 @@ export default function SoBaiFlow() {
         <h1 className="mt-4 text-2xl font-black">Thiếu bài để so</h1>
         <p className="mt-2 text-white/60">Link này không có kết quả của bạn bè. Chơi một ván rồi thách lại nhé.</p>
         <Link
-          href="/choi"
+          href="/game"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           Chơi ngay
@@ -87,6 +97,7 @@ export default function SoBaiFlow() {
         <PlayFlow
           theme={challenger.theme}
           seed={friendSeed}
+          bank={bank}
           onDone={(answers) => {
             setMine(answers);
             const myResult = scoreQuiz(challenger.theme, answers);
@@ -95,7 +106,7 @@ export default function SoBaiFlow() {
             setFresh(takeFreshBadges());
             trackGameEvent("compare_done", challenger.theme.slug);
             router.replace(
-              `/choi/so-bai?d=${d}&e=${encodeResult({ ...myResult, seed: friendSeed })}`,
+              `/game/so-bai?d=${d}&e=${encodeResult({ ...myResult, seed: friendSeed })}`,
             );
           }}
         />
@@ -107,7 +118,7 @@ export default function SoBaiFlow() {
   const c = compatibility(challenger.result, myResult);
   const myCode = encodeResult({ ...myResult, seed: friendSeed });
   const compareUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/choi/so-bai?d=${d}&e=${myCode}` : "";
+    typeof window !== "undefined" ? `${window.location.origin}/game/so-bai?d=${d}&e=${myCode}` : "";
 
   return (
     <div className="space-y-4">
@@ -143,7 +154,7 @@ export default function SoBaiFlow() {
           label="↗ Khoe độ hợp"
         />
         <Link
-          href={`/choi/doi-chieu?d=${myCode}`}
+          href={`/game/doi-chieu?d=${myCode}`}
           className="flex-1 rounded-full bg-amber-300 px-4 py-3 text-center text-sm font-black text-[#14122b] hover:bg-amber-200"
         >
           Đối chiếu thiết kế gốc →
