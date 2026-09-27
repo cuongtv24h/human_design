@@ -10,9 +10,44 @@ import { Badge, Button, Card, Checkbox, ErrorBox, Input, LinkButton, PageHeader,
 import { api, qs } from "@/lib/api";
 import { MODE_LABEL, TEMPLATE_LABEL, TIER_LABEL } from "@/lib/format";
 import { useDebounced } from "@/lib/hooks";
-import type { Catalog, CatalogOption, Client, Paged, Preview, ReportDetail } from "@/lib/types";
+import type { Catalog, CatalogOption, Client, Paged, Preview, ReportDetail, StylePreviewOut, TemplateSummary } from "@/lib/types";
 
 const STEPS = ["Khách hàng", "Loại báo cáo", "Cách viết nội dung", "Xác nhận"];
+
+function TryVoice({ templateKey }: { templateKey: string }) {
+  const [preview, setPreview] = useState<StylePreviewOut | null>(null);
+  const mine = useQuery({
+    queryKey: ["templates"],
+    queryFn: () => api.get<TemplateSummary[]>("/templates"),
+  });
+  const library = useQuery({
+    queryKey: ["templates-library"],
+    queryFn: () => api.get<TemplateSummary[]>("/templates/library"),
+  });
+  const match = [...(mine.data ?? []), ...(library.data ?? [])].find(
+    (t) => t.key === templateKey && t.style_status === "ready");
+  useEffect(() => setPreview(null), [templateKey]);
+  const run = useMutation({
+    mutationFn: () => api.post<StylePreviewOut>(`/templates/${match!.id}/style-preview`),
+    onSuccess: setPreview,
+  });
+  if (!match) return null;
+  return (
+    <div className="mt-3 space-y-2">
+      <Button variant="secondary" className="px-3 py-1.5 text-xs" loading={run.isPending}
+        onClick={() => run.mutate()}>
+        <Sparkles className="size-3.5" /> Thử giọng
+      </Button>
+      <ErrorBox error={run.error} />
+      {preview && (
+        <div className="space-y-1 rounded-lg bg-paper p-3">
+          <div className="text-xs text-muted">Viết thử · {preview.provider}</div>
+          <p className="whitespace-pre-line text-sm text-ink">{preview.preview}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Stepper({ step, onJump, maxStep }: { step: number; onJump: (i: number) => void; maxStep: number }) {
   return (
@@ -216,7 +251,8 @@ function Wizard() {
 
   return (
     <>
-      <PageHeader title="Tạo báo cáo" description="4 bước — bạn luôn thấy trước BodyGraph và nội dung nháp trước khi tạo." />
+      <PageHeader title="Tạo báo cáo" description="4 bước — bạn luôn thấy trước BodyGraph và nội dung nháp trước khi tạo."
+        actions={<LinkButton href="/guide#tao-bao-cao" variant="ghost">Hướng dẫn</LinkButton>} />
       <Stepper step={step} onJump={go} maxStep={maxStep} />
       {/* Mọi bước: khối nội dung full-width, Xem trước nằm dưới. */}
       <div className="grid items-start gap-6">
@@ -298,9 +334,12 @@ function Wizard() {
               {mode === "llm" && isCustomTemplate && (
                 <div className="rounded-xl border border-line bg-white p-4">
                   {selectedTemplate?.has_style ? (
+                    <>
                     <Checkbox label="Dùng văn phong của mẫu"
                       description="AI viết theo giọng đã học từ bài mẫu của mẫu này. Tắt để dùng giọng mặc định."
                       checked={useStyle} onChange={setUseStyle} />
+                    {useStyle && <TryVoice templateKey={template} />}
+                    </>
                   ) : (
                     <p className="text-sm text-muted">
                       Mẫu này chưa có hồ sơ văn phong — AI sẽ dùng giọng mặc định. Vào Studio → mẫu → “Phân tích văn phong” để AI học giọng của bạn.

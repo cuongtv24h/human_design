@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PreviewModal, PublishModal, RejectModal, TemplateStatusPill, useTemplateMutations } from "@/components/templates";
-import { Badge, Button, Card, EmptyState, ErrorBox, Field, Input, Modal, PageHeader, Spinner, Textarea, cx } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, ErrorBox, Field, Input, LinkButton, Modal, PageHeader, Spinner, Textarea, cx } from "@/components/ui";
 import { api, qs } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { BLOCK_KIND_LABEL, TEMPLATE_STATUS_LABEL, formatTimestamp } from "@/lib/format";
@@ -468,7 +468,8 @@ export default function TemplatesPage() {
   return (
     <>
       <PageHeader title="Mẫu báo cáo"
-        description="Soạn mẫu riêng của tổ chức, trình duyệt, chia sẻ ra thư viện chung và dùng lại khối nội dung." />
+        description="Soạn mẫu riêng của tổ chức, trình duyệt, chia sẻ ra thư viện chung và dùng lại khối nội dung."
+        actions={<LinkButton href="/guide#dung-mau" variant="ghost">Hướng dẫn</LinkButton>} />
       <div className="mb-5 flex gap-1 border-b border-line" role="tablist">
         {tabs.filter((t) => !t.admin || isAdmin).map((t) => {
           const Icon = t.icon;

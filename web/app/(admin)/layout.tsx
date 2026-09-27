@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, FilePlus2, FileText, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, UserCog, Users, X } from "lucide-react";
+import { BookOpen, Bot, FilePlus2, FileText, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, UserCog, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -18,6 +18,7 @@ const NAV = [
   { href: "/reports", label: "Báo cáo", icon: FileText, exclude: "/reports/new" },
   { href: "/reports/new", label: "Tạo báo cáo", icon: FilePlus2 },
   { href: "/templates", label: "Mẫu báo cáo", icon: LayoutTemplate },
+  { href: "/guide", label: "Hướng dẫn", icon: BookOpen },
 ];
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {

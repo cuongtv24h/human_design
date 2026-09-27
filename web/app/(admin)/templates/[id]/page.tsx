@@ -642,7 +642,7 @@ function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boo
         <Badge tone={tone}>{STYLE_STATUS_LABEL[st] ?? st}</Badge>
       </div>
       <p className="text-xs text-muted">
-        AI học cách viết từ bài mẫu của mẫu này. Áp dụng khi tạo báo cáo ở chế độ AI biên tập (có công tắc tắt ở bước tạo).
+        AI học cách viết từ bài mẫu của mẫu này. Áp dụng khi tạo báo cáo ở chế độ AI biên tập (có công tắc tắt ở bước tạo). <Link href="/guide#van-phong" className="font-medium text-brand-700 hover:underline">Tìm hiểu thêm.</Link>
       </p>
       <ErrorBox error={analyze.error ?? save.error} />
       {editing ? (
