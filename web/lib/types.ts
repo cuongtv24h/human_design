@@ -359,3 +359,31 @@ export interface StyleProfile {
   excerpt: string;
   sample_count: number;
 }
+
+export interface StylePreviewOut {
+  preview: string;
+  topic: string;
+  style_status: string;
+  provider: string;
+}
+
+export interface StyleCompareOut {
+  topic: string;
+  default_text: string;
+  styled_text: string;
+  style_status: string;
+  provider: string;
+}
+
+export interface StyleRatedReport {
+  report_id: string;
+  client_name: string;
+  rating: number;
+  created_at: string;
+}
+
+export interface StyleStatsOut {
+  up: number;
+  down: number;
+  reports: StyleRatedReport[];
+}

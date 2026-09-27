@@ -34,7 +34,11 @@ from ..schemas import (
     SampleCreate,
     SampleOut,
     SampleUpdate,
+    StyleCompareOut,
+    StylePreviewIn,
+    StylePreviewOut,
     StyleProfile,
+    StyleStatsOut,
     TemplateCreate,
     TemplateDetailOut,
     TemplatePreviewIn,
@@ -43,7 +47,8 @@ from ..schemas import (
     TemplateSummaryOut,
     TemplateUpdate,
 )
-from ..services import analyze_template_style, audit, build_template_snapshot, snapshot_sections
+from ..services import (analyze_template_style, audit, build_template_snapshot, compare_template_style,
+                        preview_template_style, snapshot_sections, template_style_stats)
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -497,6 +502,42 @@ def analyze_style(template_id: int, request: Request, user: User = Depends(curre
           samples=profile.get("sample_count", 0))
     db.commit()
     return _detail(db, user, tpl)
+
+
+@router.post("/{template_id}/style-preview", response_model=StylePreviewOut)
+def style_preview(template_id: int, request: Request, user: User = Depends(current_user),
+                  db: Session = Depends(get_db), payload: StylePreviewIn | None = None) -> StylePreviewOut:
+    """Viết thử một đoạn văn theo văn phong mẫu (P3.1, tốn 1 lượt gọi AI)."""
+    tpl = _get(db, user, template_id)
+    _require_editable(user, tpl)
+    text, topic, provider = preview_template_style(db, user, tpl, request.app.state.secret_key,
+                                                  payload.topic if payload else None)
+    audit(db, user, "template.style_preview", "template", tpl.id, ip=client_ip(request))
+    db.commit()
+    return StylePreviewOut(preview=text, topic=topic, style_status=tpl.style_status or "none",
+                           provider=provider)
+
+
+@router.post("/{template_id}/style-compare", response_model=StyleCompareOut)
+def style_compare(template_id: int, request: Request, user: User = Depends(current_user),
+                  db: Session = Depends(get_db), payload: StylePreviewIn | None = None) -> StyleCompareOut:
+    """So sánh giọng mặc định vs giọng mẫu trên cùng chủ đề (P3.2, tốn 2 lượt gọi AI)."""
+    tpl = _get(db, user, template_id)
+    _require_editable(user, tpl)
+    default_text, styled_text, topic, provider = compare_template_style(
+        db, user, tpl, request.app.state.secret_key, payload.topic if payload else None)
+    audit(db, user, "template.style_compare", "template", tpl.id, ip=client_ip(request))
+    db.commit()
+    return StyleCompareOut(topic=topic, default_text=default_text, styled_text=styled_text,
+                           style_status=tpl.style_status or "none", provider=provider)
+
+
+@router.get("/{template_id}/style-stats", response_model=StyleStatsOut)
+def style_stats(template_id: int, user: User = Depends(current_user),
+                db: Session = Depends(get_db)) -> StyleStatsOut:
+    """Thống kê 👍/👎 từ các báo cáo đã dùng văn phong mẫu (P3.3)."""
+    tpl = _get(db, user, template_id)
+    return StyleStatsOut.model_validate(template_style_stats(db, user, tpl))
 
 
 # --- samples --------------------------------------------------------------------

@@ -23,7 +23,9 @@ from backend.reporting.render_pdf import render_pdf
 from backend.reporting.language_vn import TYPE_VN, vn_authority, vn_definition, vn_strategy
 from backend.reporting.llm_client import (LLMConfig, LLMError, LLMUsage as TokenUsage, call_llm_with_usage,
     display_provider, estimate_cost)
-from backend.reporting.style import ANALYSIS_SYSTEM, build_style_analysis_brief, parse_style_profile
+from backend.reporting.style import (ANALYSIS_SYSTEM, DEFAULT_PREVIEW_TOPIC, PREVIEW_SYSTEM,
+                                     build_style_analysis_brief, build_style_preview_brief, parse_style_preview,
+                                     parse_style_profile)
 from backend.reporting.service import AttemptCallback, generate_report
 
 from .models import (AuditLog, Client, LLMUsage, Organization, Report, ReportRevision, ReportTemplate,
@@ -633,3 +635,82 @@ def resolve_template_style(db: Session, user: User, key: str) -> dict | None:
         return None
     return {"template_key": tpl.key, "template_name": tpl.name, "template_version": tpl.version,
             "profile": tpl.style_profile or {}}
+
+# --- văn phong mẫu: viết thử / so sánh / thống kê (P3) -------------------------
+
+def _style_llm_text(db: Session, user: User, secret: str, brief: str, purpose: str,
+                    ) -> tuple[str, LLMConfig]:
+    """Gọi LLM lấy đoạn văn thô qua fallback-chain. Trả về (text, config đã dùng)."""
+    configs = org_llm_configs(db, user.org_id, secret)
+    if not configs:
+        raise HTTPException(status_code=422, detail="Chưa cấu hình AI cho tổ chức (Cài đặt → AI / LLM).")
+    attempts: list[dict[str, Any]] = []
+    errors: list[str] = []
+    for config in configs:
+        started = time.perf_counter()
+        try:
+            drafts, usage = call_llm_with_usage(brief, config, system=PREVIEW_SYSTEM)
+        except LLMError as exc:
+            latency = int((time.perf_counter() - started) * 1000)
+            errors.append(f"{display_provider(config)} ({exc})")
+            attempts.append({"config": config, "ok": False, "usage": None,
+                             "error": str(exc)[:500], "latency_ms": latency})
+            continue
+        latency = int((time.perf_counter() - started) * 1000)
+        attempts.append({"config": config, "ok": True, "usage": usage, "error": "", "latency_ms": latency})
+        save_llm_usages(db, user.org_id, None, purpose, attempts)
+        try:
+            return parse_style_preview(drafts), config
+        except ValueError as exc:
+            db.commit()
+            raise HTTPException(status_code=502, detail=f"{exc} Thử lại.") from exc
+    save_llm_usages(db, user.org_id, None, purpose, attempts)
+    db.commit()
+    raise HTTPException(status_code=503, detail=f"AI đang bận, thử lại sau ({'; '.join(errors)}).")
+
+
+def _preview_topic(tpl: ReportTemplate, topic: str | None) -> tuple[dict, str]:
+    profile = tpl.style_profile or {}
+    if not str(profile.get("tone", "") or "").strip():
+        raise HTTPException(status_code=422, detail="Mẫu chưa có hồ sơ văn phong. Phân tích văn phong trước.")
+    clean = (topic or "").strip() or DEFAULT_PREVIEW_TOPIC
+    if len(clean) > 300:
+        raise HTTPException(status_code=422, detail="Chủ đề viết thử tối đa 300 ký tự.")
+    return profile, clean
+
+
+def preview_template_style(db: Session, user: User, tpl: ReportTemplate, secret: str,
+                           topic: str | None) -> tuple[str, str, str]:
+    """Viết thử 1 đoạn theo văn phong mẫu (P3.1). Trả về (text, topic, provider)."""
+    profile, clean = _preview_topic(tpl, topic)
+    text, config = _style_llm_text(db, user, secret,
+                                   build_style_preview_brief(clean, profile, styled=True),
+                                   "template_style_preview")
+    return text, clean, display_provider(config)
+
+
+def compare_template_style(db: Session, user: User, tpl: ReportTemplate, secret: str,
+                           topic: str | None) -> tuple[str, str, str, str]:
+    """So sánh giọng mặc định vs giọng mẫu (P3.2). Trả về (default, styled, topic, provider)."""
+    profile, clean = _preview_topic(tpl, topic)
+    default_text, first = _style_llm_text(db, user, secret,
+                                          build_style_preview_brief(clean, profile, styled=False),
+                                          "template_style_compare")
+    styled_text, second = _style_llm_text(db, user, secret,
+                                         build_style_preview_brief(clean, profile, styled=True),
+                                         "template_style_compare")
+    providers = [display_provider(first), display_provider(second)]
+    provider = providers[0] if providers[0] == providers[1] else " / ".join(providers)
+    return default_text, styled_text, clean, provider
+
+
+def template_style_stats(db: Session, user: User, tpl: ReportTemplate) -> dict:
+    """Thống kê 👍/👎 từ các báo cáo đã dùng văn phong mẫu (P3.3)."""
+    rated = visible_reports(user).where(Report.template == tpl.key,
+                                        Report.style_rating.is_not(None))
+    up = db.scalar(select(func.count()).select_from(rated.where(Report.style_rating == 1).subquery())) or 0
+    down = db.scalar(select(func.count()).select_from(rated.where(Report.style_rating == -1).subquery())) or 0
+    recent = db.scalars(rated.order_by(Report.created_at.desc()).limit(10)).all()
+    return {"up": up, "down": down, "reports": [
+        {"report_id": r.id, "client_name": r.client.full_name,
+         "rating": r.style_rating, "created_at": r.created_at} for r in recent]}

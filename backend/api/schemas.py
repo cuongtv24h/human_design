@@ -626,6 +626,37 @@ class StyleProfile(BaseModel):
     sample_count: int = 0
 
 
+class StylePreviewIn(BaseModel):
+    topic: str | None = None
+
+
+class StylePreviewOut(BaseModel):
+    preview: str
+    topic: str
+    style_status: str
+    provider: str
+
+
+class StyleCompareOut(BaseModel):
+    topic: str
+    default_text: str
+    styled_text: str
+    style_status: str
+    provider: str
+
+
+class StyleRatedReport(BaseModel):
+    report_id: str
+    client_name: str
+    rating: int
+    created_at: datetime
+
+
+class StyleStatsOut(BaseModel):
+    up: int
+    down: int
+    reports: list[StyleRatedReport]
+
 class StyleRatingIn(BaseModel):
     rating: int = Field(ge=-1, le=1)  # 1 = 👍, -1 = 👎, 0 = gỡ đánh giá
 

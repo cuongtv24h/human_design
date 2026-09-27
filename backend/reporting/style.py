@@ -99,3 +99,45 @@ def style_brief_block(snapshot: Mapping | None) -> str:
         lines.append("Ví dụ TRÍCH NGUYÊN VĂN từ bài mẫu — chỉ học cách viết, KHÔNG dùng lại nội dung/sự kiện trong đó:")
         lines.append(f'"{excerpt}"')
     return "\n".join(lines)
+
+PREVIEW_SYSTEM = (
+    "Bạn là biên tập viên tiếng Việt. Chỉ trả về MỘT object JSON hợp lệ, "
+    "không thêm lời dẫn ngoài JSON."
+)
+
+DEFAULT_PREVIEW_TOPIC = (
+    "Giới thiệu ngắn về Trung tâm Cổ Họng (Throat Center) trong Human Design cho người mới."
+)
+
+
+def build_style_preview_brief(topic: str, profile: Mapping, *, styled: bool) -> str:
+    """Prompt viết thử 1 đoạn văn: giọng trung lập (A) hoặc theo hồ sơ văn phong (B)."""
+    head = [
+        "Viết một đoạn văn khoảng 120-180 từ về chủ đề dưới đây.",
+        'Trả về JSON phẳng DUY NHẤT với đúng một key string: "preview" (toàn bộ đoạn văn).',
+    ]
+    if styled:
+        head.append("TUÂN THỦ đúng văn phong mô tả dưới đây (CÁCH VIẾT, không bịa sự kiện):")
+        for label, key in (("Giọng điệu", "tone"), ("Nhịp câu", "rhythm"),
+                           ("Từ vựng", "vocabulary"), ("Cấu trúc", "structure")):
+            value = str(profile.get(key, "") or "").strip()
+            if value:
+                head.append(f"- {label}: {value}")
+        do_items = [str(x).strip() for x in (profile.get("do") or []) if str(x).strip()][:6]
+        dont_items = [str(x).strip() for x in (profile.get("dont") or []) if str(x).strip()][:6]
+        if do_items:
+            head.append("- Nên: " + "; ".join(do_items))
+        if dont_items:
+            head.append("- Tránh: " + "; ".join(dont_items))
+    else:
+        head.append("Dùng giọng văn TRUNG LẬP, rõ ràng — không bắt chước văn phong đặc biệt nào.")
+    head.append(f'Chủ đề: "{topic}"')
+    return "\n".join(head)
+
+
+def parse_style_preview(drafts: Mapping[str, str]) -> str:
+    """Lấy đoạn văn từ JSON LLM trả về. Raise ValueError khi rỗng."""
+    text = str(drafts.get("preview", "") or "").strip()
+    if len(text) < 20:
+        raise ValueError("AI chưa viết được đoạn thử.")
+    return text[:2000]

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Eye, Pencil, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Eye, Pencil, Plus, Save, Sparkles, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { Badge, Button, Card, ErrorBox, Field, Input, Modal, PageHeader, Spinner
 import { api } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { BLOCK_KIND_LABEL, SECTION_KIND_LABEL, STYLE_STATUS_LABEL, formatTimestamp } from "@/lib/format";
-import type { BuiltinSection, ResolvedSection, TemplateBlock, TemplateDetail, TemplateSample } from "@/lib/types";
+import type { BuiltinSection, ResolvedSection, StyleCompareOut, StylePreviewOut, StyleStatsOut, TemplateBlock, TemplateDetail, TemplateSample } from "@/lib/types";
 
 const BLOCK_KINDS = ["intro", "core", "practice", "outro", "disclaimer"];
 
@@ -409,6 +409,93 @@ function EditorForm({ detail, isAdmin, editable }: { detail: TemplateDetail; isA
   );
 }
 
+function StyleVerify({ templateId, editable }: { templateId: number; editable: boolean }) {
+  const [topic, setTopic] = useState("");
+  const [preview, setPreview] = useState<StylePreviewOut | null>(null);
+  const [compare, setCompare] = useState<StyleCompareOut | null>(null);
+  const body = { topic: topic.trim() ? topic.trim() : null };
+  const runPreview = useMutation({
+    mutationFn: () => api.post<StylePreviewOut>(`/templates/${templateId}/style-preview`, body),
+    onSuccess: (out) => { setPreview(out); setCompare(null); },
+  });
+  const runCompare = useMutation({
+    mutationFn: () => api.post<StyleCompareOut>(`/templates/${templateId}/style-compare`, body),
+    onSuccess: (out) => { setCompare(out); setPreview(null); },
+  });
+  if (!editable) return null;
+  return (
+    <div className="space-y-3 border-t border-line pt-4">
+      <div className="text-sm font-semibold text-ink">Kiểm chứng văn phong</div>
+      <p className="text-xs text-muted">
+        AI viết thử một đoạn ngắn để bạn duyệt giọng trước khi dùng cho báo cáo thật.
+      </p>
+      <Input value={topic} onChange={(e) => setTopic(e.target.value)}
+        placeholder="Chủ đề viết thử (bỏ trống = chủ đề mặc định)" maxLength={300} />
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" loading={runPreview.isPending} onClick={() => runPreview.mutate()}>
+          <Sparkles className="size-4" /> Viết thử
+        </Button>
+        <Button variant="secondary" loading={runCompare.isPending} onClick={() => runCompare.mutate()}>
+          <Eye className="size-4" /> So sánh A/B
+        </Button>
+      </div>
+      <ErrorBox error={runPreview.error ?? runCompare.error} />
+      {preview && (
+        <div className="space-y-1 rounded-xl bg-paper p-4">
+          <div className="text-xs text-muted">Viết thử · {preview.topic} · {preview.provider}</div>
+          <p className="whitespace-pre-line text-sm text-ink">{preview.preview}</p>
+        </div>
+      )}
+      {compare && (
+        <div className="space-y-2">
+          <div className="text-xs text-muted">So sánh · {compare.topic} · {compare.provider}</div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1 rounded-xl bg-paper p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted">A · Giọng mặc định</div>
+              <p className="whitespace-pre-line text-sm text-ink">{compare.default_text}</p>
+            </div>
+            <div className="space-y-1 rounded-xl border border-brand-200 bg-brand-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-brand-700">B · Giọng mẫu này</div>
+              <p className="whitespace-pre-line text-sm text-ink">{compare.styled_text}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StyleStats({ templateId }: { templateId: number }) {
+  const stats = useQuery({
+    queryKey: ["template-style-stats", templateId],
+    queryFn: () => api.get<StyleStatsOut>(`/templates/${templateId}/style-stats`),
+  });
+  if (stats.isLoading || stats.isError) return null;
+  if (!stats.data || (stats.data.up === 0 && stats.data.down === 0)) return null;
+  return (
+    <div className="space-y-2 border-t border-line pt-4">
+      <div className="flex items-center gap-3 text-sm">
+        <span className="font-semibold text-ink">Đánh giá từ báo cáo thực tế:</span>
+        <span className="flex items-center gap-1 text-ink"><ThumbsUp className="size-4 text-brand-600" /> {stats.data.up}</span>
+        <span className="flex items-center gap-1 text-ink"><ThumbsDown className="size-4 text-red-600" /> {stats.data.down}</span>
+      </div>
+      <ul className="space-y-1 text-sm">
+        {stats.data.reports.map((rep) => (
+          <li key={rep.report_id} className="flex items-center gap-2">
+            {rep.rating === 1
+              ? <ThumbsUp className="size-3.5 shrink-0 text-brand-600" />
+              : <ThumbsDown className="size-3.5 shrink-0 text-red-600" />}
+            <Link href={`/reports/${rep.report_id}`} className="text-brand-700 hover:underline">
+              {rep.client_name}
+            </Link>
+            <span className="text-xs text-muted">{formatTimestamp(rep.created_at)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boolean }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -516,6 +603,8 @@ function StyleCard({ detail, editable }: { detail: TemplateDetail; editable: boo
               <Button variant="secondary" onClick={startEdit}><Pencil className="size-4" /> Sửa tay</Button>
             </div>
           )}
+          <StyleVerify templateId={detail.id} editable={editable} />
+          <StyleStats templateId={detail.id} />
         </div>
       )}
     </Card>
