@@ -48,6 +48,8 @@ DOMAIN_SPECS: dict[DomainName, DomainSpec] = {
     DomainName.DECONDITIONING: DomainSpec(DomainName.DECONDITIONING, "Deconditioning & Not-Self", "analyze_deconditioning", "format_deconditioning_report", ("18_deconditioning_notsel.md",)),
     DomainName.PURPOSE: DomainSpec(DomainName.PURPOSE, "Purpose & Mission", "analyze_purpose", "format_purpose_report", ("19_purpose_mission_practical.md",)),
     DomainName.TEAM: DomainSpec(DomainName.TEAM, "Team & Leadership", "analyze_team", "format_team_report", ("20_team_leadership_dynamics.md",)),
+    DomainName.PARENTING: DomainSpec(DomainName.PARENTING, "Parenting by Design", "analyze_parenting", "format_parenting_report", ("22_nuoi_day_con_theo_thiet_ke.md",)),
+    DomainName.CAREER: DomainSpec(DomainName.CAREER, "Career & Business", "analyze_career", "format_career_report", ("23_career_business_deep.md",)),
 }
 
 FREE_BASIC_SECTION_SPECS = (CORE_SECTIONS[0], CORE_SECTIONS[1], CORE_SECTIONS[2], CORE_SECTIONS[3], CORE_SECTIONS[6])

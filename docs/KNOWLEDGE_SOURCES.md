@@ -15,6 +15,18 @@ chỉ tổng hợp và viết lại bằng tiếng Việt.
 | 5 | Katti — "Mirror, Observe, Shine: Life as a Reflector" (https://katti.me/2025/12/04/mirror-observe-shine-life-as-a-reflector/) | 2026-09-28 | 1% dân số, không trung tâm xác định; chờ chu kỳ mặt trăng 28 ngày; môi trường quyết định; 6 nguyên tắc nuôi con Reflector | `22_nuoi_day_con_theo_thiet_ke.md` |
 | 6 | Katti — "Own Your Energy: The Manifesting Generator's Journey" (https://katti.me/2025/10/01/own-your-energy-the-manifesting-generators-journey/) + "The Power of Manifestors" (https://katti.me/2025/09/10/the-power-of-manifestors-starting-leading-and-inspiring-change/) | 2026-09-28 | Chưa crawl full (ghi nhận để đợt sau); mục MG/Manifestor trong file 22 hiện tổng hợp từ cơ học chuẩn | `22_nuoi_day_con_theo_thiet_ke.md` (tạm) |
 
+## Đợt 2 — 2026-09-28 (Career/Business + làm sâu 6 file mỏng)
+
+| # | Nguồn | Ngày crawl | Điểm chính khai thác | File đích |
+|---|-------|-----------|----------------------|-----------|
+| 7 | Human Design Hub — "BG5 Overview" (https://humandesignhub.app/en/library/bg5-overview) | 2026-09-28 | BG5 của Ra Uru Hu (Base Group + Penta); 5 Loại sự nghiệp (Classic/Express Builder, Advisor, Initiator, Evaluator); Money Lines mạch Ego; Penta nhóm 3-5; 4 thấu kính BG5 | `23_career_business_deep.md`, `20_team_leadership_dynamics.md` |
+| 8 | Soul Aligned Sisters — "Career Markers" (https://www.soulalignedsisters.com/blog/career-markers-in-the-human-design-chart) | 2026-09-28 | Dấu mốc Type/Profile/Sun/Mercury; đồ thị không giới hạn nghề | `23_career_business_deep.md`, `19_purpose_mission_practical.md` |
+| 9 | Yvette Mayer — "Gate 14" (https://www.yvettemayer.com/blog/gate14humandesign-n33pe-hrc4n) | 2026-09-28 | Cổng 14 biến kỹ năng thành thịnh vượng | `23_career_business_deep.md` |
+| 10 | Jovian Archive — "Understanding the Not-Self" (https://jovianarchive.com/pages/understanding-the-not-self-in-human-design) + "Not-Self: The Insanity & How to Stop It" (https://jovianarchive.com/blogs/human-design-basics/not-self-in-human-design-the-insanity-how-to-stop-it) | 2026-09-28 | Trí là hành khách không phải tài xế; 4 chữ ký thất bại; gỡ điều kiện hóa 7 năm theo chu kỳ tế bào; trình tự dừng vòng lặp | `18_deconditioning_notsel.md` |
+| 11 | humandesign.wtf — "Strategy and Authority: Complete Guide" (https://humandesign.wtf/blog/human-design-strategy-authority-decision-making) | 2026-09-28 | 7 thẩm quyền (Sacral chỉ hồi đáp; Mental dùng môi trường làm bảng dội); 4 bước thí nghiệm deconditioning | `17_decision_authority.md`, `18_deconditioning_notsel.md` |
+| 12 | gethumandesign — "Electromagnetic Channels" (https://www.gethumandesign.com/docs/relationships/electromagnetic-channels/) + Astrolium Compatibility (https://astrolium.com/tools/human-design-compatibility) + Genetic Matrix Connection Chart (https://www.geneticmatrix.com/learn-hub/connection/index.html) | 2026-09-28 | 4 kiểu kết nối (electromagnetic/companionship/dominance/compromise); composite là thực thể thứ ba; ví dụ kênh 5-15, 1-8, 19-49 | `16_relationship_intimacy_deep.md` |
+| 13 | Human Design Hub — "PHS Overview" (https://humandesignhub.app/en/library/phs-overview) + Living From Your Essence — "Variables" (https://livingfromyouressence.com/2025/10/the-human-design-variables/) + HD ReDefined — "Variables" (https://humandesignredefined.com/human-design-variables/) | 2026-09-28 | PHS 2 trụ (Determination 6 màu + Environment 6 màu); 4 mũi tên biến số và trình tự tích hợp; cần giờ sinh chính xác | `15_health_than_tam_tri.md` |
+
 ## Phân loại bổ sung
 
 - File 21 thuộc nhóm **cơ học nền** (đi cùng 01, 04, 05): làm sâu Profile/Lines,

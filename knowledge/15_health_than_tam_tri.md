@@ -66,3 +66,34 @@ Frustration kéo dài; Anger bùng phát; Bitterness; mất ngủ không rõ lý
 
 ## 7. Thực hành 7 ngày (mẫu)
 Ngày 1-2 nhật ký năng lượng; 3-4 thử ngủ đúng; 5 vận động xả đúng; 6 truy 1 tín hiệu cơ thể; 7 tổng kết cho-nhận năng lượng.
+
+## PHS - Hệ thống sức khỏe nguyên thủy (cách ăn + nơi sống)
+
+- PHS (Primary Health System) nói: vấn đề không phải bạn ăn GÌ mà là ăn TRONG
+  ĐIỀU KIỆN nào; không phải sống Ở ĐÂU mà là không gian có ĐÚNG CHẤT cần để cơ
+  thể phục hồi hay không.
+- Trụ 1 - Determination (cách ăn): 6 màu gồm Appetite (chỉ ăn khi thật đói, ăn
+  trọn bữa), Taste (xoay vòng vị - đa dạng là dinh dưỡng), Thirst (nóng/lạnh của
+  đồ ăn thức uống là biến quyết định), Touch (xúc giác và cảm xúc quanh bữa ăn),
+  Sound (ồn ào hay yên tĩnh khi ăn ảnh hưởng tiêu hóa thật), Light (ánh sáng
+  trực tiếp hay ngoại vi lúc ăn). PHS không kê thực đơn - ăn chay hay mặn là
+  quyền của bạn, PHS chỉ chỉnh bối cảnh ăn.
+- Trụ 2 - Environment (nơi sống): 6 màu Caves (hang - không gian kín riêng),
+  Markets (chợ - nhộn nhịp), Kitchens (bếp - nơi tụ họp ấm), Mountains (núi -
+  cao và quan sát), Valleys (thung lũng - trù phú giao thoa), Shores (bờ -
+  ranh giới chuyển tiếp). Đây là điều kiện không gian nguyên mẫu, không phải
+  địa chỉ cụ thể.
+- Bắt đầu từ Determination vì tiêu hóa cho phản hồi nhanh nhất; thay đổi từng
+  biến một, đừng đảo lộn cả đời trong một tuần.
+
+## Bốn Mũi tên Biến số và trình tự tích hợp
+
+- Bốn mũi tên quanh đầu trong đồ thị là Variables: trái-trên PHS/Determination
+  (cơ thể tiêu hóa cuộc đời ra sao), trái-dưới Environment (cơ thể vận hành tốt
+  nhất ở không gian nào), phải-dưới Perspective (trí được thiết kế để nhìn đời
+  qua lăng kính nào), phải-trên Motivation (tần số đứng sau nhận thức đúng).
+- Hai mũi tên trái thuộc về cơ thể, hai mũi tên phải thuộc về tính cách; muốn
+  Variables đáng tin thì giờ sinh phải chính xác.
+- Trình tự tích hợp đúng: PHS nuôi dưỡng tiêu hóa/hấp thụ -> Environment đặt cơ
+  thể đúng chỗ trong không gian -> Perspective làm rõ cách nhìn -> Motivation
+  tinh lọc chất lượng nhận thức. Đừng học ngược từ Motivation về.

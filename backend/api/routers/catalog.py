@@ -45,6 +45,8 @@ DOMAINS = [
     CatalogOption(value="deconditioning", label="Gỡ bỏ điều kiện hóa (Deconditioning)"),
     CatalogOption(value="purpose", label="Sứ mệnh & Mục đích (Purpose)"),
     CatalogOption(value="team", label="Đội nhóm & Lãnh đạo (Team)"),
+    CatalogOption(value="parenting", label="Nuôi dạy con (Parenting)"),
+    CatalogOption(value="career", label="Sự nghiệp & Kinh doanh (Career)"),
 ]
 
 

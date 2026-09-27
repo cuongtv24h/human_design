@@ -79,6 +79,8 @@ from hd_money_analysis import analyze_money_map, format_money_report  # noqa: E4
 from hd_potential_analysis import analyze_potential_blindspots, format_potential_report  # noqa: E402
 from hd_purpose_analysis import analyze_purpose, format_purpose_report  # noqa: E402
 from hd_relationship_analysis import analyze_relationship, format_relationship_report  # noqa: E402
+from hd_career_analysis import analyze_career, format_career_report  # noqa: E402
+from hd_parenting_analysis import analyze_parenting, format_parenting_report  # noqa: E402
 from hd_team_analysis import analyze_team, format_team_report  # noqa: E402
 
 
@@ -291,6 +293,8 @@ _DOMAIN_ADAPTERS: dict[
     DomainName.DECONDITIONING: (analyze_deconditioning, format_deconditioning_report),
     DomainName.PURPOSE: (analyze_purpose, format_purpose_report),
     DomainName.TEAM: (analyze_team, format_team_report),
+    DomainName.PARENTING: (analyze_parenting, format_parenting_report),
+    DomainName.CAREER: (analyze_career, format_career_report),
 }
 
 

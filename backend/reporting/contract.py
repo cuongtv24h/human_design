@@ -75,6 +75,8 @@ class DomainName(str, Enum):
     DECONDITIONING = "deconditioning"
     PURPOSE = "purpose"
     TEAM = "team"
+    PARENTING = "parenting"
+    CAREER = "career"
 
 
 def _validate_birth_date(value: str) -> str:

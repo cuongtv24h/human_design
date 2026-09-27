@@ -94,6 +94,31 @@ def test_deep_core_domain_is_normalized_and_keeps_provenance():
     assert not document.warnings
 
 
+def test_deep_core_new_domains_parenting_career():
+    request = ReportRequest.model_validate(
+        {
+            "subject": SUBJECT,
+            "tier": "deep_core",
+            "domains": ["parenting", "career"],
+        }
+    )
+    document = ReportOrchestrator().run(request)
+
+    section_ids = [section.id for section in document.sections]
+    assert "domain_parenting" in section_ids
+    assert "domain_career" in section_ids
+    assert request.domains == [DomainName.PARENTING, DomainName.CAREER]
+    parenting = next(s for s in document.sections if s.id == "domain_parenting")
+    career = next(s for s in document.sections if s.id == "domain_career")
+    assert parenting.source_tools == ["analyze_parenting", "format_parenting_report"]
+    assert career.source_tools == ["analyze_career", "format_career_report"]
+    assert parenting.data["parenting_analysis"]["child_type"]["advice"]
+    assert career.data["career_analysis"]["bg5"]["bg5"]
+    assert "22_nuoi_day_con_theo_thiet_ke.md" in document.provenance.knowledge_refs
+    assert "23_career_business_deep.md" in document.provenance.knowledge_refs
+    assert not document.warnings
+
+
 def test_deep_core_channels_and_cross_are_explained():
     request = ReportRequest.model_validate({"subject": SUBJECT, "tier": "deep_core"})
     document = ReportOrchestrator().run(request)
