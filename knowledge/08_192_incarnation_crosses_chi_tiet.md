@@ -1,10 +1,10 @@
-# 192 CHỮ THẬP HÓA THÂN (INCARNATION CROSSES) - CHI TIẾT TỪ TÀI LIỆU CÁ NHÂN
+# CHỮ THẬP HÓA THÂN (INCARNATION CROSSES) - TUYỂN CHỌN THEO NHÓM CỔNG
 
 > Tích hợp từ Wiki Phân mục 3 (413 dòng) - Danh mục chi tiết 192 Cross với 4 cổng, quẻ Kinh Dịch, vai trò, bài học
 
 ## 1. Tổng quan
 
-Incarnation Cross đại diện cho **70% biểu hiện năng lượng** của một người, là sứ mệnh linh hồn lựa chọn để hiện thực hóa trong kiếp này. Đây là "sổ tay hướng dẫn" - bản đồ sứ mệnh thiêng liêng.
+Incarnation Cross là chủ đề mục đích lớn nhất của một người (lưu ý: con số 70% trong tài liệu gốc chỉ dòng neutrino từ Mặt Trời, không phải tỉ lệ biểu hiện của Cross), là sứ mệnh linh hồn lựa chọn để hiện thực hóa trong kiếp này. Đây là "sổ tay hướng dẫn" - bản đồ sứ mệnh thiêng liêng.
 
 **Cấu trúc:** Mỗi Cross được tạo thành từ 4 cổng:
 - Personality Sun (Ý thức - bạn là ai)
@@ -39,12 +39,12 @@ Incarnation Cross đại diện cho **70% biểu hiện năng lượng** của m
 | 52 | Thuần Cấn | Sự tĩnh lặng và tập trung (Inaction) |
 | 58 | Thuần Đoài | Niềm vui sống và sức sống (Aliveness) |
 
-## 3. Danh mục Chi tiết 192 Chữ Thập (Trích lọc từ tài liệu cá nhân)
+## 3. Danh mục tuyển chọn theo nhóm cổng (chưa đủ 192 — danh mục đầy đủ thuộc tài liệu có bản quyền Jovian Archive)
 
 ### Nhóm Tượng Nhân Sư (The Sphinx) — Định hướng & Dẫn dắt (Gates 1,2,7,13)
 
-- **RAC Sphinx 4**: 1,2,7,13 - Hành động theo quan điểm riêng trong hiện tại. Tự thể hiện cá nhân là đóng góp cho xã hội; làm theo đam mê giúp người khác tìm phương hướng.
-- **RAC Sphinx 2**: 2,1,13,7 - Khai mở tiềm năng và hướng dẫn mọi người theo nhiều hướng để tạo thế giới tươi đẹp qua giải pháp đề xuất.
+- **RAC Sphinx 2**: 1,2,7,13 - Hành động theo quan điểm riêng trong hiện tại. Tự thể hiện cá nhân là đóng góp cho xã hội; làm theo đam mê giúp người khác tìm phương hướng.
+- **RAC Sphinx 4**: 2,1,13,7 - Khai mở tiềm năng và hướng dẫn mọi người theo nhiều hướng để tạo thế giới tươi đẹp qua giải pháp đề xuất.
 - **RAC Sphinx 3**: 7,13,2,1 - Lãnh đạo dựa trên tầm nhìn tương lai, xem xét mô hình quá khứ để dự đoán xu hướng.
 - **RAC Sphinx**: 13,7,1,2 - Trực quan về quá khứ; cung cấp hướng dẫn bằng cách đồng hóa lịch sử để rút ra lời khuyên.
 

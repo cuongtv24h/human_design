@@ -14,7 +14,7 @@ Khi không hiểu cơ chế trung tâm năng lượng, trí óc sẽ đồng hó
 - **Lo âu (Ajna Center - Trí óc):** Áp lực xử lý dữ liệu, khái niệm, logic. Nhận thức trí óc (mental awareness) tìm kiếm chắc chắn trong tư duy.
 - **Hồi hộp/Căng thẳng (Solar Plexus - Đám rối Mặt trời):** Bất ổn trước làn sóng cảm xúc, khao khát, quan hệ. Nhận thức cảm xúc (emotional awareness) đang chuyển hóa thành trí tuệ.
 
-## 2. Trung tâm Trực giác (Splenic) - 6 Cổng Sợ hãi Sinh tồn
+## 2. Trung tâm Trực giác (Splenic) - 7 Cổng Sợ hãi Sinh tồn
 
 Vận hành theo cơ chế "ngay bây giờ". Khi trí óc Phi bản ngã chiếm quyền, nó phóng đại nỗi sợ để ép cơ thể hành động tìm an toàn ảo.
 
@@ -25,6 +25,7 @@ Vận hành theo cơ chế "ngay bây giờ". Khi trí óc Phi bản ngã chiế
 | **32** | Lôi Phong Hằng (Liên tục) | Sợ thất bại hoặc đứt gãy truyền thống. Sứ mệnh 94 nhấn mạnh bản năng "tiết kiệm và lưu trữ mọi thứ" để đảm bảo tồn tại cá nhân và loài người. |
 | **50** | Hỏa Phong Đỉnh (Giá trị) | Sợ sụp đổ luật lệ bộ lạc. Sứ mệnh 148 mô tả "lửa trại", nơi cá nhân thiết lập quy tắc nấu ăn, chia sẻ thực phẩm để duy trì trật tự cộng đồng. |
 | **44** | Thiên Phong Cấu (Cảnh báo) | Sợ "bóng ma" quá khứ. Sứ mệnh 130,131 nhấn mạnh vai trò quản lý con người, phân công nhiệm vụ dựa trên kinh nghiệm cũ để tránh lặp lại sai lầm. |
+| **48** | Trạch Thủy Khốn (Chiều sâu) | Sợ không đủ năng lực/chưa đủ sâu — áp lực tích lũy tài năng cho đến khi xứng đáng chia sẻ. |
 | **57** | Thuần Tốn (Sáng tỏ trực giác) | Sợ tương lai và điều không xác định. Sứ mệnh 169 mô tả khả năng đọc rung cảm tức thời để biết điều gì đúng/sai, tránh thảm họa tiềm tàng. |
 
 **Đặc biệt:** Nỗi sợ giới hạn trong **Cross of Limitation (Cổng 32,42,56,60)** thường dẫn đến bảo thủ hoặc trầm cảm nếu không hiểu rõ ranh giới tồn tại.

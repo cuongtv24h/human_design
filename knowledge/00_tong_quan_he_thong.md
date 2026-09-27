@@ -16,12 +16,12 @@ Human Design (Thiết Kế Con Người) được truyền tải bởi Ra Uru Hu
 Khác với chiêm tinh chỉ tính 1 thời điểm sinh, Human Design tính **2 lần**:
 
 1.  **Personality (Ý thức - Màu Đen)**: Vị trí hành tinh tại thời điểm sinh chính xác. Đây là những gì bạn ý thức được về mình.
-2.  **Design (Vô thức - Màu Đỏ)**: Vị trí hành tinh tại thời điểm Mặt Trời đi lùi **88 độ** trước khi sinh (khoảng 88-89 ngày). Đây là cơ thể, vô thức, những gì người khác thấy ở bạn mà bạn không thấy. Theo Ra, đây là lúc linh hồn nhập vào thai nhi, thai nhi trở thành Rave.
+2.  **Design (Vô thức - Màu Đỏ)**: Vị trí hành tinh tại thời điểm Mặt Trời đi lùi **88 độ** trước khi sinh (khoảng 88-89 ngày). Đây là cơ thể, vô thức, những gì người khác thấy ở bạn mà bạn không thấy. Theo Ra, đây là lúc dấu ấn vô thức/cơ thể (Design crystal) được thiết lập cho thai nhi.
 
 Tổng cộng 26 điểm kích hoạt (13 hành tinh x 2).
 
 13 điểm hành tinh:
-- Sun (Mặt Trời) - 70% bản thiết kế, ý thức cốt lõi
+- Sun (Mặt Trời) - 70% dòng neutrino (nguồn in dấu chính), ý thức cốt lõi
 - Earth (Trái Đất) - Đối diện Sun, grounding, cái nuôi dưỡng bạn
 - Moon (Mặt Trăng) - Động lực, cảm xúc
 - North Node / South Node - Định hướng tương lai/quá khứ

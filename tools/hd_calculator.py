@@ -364,15 +364,14 @@ def calculate_hd_chart(birth_datetime):
     elif "Spleen" in defined_centers:
         authority = "Splenic"
     elif "Heart" in defined_centers:
-        # Phân biệt Ego Manifested vs Self-Projected?
-        # Nếu Heart nối Throat trực tiếp và không có G? Đơn giản hóa
-        if "G" in defined_centers:
-            # kiểm tra kênh 25-51?
-            if (25, 51) in defined_channels or (51, 25) in defined_channels:
-                authority = "Ego (Heart) - Manifested"
-            else:
-                # Nếu G định nghĩa
-                authority = "Self-Projected (G-Center)" if hd_type == "Projector" else "Ego (Heart)"
+        # Ego Manifested = Heart nối Throat (21-45); Ego Projected = Heart nối
+        # G (25-51, cần lời mời).
+        if (21, 45) in defined_channels or (45, 21) in defined_channels:
+            authority = "Ego (Heart) - Manifested"
+        elif (25, 51) in defined_channels or (51, 25) in defined_channels:
+            authority = "Ego (Heart) - Projected"
+        elif "G" in defined_centers:
+            authority = "Self-Projected (G-Center)" if hd_type == "Projector" else "Ego (Heart)"
         else:
             authority = "Ego (Heart)"
     elif "G" in defined_centers:
@@ -467,29 +466,14 @@ def calculate_hd_chart(birth_datetime):
             return "Unknown"
     
     # Right/Left/Juxta - dựa trên góc giữa P Sun và D Sun
-    # Tính khoảng cách gate trên vòng tròn
-    p_sun_idx = GATE_ORDER.index(p_sun_gate)
-    d_sun_idx = GATE_ORDER.index(d_sun_gate)
-    diff = (p_sun_idx - d_sun_idx) % 64
-    
-    # Juxtaposition khi 2 Sun gần nhau (cách nhau < 5 gates hoặc đối diện gần?)
-    # Thực tế Juxtaposition là khi P Sun và D Sun ở cùng 1 quarter và gần nhau
-    # Đơn giản: nếu diff < 8 hoặc diff > 56 thì Juxta
-    # Nếu diff từ 8-... thì Right hoặc Left tùy?
-    # Theo lý thuyết: Right Angle = P Sun và D Sun cách nhau ~90 độ (16 gates)
-    # Left Angle = cách nhau ~180 độ? Cần tra cứu chính xác, tạm tính đơn giản:
-    
-    # Để chính xác hơn, dùng kinh độ thực
-    p_sun_lon = personality_gates["Sun"]["longitude"]
-    d_sun_lon = design_gates["Sun"]["longitude"]
-    lon_diff = (p_sun_lon - d_sun_lon) % 360
-    
-    if 0 <= lon_diff < 30 or lon_diff > 330:  # gần nhau
-        cross_type = "Juxtaposition"
-    elif 90 < lon_diff < 270:  # đối diện xa
-        cross_type = "Left Angle"
-    else:
+    # Họ Cross do Profile quyết định (chuẩn HD): Design Sun luôn lùi đúng
+    # 88 độ nên không thể dùng hiệu kinh độ để phân loại (luôn ra Right Angle).
+    if profile in ("1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6"):
         cross_type = "Right Angle"
+    elif profile in ("5/1", "5/2", "6/2", "6/3"):
+        cross_type = "Left Angle"
+    else:  # 4/1 Juxtaposition
+        cross_type = "Juxtaposition"
     
     incarnation_cross = f"{cross_type} Cross of {p_sun_gate}/{p_earth_gate} | {d_sun_gate}/{d_earth_gate}"
     

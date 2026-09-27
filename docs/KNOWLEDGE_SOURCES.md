@@ -47,3 +47,18 @@ chỉ tổng hợp và viết lại bằng tiếng Việt.
 3. Các file domain mỏng cần làm sâu tiếp theo: 16_relationship (4KB),
    17_decision (3.7KB), 18_deconditioning (3.4KB), 19_purpose (3.3KB),
    20_team (3.3KB), 15_health (5KB).
+
+## Đợt 3 — Hiệu chỉnh thống kê và họ Cross theo Profile (2026-09-28)
+
+| # | Nguồn | Ngày crawl | Điểm chính khai thác | File đích |
+|---|-------|-----------|----------------------|-----------|
+| 14 | Human.Design — "Human Design Statistics" (https://human.design/human-design-statistics) | 2026-09-28 | Phân bố thực nghiệm ~432.000 đồ thị: Type 34.96/30.58/21.89/11.06/1.51; 12 Profile (6 phổ biến ~14-16%, 6 hiếm ~2.2%); Definition Split 45.2/Single 42.2/Triple 10.4/None 1.5/Quad 0.6; Authority Emotional 49.9/Sacral 32.9/Splenic 9.5/G 2.9/Environmental 2.0/Lunar 1.5/Ego Manifested 0.8/Ego Projected 0.4 | `12_tham_van_tong_quat_60_bien_the.md`, `04_5_loai_va_chien_luoc.md`, `05_profile_cross_definition.md`, `21_profile_lines_chuyen_sau.md` |
+| 15 | freehumandesignchart — bảng phân bố Type (tham chiếu chéo lý thuyết 37/33/20/9/1) | 2026-09-28 | Chuẩn hóa Type toàn kho về 37/33/20/9/1, giữ số liệu mẫu human.design làm chú thích | `12_*`, `13_*`, `04_*` |
+| 16 | Kelly Harrington — tỉ lệ RAX ~64% / LAX ~33% (tham chiếu chéo) | 2026-09-28 | Dẫn xuất họ Cross từ Profile: RAX 64.71 / LAX 33.03 / JX 2.26; sửa luật code `cross_type` theo Profile thay vì hiệu kinh độ | `tools/hd_calculator.py`, `05_*`, `06_*`, `21_*` |
+
+Thay đổi code đợt 3: `cross_type` suy từ Profile (RAX: 1/3,1/4,2/4,2/5,3/5,3/6,4/6;
+LAX: 5/1,5/2,6/2,6/3; JX: 4/1); Ego Manifested (21-45) ưu tiên trước Ego Projected
+(25-51); nhãn VN "Tự ngã Phóng chiếu" trong `tools/hd_language.py`.
+File mới: `24_64_cong_chi_tiet.md` (gắn section channels_gates),
+`25_phs_variables_chuyen_sau.md` (gắn domain HEALTH),
+`26_chu_de_nang_cao.md` (gắn domain PURPOSE).

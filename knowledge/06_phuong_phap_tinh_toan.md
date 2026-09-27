@@ -75,7 +75,7 @@ Thứ tự ưu tiên:
 1. Solar Plexus định nghĩa => Emotional
 2. Sacral định nghĩa => Sacral
 3. Spleen định nghĩa => Splenic
-4. Heart định nghĩa => Ego (nếu 25-51 nối G-Heart thì Ego Manifested, nếu Heart-G thì Ego Projected)
+4. Heart định nghĩa => Ego (nếu 21-45 nối Heart-Throat thì Ego Manifested; nếu 25-51 nối Heart-G thì Ego Projected, cần lời mời)
 5. G định nghĩa => Self-Projected
 6. Có định nghĩa trên Throat/Ajna/Head nhưng không có dưới => Mental/Environment
 7. Không có gì => Lunar
@@ -98,10 +98,10 @@ Thứ tự ưu tiên:
 - 4 cổng: P Sun, P Earth, D Sun, D Earth
 - Earth luôn đối diện Sun (cách 180°)
 - Quarter: Xác định cổng thuộc Quarter nào (Initiation, Civilization, Duality, Mutation)
-- Cross Type:
-  - Juxtaposition: P Sun và D Sun gần nhau (<30°)
-  - Left Angle: P Sun và D Sun đối diện xa (90°-270°)
-  - Right Angle: còn lại
+- Cross Type (do Profile quyết định — Design Sun luôn lùi đúng 88° nên không dùng hiệu kinh độ):
+  - Right Angle: Profile 1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6
+  - Left Angle: Profile 5/1, 5/2, 6/2, 6/3
+  - Juxtaposition: Profile 4/1
 
 - Tên Cross (ví dụ Right Angle Cross of the Sphinx) cần tra bảng 192 Cross từ Jovian Archive.
 

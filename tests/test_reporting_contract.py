@@ -140,6 +140,22 @@ def test_template_sections_carry_knowledge_appendix():
     assert "Tóm tắt" in head or "tóm tắt" in head or len(head) > 200
 
 
+def test_cross_family_follows_profile():
+    # Họ Cross do Profile quyết định (không phải hiệu kinh độ 2 Sun).
+    cases = [
+        ({"birth_date": "1990-05-15", "birth_time": "08:30", "timezone": "+07:00"}),
+        ({"birth_date": "1985-11-02", "birth_time": "14:05", "timezone": "+07:00"}),
+        ({"birth_date": "2000-06-20", "birth_time": "22:40", "timezone": "+07:00"}),
+    ]
+    rax = {"1/3", "1/4", "2/4", "2/5", "3/5", "3/6", "4/6"}
+    lax = {"5/1", "5/2", "6/2", "6/3"}
+    for subj in cases:
+        doc = ReportOrchestrator().run(ReportRequest.model_validate({"subject": subj, "tier": "deep_core"}))
+        prof, cross = doc.chart["profile"], doc.chart["cross_type"]
+        expected = "Right Angle" if prof in rax else "Left Angle" if prof in lax else "Juxtaposition"
+        assert cross == expected, (prof, cross)
+
+
 def test_deep_core_channels_and_cross_are_explained():
     request = ReportRequest.model_validate({"subject": SUBJECT, "tier": "deep_core"})
     document = ReportOrchestrator().run(request)

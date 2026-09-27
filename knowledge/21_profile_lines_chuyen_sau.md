@@ -120,7 +120,7 @@ vững chắc — nên họ chỉ cứu được người khác khi đã đào s
   càng dữ dội, về sau càng sâu sắc.
 - 4/6 Opportunist/Role Model: ảnh hưởng qua mạng lưới rồi thành hình mẫu quan
   sát; uy tín cá nhân là tài sản lớn nhất.
-- 4/1 Opportunist/Investigator (Juxtaposition, định mệnh cố định, ~2%): con
+- 4/1 Opportunist/Investigator (Juxtaposition, định mệnh cố định, ~2.3%): con
   đường duy nhất, khó bị lung lay; đào sâu nền tảng để trao cho người thân.
   Cần tôn trọng sự "cứng đầu" đúng thiết kế của họ.
 - 5/1 Heretic/Investigator: giải pháp thực tế có nền tảng — cứu tinh đáng tin
@@ -132,9 +132,9 @@ vững chắc — nên họ chỉ cứu được người khác khi đã đào s
 - 6/3 Role Model/Martyr: hình mẫu qua thử sai không ngừng — ngay cả giai đoạn 3
   vẫn học bằng trải nghiệm; gương sống về đứng dậy sau vấp ngã.
 - Right Angle (1/3, 1/4, 2/4, 2/5, 3/5, 3/6, 4/6): định mệnh cá nhân — đến đây để
-  tự khám phá mình (~64%).
+  tự khám phá mình (~64.7%).
 - Left Angle (5/1, 5/2, 6/2, 6/3): định mệnh liên cá nhân — học và trả nghiệp
-  qua người khác (~34%).
+  qua người khác (~33.0%).
 
 ## Tương ứng Kinh Dịch và Chiêm tinh của Sáu Dòng
 
@@ -167,6 +167,8 @@ vững chắc — nên họ chỉ cứu được người khác khi đã đào s
   tin; người số đầu 4-6 qua con người và sự công nhận.
 
 ## Nguồn
+
+- Human.Design, "Human Design Statistics" (https://human.design/human-design-statistics) — tỉ lệ 12 Profile, 5 Type, Definition và Authority trên ~432.000 đồ thị. Truy cập 2026-09-28.
 
 - Christie Inge, "Human Design Profile and Lines Deep Dive"
   (https://christieinge.com/human-design-profiles-and-lines/) — góc nhìn karmic
