@@ -32,7 +32,7 @@ export default function PlayFlow({
         <h1 className="mt-4 text-2xl font-black">Kho câu hỏi đang cập nhật</h1>
         <p className="mt-2 text-white/60">Quay lại sau ít phút nhé.</p>
         <Link
-          href="/game"
+          href="/"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           ← Chọn cửa khác
@@ -84,7 +84,7 @@ export default function PlayFlow({
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8">
-        <h1 className="text-2xl font-black">{sc.title}</h1>
+        <h1 className="text-xl font-black sm:text-2xl">{sc.title}</h1>
         <p className="mt-2 leading-relaxed text-white/80">{sc.situation}</p>
       </div>
 

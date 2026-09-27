@@ -72,7 +72,7 @@ export default function SoBaiFlow() {
         <h1 className="mt-4 text-2xl font-black">Thiếu bài để so</h1>
         <p className="mt-2 text-white/60">Link này không có kết quả của bạn bè. Chơi một ván rồi thách lại nhé.</p>
         <Link
-          href="/game"
+          href="/"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           Chơi ngay
@@ -106,7 +106,7 @@ export default function SoBaiFlow() {
             setFresh(takeFreshBadges());
             trackGameEvent("compare_done", challenger.theme.slug);
             router.replace(
-              `/game/so-bai?d=${d}&e=${encodeResult({ ...myResult, seed: friendSeed })}`,
+              `/so-bai?d=${d}&e=${encodeResult({ ...myResult, seed: friendSeed })}`,
             );
           }}
         />
@@ -118,7 +118,7 @@ export default function SoBaiFlow() {
   const c = compatibility(challenger.result, myResult);
   const myCode = encodeResult({ ...myResult, seed: friendSeed });
   const compareUrl =
-    typeof window !== "undefined" ? `${window.location.origin}/game/so-bai?d=${d}&e=${myCode}` : "";
+    typeof window !== "undefined" ? `${window.location.origin}/so-bai?d=${d}&e=${myCode}` : "";
 
   return (
     <div className="space-y-4">
@@ -146,7 +146,7 @@ export default function SoBaiFlow() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <ShareRow
           url={compareUrl}
           text={`Tôi và bạn hợp nhau ${c.score}% — bạn có dám so bài?`}
@@ -154,7 +154,7 @@ export default function SoBaiFlow() {
           label="↗ Khoe độ hợp"
         />
         <Link
-          href={`/game/doi-chieu?d=${myCode}`}
+          href={`/doi-chieu?d=${myCode}`}
           className="flex-1 rounded-full bg-amber-300 px-4 py-3 text-center text-sm font-black text-[#14122b] hover:bg-amber-200"
         >
           Đối chiếu thiết kế gốc →

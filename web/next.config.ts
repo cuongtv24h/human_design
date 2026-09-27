@@ -11,8 +11,11 @@ const nextConfig: NextConfig = {
   // Dev previews are served through proxied hosts (e.g. *.e2b.app).
   allowedDevOrigins: ["*.e2b.app", "localhost", "127.0.0.1"],
   async redirects() {
-    // /choi cũ (link share) -> /game mới, giữ nguyên query (?d=...).
-    return [{ source: "/choi/:path*", destination: "/game/:path*", permanent: true }];
+    // URL game cũ (/choi, /game) -> URL gốc mới, giữ nguyên query (?d=...).
+    return [
+      { source: "/choi/:path*", destination: "/:path*", permanent: true },
+      { source: "/game/:path*", destination: "/:path*", permanent: true },
+    ];
   },
   async rewrites() {
     // afterFiles: route handler nội bộ (vd proxy stream SSE ở app/api/...)

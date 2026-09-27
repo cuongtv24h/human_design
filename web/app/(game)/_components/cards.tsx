@@ -56,12 +56,12 @@ export function StyleCard({ result, compact }: { result: QuizResult; compact?: b
   }
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-8 text-center">
+      <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-6 text-center sm:p-8">
         <p className="text-xs font-bold uppercase tracking-widest text-amber-200">
           Thẻ phong cách của bạn
         </p>
-        <div className="mt-2 text-6xl">{style.icon}</div>
-        <h1 className="mt-2 text-3xl font-black">{style.name}</h1>
+        <div className="mt-2 text-5xl sm:text-6xl">{style.icon}</div>
+        <h1 className="mt-2 text-2xl font-black sm:text-3xl">{style.name}</h1>
         <p className="mt-1 font-bold text-amber-200">{style.tagline}</p>
         <p className="mx-auto mt-3 max-w-md text-sm text-white/70">{style.desc}</p>
       </div>

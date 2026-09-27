@@ -16,6 +16,8 @@ from ..schemas import (GameConceptAdminOut, GameConceptIn, GameConceptPatch, Gam
 router = APIRouter(prefix="/game", tags=["game-admin"])
 
 BUILTIN_SLUGS = ("nguoc-dong", "thuong-vu", "linh-thu")
+# Game nằm ở URL gốc (/[slug]) nên slug custom không được trùng đường dẫn hệ thống.
+RESERVED_SLUGS = frozenset({"admin", "api", "game", "choi", "r", "doi-chieu", "ket-qua", "so-bai"})
 BUILTIN_STYLES = ("khoi_xuong", "kien_tao", "dan_duong", "tam_guong")
 _SLUG_RE = re.compile(r"^[a-z0-9-]{2,32}$")
 _CONTENT_FIELDS = ("name", "entry_label", "entry_desc", "icon", "intro", "bridge")
@@ -98,6 +100,8 @@ def create_concept(payload: GameConceptIn, user: User = Depends(current_user),
         raise HTTPException(status_code=422, detail="Slug chỉ gồm chữ thường, số, gạch ngang (2-32 ký tự).")
     if slug in BUILTIN_SLUGS:
         raise HTTPException(status_code=422, detail="Slug này dành cho concept có sẵn.")
+    if slug in RESERVED_SLUGS:
+        raise HTTPException(status_code=422, detail="Slug này trùng đường dẫn hệ thống.")
     for field in ("name", "entry_label", "entry_desc", "intro", "bridge"):
         if not getattr(payload, field).strip():
             raise HTTPException(status_code=422, detail="Vui lòng nhập đủ tên, nhãn, mô tả, intro và bridge.")

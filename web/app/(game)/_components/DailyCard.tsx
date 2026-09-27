@@ -19,10 +19,10 @@ export default function DailyCard({ initial }: { initial: GameServerConfig | nul
   const label = dailyLabel();
   return (
     <Link
-      href={`/game/${daily.slug}?daily=1`}
+      href={`/${daily.slug}?daily=1`}
       className="group block overflow-hidden rounded-3xl border border-amber-300/40 bg-gradient-to-r from-amber-300/20 via-amber-300/10 to-transparent p-6 transition hover:-translate-y-0.5 hover:border-amber-300 sm:p-7"
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-amber-300 text-3xl shadow-lg shadow-amber-300/25">
           📅
         </span>

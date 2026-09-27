@@ -101,6 +101,7 @@ def test_game_manager(app):
     # Concept custom: validate slug + đủ nội dung
     assert admin.post(f"{G}/concepts", json={"slug": "Bad Slug!", "name": "x"}, headers=H).status_code == 422
     assert admin.post(f"{G}/concepts", json={"slug": "nguoc-dong", "name": "x"}, headers=H).status_code == 422
+    assert admin.post(f"{G}/concepts", json={"slug": "admin", "name": "x"}, headers=H).status_code == 422
     cc = admin.post(f"{G}/concepts", json={
         "slug": "tuoi-tho", "name": "Tuổi Thơ", "entry_label": "Chơi Tuổi Thơ",
         "entry_desc": "Về lại sân trường.", "icon": "🪁", "intro": "I", "bridge": "B"},

@@ -2,21 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { STYLES, THEMES } from "@/lib/game/content";
+import { STYLES } from "@/lib/game/content";
+import { getRuntimeConcepts } from "@/lib/game/runtime";
+import { useGameConfig } from "@/lib/game/use-game-config";
 import type { GameScoreOut } from "@/lib/types";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 export default function Leaderboard() {
-  const slugs = Object.keys(THEMES);
-  const [tab, setTab] = useState(slugs[0] ?? "");
+  const { config } = useGameConfig();
+  const themes = getRuntimeConcepts(config).filter((c) => c.enabled);
+  const [tab, setTab] = useState(() => getRuntimeConcepts(null)[0]?.slug ?? "nguoc-dong");
+  const active = themes.some((t) => t.slug === tab) ? tab : (themes[0]?.slug ?? tab);
   const [rows, setRows] = useState<GameScoreOut[] | null>(null);
 
   useEffect(() => {
     let alive = true;
     setRows(null);
     api
-      .get<GameScoreOut[]>(`/public/game/scores?theme=${tab}&limit=5`)
+      .get<GameScoreOut[]>(`/public/game/scores?theme=${active}&limit=5`)
       .then(
         (r) => {
           if (alive) setRows(r);
@@ -28,8 +32,9 @@ export default function Leaderboard() {
     return () => {
       alive = false;
     };
-  }, [tab]);
+  }, [active]);
 
+  if (themes.length === 0) return null;
   return (
     <div>
       <h2 className="text-center text-2xl font-black">🏆 Bảng vàng tuần này</h2>
@@ -37,13 +42,13 @@ export default function Leaderboard() {
         Độ lệch càng thấp, sống càng đúng thiết kế — ẩn danh hoàn toàn
       </p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        {Object.values(THEMES).map((t) => (
+        {themes.map((t) => (
           <button
             key={t.slug}
             type="button"
             onClick={() => setTab(t.slug)}
             className={`rounded-full px-4 py-2 text-sm font-bold ${
-              tab === t.slug ? "bg-amber-300 text-[#14122b]" : "border border-white/20 hover:bg-white/10"
+              active === t.slug ? "bg-amber-300 text-[#14122b]" : "border border-white/20 hover:bg-white/10"
             }`}
           >
             {t.icon} {t.name}

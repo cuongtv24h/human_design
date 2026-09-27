@@ -86,7 +86,7 @@ function PageInner() {
           Cần kết quả 16 câu trả lời mới đối chiếu được với thiết kế gốc.
         </p>
         <Link
-          href="/game"
+          href="/"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           Chơi 3 phút
@@ -151,7 +151,7 @@ function PageInner() {
   if (!chart) {
     return (
       <div className="mx-auto max-w-xl space-y-5">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center sm:p-8">
           <div className="text-5xl">🔗</div>
           <h1 className="mt-3 text-2xl font-black">Đồng bộ thiết kế gốc</h1>
           <p className="mt-2 text-sm text-white/70">{theme.bridge}</p>
@@ -166,7 +166,7 @@ function PageInner() {
               className="w-full rounded-xl border border-white/15 bg-[#14122b] px-3 py-2.5 text-white [color-scheme:dark]"
             />
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-sm">
               <span className="mb-1 block font-bold">Giờ sinh *</span>
               <input
@@ -233,7 +233,7 @@ function PageInner() {
   const shareCode = encodeResult(result);
   const boardUrl =
     typeof window !== "undefined" && rank !== null
-      ? `${window.location.origin}/game/ket-qua?d=${shareCode}&rank=${rank}`
+      ? `${window.location.origin}/ket-qua?d=${shareCode}&rank=${rank}`
       : "";
   const facts = [
     ["Loại năng lượng", chart.summary.type_vn || chart.summary.type],
@@ -245,7 +245,7 @@ function PageInner() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-8 text-center">
+      <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-6 text-center sm:p-8">
         <p className="text-xs font-bold uppercase tracking-widest text-amber-200">
           {style.icon} {style.name} · đối chiếu · {chart.summary.type_vn || chart.summary.type}
         </p>
@@ -255,7 +255,7 @@ function PageInner() {
         <p className="mt-1 text-xs text-white/50">độ lệch khỏi thiết kế gốc</p>
         {rank !== null && (
           <Link
-            href="/game#bang-vang"
+            href="/#bang-vang"
             className="mt-2 inline-block rounded-full bg-amber-300/20 px-4 py-1 text-sm font-bold text-amber-200 hover:bg-amber-300/30"
           >
             🏆 Bạn đứng #{rank} bảng {theme.name} tuần này
@@ -335,7 +335,7 @@ function PageInner() {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         {rank !== null && (
           <ShareRow
             url={boardUrl}
@@ -345,13 +345,13 @@ function PageInner() {
           />
         )}
         <Link
-          href={`/game/ket-qua?d=${shareCode}`}
+          href={`/ket-qua?d=${shareCode}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"
         >
           ↗ Thách bạn chơi
         </Link>
         <Link
-          href={`/game/${theme.slug}`}
+          href={`/${theme.slug}`}
           className="flex-1 rounded-full border border-white/20 px-4 py-3 text-center text-sm font-bold hover:bg-white/10"
         >
           ↻ Chơi lại

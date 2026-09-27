@@ -60,7 +60,7 @@ const FAQS = [
   },
 ];
 
-/** Nội dung landing game — dùng chung cho `/` và `/game`. */
+/** Trang chủ game `/`. */
 export default function LandingView({ config }: { config: GameServerConfig | null }) {
   const concepts = getRuntimeConcepts(config);
   const firstSlug = concepts.find((c) => c.enabled)?.slug ?? concepts[0]?.slug ?? "nguoc-dong";
@@ -68,7 +68,7 @@ export default function LandingView({ config }: { config: GameServerConfig | nul
   const label = dailyLabel();
   const styles = Object.values(STYLES);
   return (
-    <div className="space-y-16 pt-6 sm:pt-10">
+    <div className="space-y-12 pt-6 sm:space-y-16 sm:pt-10">
       {/* HERO */}
       <section className="relative">
         <div
@@ -100,30 +100,30 @@ export default function LandingView({ config }: { config: GameServerConfig | nul
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               <Link
-                href={`/game/${firstSlug}`}
-                className="inline-block rounded-full bg-amber-300 px-8 py-4 text-lg font-black text-[#14122b] shadow-lg shadow-amber-300/25 transition hover:-translate-y-0.5 hover:bg-amber-200"
+                href={`/${firstSlug}`}
+                className="inline-block w-full rounded-full bg-amber-300 px-8 py-4 text-center text-lg font-black text-[#14122b] shadow-lg shadow-amber-300/25 transition hover:-translate-y-0.5 hover:bg-amber-200 sm:w-auto"
               >
                 Khám phá thiết kế của tôi
               </Link>
               <Link
-                href={`/game/${dailySlug}?daily=1`}
-                className="inline-block rounded-full border border-white/20 px-6 py-4 text-sm font-bold transition hover:bg-white/10"
+                href={`/${dailySlug}?daily=1`}
+                className="inline-block w-full rounded-full border border-white/20 px-6 py-4 text-center text-sm font-bold transition hover:bg-white/10 sm:w-auto"
               >
                 📅 Đề hôm nay · {label}
               </Link>
             </div>
             <p className="mt-3 text-xs text-white/50">Miễn phí · Không cần đăng ký · 3 phút</p>
           </div>
-          <div className="grid grid-cols-2 gap-3" aria-hidden>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3" aria-hidden>
             {styles.map((s, i) => (
               <div
                 key={s.id}
-                className={`rounded-3xl border border-white/10 bg-white/[0.06] p-5 shadow-xl shadow-black/30 backdrop-blur transition hover:border-amber-300/50 ${
+                className={`rounded-3xl border border-white/10 bg-white/[0.06] p-3 shadow-xl sm:p-5 shadow-black/30 backdrop-blur transition hover:border-amber-300/50 ${
                   i % 2 === 0 ? "-rotate-2" : "rotate-2 translate-y-3"
                 }`}
               >
-                <div className="text-4xl">{s.icon}</div>
-                <div className="mt-2 font-black">{s.name}</div>
+                <div className="text-3xl sm:text-4xl">{s.icon}</div>
+                <div className="mt-2 text-sm font-black sm:text-base">{s.name}</div>
                 <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-amber-200/90">
                   {s.tagline}
                 </p>
@@ -192,7 +192,7 @@ export default function LandingView({ config }: { config: GameServerConfig | nul
         </div>
       </section>
 
-      <section>
+      <section id="huy-hieu" className="scroll-mt-24">
         <BadgesShelf />
       </section>
 
@@ -229,8 +229,8 @@ export default function LandingView({ config }: { config: GameServerConfig | nul
             3 phút — và bạn sẽ nhìn mình bằng con mắt khác.
           </p>
           <Link
-            href={`/game/${firstSlug}`}
-            className="mt-6 inline-block rounded-full bg-amber-300 px-10 py-4 text-lg font-black text-[#14122b] shadow-lg shadow-amber-300/25 transition hover:-translate-y-0.5 hover:bg-amber-200"
+            href={`/${firstSlug}`}
+            className="mt-6 inline-block w-full rounded-full bg-amber-300 px-10 py-4 text-center text-lg font-black text-[#14122b] shadow-lg shadow-amber-300/25 transition hover:-translate-y-0.5 hover:bg-amber-200 sm:w-auto"
           >
             Chơi ngay
           </Link>

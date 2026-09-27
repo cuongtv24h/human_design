@@ -608,7 +608,7 @@ export default function GameManagerPage() {
                           Câu hỏi
                         </Button>
                         <a
-                          href={`/game/${c.slug}?preview=1`}
+                          href={`/${c.slug}?preview=1`}
                           target="_blank"
                           rel="noreferrer"
                           className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium hover:bg-paper"

@@ -72,7 +72,7 @@ export default async function SharedResultPage({
         <h1 className="mt-4 text-2xl font-black">Link này hết hạn hoặc không hợp lệ</h1>
         <p className="mt-2 text-white/60">Chơi một ván mới chỉ mất 3 phút.</p>
         <Link
-          href="/game"
+          href="/"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
           Chơi ngay
@@ -85,7 +85,7 @@ export default async function SharedResultPage({
   const rank = parseRank(rankRaw);
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-8 text-center">
+      <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-white/5 p-6 text-center sm:p-8">
         <p className="text-xs font-bold uppercase tracking-widest text-amber-200">
           Bạn bè vừa khám phá ra
         </p>
@@ -100,21 +100,21 @@ export default async function SharedResultPage({
           🏆 Người chơi này đang đứng #{rank} bảng {theme.name} tuần này — vượt qua không?
         </div>
       )}
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center sm:p-8">
         <div className="text-xl font-black">Còn bạn là ai?</div>
         <p className="mt-1 text-sm text-white/60">
           16 tình huống · 3 phút · Không cần đăng ký, chưa cần ngày sinh.
         </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
+        <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
           <Link
-            href={`/game/${theme.slug}`}
-            className="rounded-full bg-amber-300 px-8 py-3 font-black text-[#14122b] hover:bg-amber-200"
+            href={`/${theme.slug}`}
+            className="rounded-full bg-amber-300 px-8 py-3 text-center font-black text-[#14122b] hover:bg-amber-200"
           >
             Tôi cũng muốn biết
           </Link>
           <Link
-            href="/game"
-            className="rounded-full border border-white/20 px-6 py-3 font-bold hover:bg-white/10"
+            href="/"
+            className="rounded-full border border-white/20 px-6 py-3 text-center font-bold hover:bg-white/10"
           >
             Xem tất cả
           </Link>

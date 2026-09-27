@@ -2,16 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { STYLES, THEMES } from "@/lib/game/content";
-import {
-  dailyTheme,
-  fetchStreak,
-  getPlayed,
-  type PlayedState,
-  type StreakOut,
-} from "@/lib/game/engine";
+import { STYLES } from "@/lib/game/content";
+import { fetchStreak, getPlayed, type PlayedState, type StreakOut } from "@/lib/game/engine";
+import { dailyRuntimeSlug, getRuntimeConcepts } from "@/lib/game/runtime";
+import { useGameConfig } from "@/lib/game/use-game-config";
 
 export default function PlayedProgress() {
+  const { config } = useGameConfig();
   const [played, setPlayed] = useState<PlayedState | null>(null);
   const [streak, setStreak] = useState<StreakOut | null>(null);
   useEffect(() => {
@@ -20,12 +17,13 @@ export default function PlayedProgress() {
       if (s && s.streak > 0) setStreak(s);
     });
   }, []);
-  if (!played || played.themes.length === 0) return null;
+  const concepts = getRuntimeConcepts(config);
+  const all = concepts.filter((c) => c.enabled);
+  if (!played || played.themes.length === 0 || all.length === 0) return null;
 
-  const all = Object.values(THEMES);
   const next = all.find((t) => !played.themes.includes(t.slug));
   const last = played.lastStyle ? STYLES[played.lastStyle] : null;
-  const daily = dailyTheme();
+  const dailySlug = dailyRuntimeSlug(concepts);
 
   return (
     <section className="space-y-2 rounded-2xl border border-amber-300/40 bg-gradient-to-r from-amber-300/15 to-transparent p-5">
@@ -49,17 +47,17 @@ export default function PlayedProgress() {
         </div>
         {next ? (
           <Link
-            href={`/game/${next.slug}`}
-            className="ml-auto rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
+            href={`/${next.slug}`}
+            className="w-full rounded-full bg-amber-300 px-4 py-2 text-center text-sm font-bold text-[#14122b] hover:bg-amber-200 sm:w-auto sm:ml-auto"
           >
             Chơi tiếp: {next.entryLabel} →
           </Link>
         ) : (
           <Link
-            href={`/game/${daily.slug}?daily=1`}
-            className="ml-auto rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"
+            href={`/${dailySlug}?daily=1`}
+            className="w-full rounded-full bg-amber-300 px-4 py-2 text-center text-sm font-bold text-[#14122b] hover:bg-amber-200 sm:w-auto sm:ml-auto"
           >
-            Cả 3 cửa xong 🎉 Luyện đề hôm nay →
+            Cả {all.length} cửa xong 🎉 Luyện đề hôm nay →
           </Link>
         )}
       </div>
