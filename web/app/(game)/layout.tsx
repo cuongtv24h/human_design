@@ -8,6 +8,14 @@ export default function GameLayout({ children }: { children: ReactNode }) {
         <Link href="/choi" className="text-lg font-bold tracking-tight">
           🧭 Đúng Thiết Kế
         </Link>
+        <nav className="hidden items-center gap-5 text-sm font-bold text-white/70 sm:flex">
+          <Link href="/choi#bang-vang" className="transition hover:text-white">
+            Bảng vàng
+          </Link>
+          <Link href="/choi" className="transition hover:text-white">
+            Huy hiệu
+          </Link>
+        </nav>
         <Link
           href="/choi"
           className="rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-[#14122b] hover:bg-amber-200"

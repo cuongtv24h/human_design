@@ -9,6 +9,7 @@ import {
   compatibility,
   decodeResultParam,
   encodeResult,
+  randomSeed,
   recordPlayed,
   scoreQuiz,
   styleName,
@@ -31,8 +32,11 @@ export default function SoBaiFlow() {
     if (!decoded) return null;
     const theme = THEMES[decoded.theme];
     if (!theme || decoded.answers.length === 0) return null;
-    return { theme, result: scoreQuiz(theme, decoded.answers) };
+    return { theme, result: scoreQuiz(theme, decoded.answers), seed: decoded.seed };
   }, [d]);
+
+  // Bạn chơi cùng seed với người thách → cả hai ra cùng 16 câu.
+  const friendSeed = useMemo(() => challenger?.seed ?? randomSeed(), [challenger]);
 
   const [mine, setMine] = useState<string[] | null>(() => {
     const decoded = decodeResultParam(e);
@@ -77,11 +81,12 @@ export default function SoBaiFlow() {
           <div className="mt-2 text-5xl">{STYLES[challenger.result.style].icon}</div>
           <div className="mt-1 text-2xl font-black">{styleName(challenger.result.style)}</div>
           <p className="mt-1 text-sm text-white/60">
-            Chơi theme “{challenger.theme.name}” để xem hai bạn hợp nhau bao nhiêu %
+            Chơi cùng 16 câu của theme “{challenger.theme.name}” để xem hai bạn hợp nhau bao nhiêu %
           </p>
         </div>
         <PlayFlow
           theme={challenger.theme}
+          seed={friendSeed}
           onDone={(answers) => {
             setMine(answers);
             const myResult = scoreQuiz(challenger.theme, answers);
@@ -89,7 +94,9 @@ export default function SoBaiFlow() {
             checkPlayBadges({ compare: true });
             setFresh(takeFreshBadges());
             trackGameEvent("compare_done", challenger.theme.slug);
-            router.replace(`/choi/so-bai?d=${d}&e=${encodeResult(myResult)}`);
+            router.replace(
+              `/choi/so-bai?d=${d}&e=${encodeResult({ ...myResult, seed: friendSeed })}`,
+            );
           }}
         />
       </div>
@@ -98,7 +105,7 @@ export default function SoBaiFlow() {
 
   const myResult = scoreQuiz(challenger.theme, mine);
   const c = compatibility(challenger.result, myResult);
-  const myCode = encodeResult(myResult);
+  const myCode = encodeResult({ ...myResult, seed: friendSeed });
   const compareUrl =
     typeof window !== "undefined" ? `${window.location.origin}/choi/so-bai?d=${d}&e=${myCode}` : "";
 

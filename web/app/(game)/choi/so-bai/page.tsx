@@ -34,10 +34,10 @@ export async function generateMetadata({
     const title = `Bạn bè (${style.name}) thách bạn so bài | Đúng Thiết Kế`;
     return {
       title,
-      description: "Chơi 60 giây để xem hai bạn hợp nhau bao nhiêu %.",
+      description: "Chơi 3 phút để xem hai bạn hợp nhau bao nhiêu %.",
       openGraph: {
         title,
-        description: "Chơi 60 giây để xem hai bạn hợp nhau bao nhiêu %.",
+        description: "Chơi 3 phút để xem hai bạn hợp nhau bao nhiêu %.",
         images: [`/api/og/game?style=${style.id}`],
       },
     };

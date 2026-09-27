@@ -26,7 +26,7 @@ export async function generateMetadata({
     const title = `Hạng #${rank} bảng vàng ${theme.name} — Bạn có dám thách? | Đúng Thiết Kế`;
     return {
       title,
-      description: `${style.icon} ${style.name} đang giữ hạng #${rank} tuần này. Chơi 60 giây để vượt qua.`,
+      description: `${style.icon} ${style.name} đang giữ hạng #${rank} tuần này. Chơi 3 phút để vượt qua.`,
       openGraph: {
         title,
         description: "Bảng vàng tuần · ẩn danh · reset mỗi thứ Hai.",
@@ -37,10 +37,10 @@ export async function generateMetadata({
   const title = `Tôi là “${style.name}” — Bạn thì sao? | Đúng Thiết Kế`;
   return {
     title,
-    description: `${style.tagline} Chơi 60 giây để biết phong cách của bạn.`,
+    description: `${style.tagline} Chơi 3 phút để biết phong cách của bạn.`,
     openGraph: {
       title,
-      description: "Trò chơi 60 giây khám phá thiết kế gốc của bạn — chưa cần ngày sinh.",
+      description: "Trò chơi 3 phút khám phá thiết kế gốc của bạn — chưa cần ngày sinh.",
       images: [`/api/og/game?style=${result.style}`],
     },
   };
@@ -59,7 +59,7 @@ export default async function SharedResultPage({
       <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
         <div className="text-5xl">🧭</div>
         <h1 className="mt-4 text-2xl font-black">Link này hết hạn hoặc không hợp lệ</h1>
-        <p className="mt-2 text-white/60">Chơi một ván mới chỉ mất 60 giây.</p>
+        <p className="mt-2 text-white/60">Chơi một ván mới chỉ mất 3 phút.</p>
         <Link
           href="/choi"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
@@ -92,7 +92,7 @@ export default async function SharedResultPage({
       <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
         <div className="text-xl font-black">Còn bạn là ai?</div>
         <p className="mt-1 text-sm text-white/60">
-          3 tình huống · 60 giây · Không cần đăng ký, chưa cần ngày sinh.
+          16 tình huống · 3 phút · Không cần đăng ký, chưa cần ngày sinh.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <Link

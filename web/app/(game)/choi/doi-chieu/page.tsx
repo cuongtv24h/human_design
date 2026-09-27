@@ -72,13 +72,13 @@ function PageInner() {
         <div className="text-5xl">🎮</div>
         <h1 className="mt-4 text-2xl font-black">Chơi trước đã bạn ơi</h1>
         <p className="mt-2 text-white/60">
-          Cần kết quả 3 tình huống mới đối chiếu được với thiết kế gốc.
+          Cần kết quả 16 câu trả lời mới đối chiếu được với thiết kế gốc.
         </p>
         <Link
           href="/choi"
           className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
         >
-          Chơi 60 giây
+          Chơi 3 phút
         </Link>
       </div>
     );

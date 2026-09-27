@@ -9,6 +9,8 @@ import {
   dailyLabel,
   dailySeed,
   encodeResult,
+  QUESTIONS_PER_PLAY,
+  randomSeed,
   recordPlayed,
   scoreQuiz,
   submitStreak,
@@ -27,18 +29,18 @@ export default function PlayPage() {
   const theme = THEMES[slug];
   const [phase, setPhase] = useState<"intro" | "playing" | "done">("intro");
   const [answers, setAnswers] = useState<string[]>([]);
+  const [playSeed, setPlaySeed] = useState("");
   const [streak, setStreak] = useState(0);
   const [fresh, setFresh] = useState<BadgeDef[]>([]);
-  const seed = useMemo(
-    () => (daily && theme ? `${dailySeed()}-${theme.slug}` : undefined),
-    [daily, theme],
-  );
 
   const result = useMemo(
     () => (theme && phase === "done" ? scoreQuiz(theme, answers) : null),
     [theme, phase, answers],
   );
-  const code = useMemo(() => (result ? encodeResult(result) : ""), [result]);
+  const code = useMemo(
+    () => (result ? encodeResult({ ...result, seed: playSeed || undefined }) : ""),
+    [result, playSeed],
+  );
 
   if (!theme) {
     return (
@@ -71,6 +73,7 @@ export default function PlayPage() {
         <button
           type="button"
           onClick={() => {
+            setPlaySeed(daily ? `${dailySeed()}-${theme.slug}` : randomSeed());
             trackGameEvent("game_start", theme.slug);
             setPhase("playing");
           }}
@@ -79,8 +82,8 @@ export default function PlayPage() {
           Bắt đầu →
         </button>
         <p className="mt-3 text-xs text-white/50">
-          {theme.scenarios.length} tình huống · khoảng 1 phút
-          {daily ? " · đề chung cả cộng đồng" : " · mỗi lượt ra đề khác nhau"}
+          {QUESTIONS_PER_PLAY} tình huống · khoảng 3 phút
+          {daily ? " · đề chung cả cộng đồng" : " · mỗi lượt rút đề khác nhau"}
         </p>
       </div>
     );
@@ -90,7 +93,7 @@ export default function PlayPage() {
     return (
       <PlayFlow
         theme={theme}
-        seed={seed}
+        seed={playSeed}
         onDone={async (a) => {
           setAnswers(a);
           const r = scoreQuiz(theme, a);

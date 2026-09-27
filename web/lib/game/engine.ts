@@ -7,15 +7,17 @@ import {
   STYLES,
   THEMES,
   type DecisionId,
-  type GameScenario,
   type GameTheme,
   type StyleId,
 } from "./content";
+import { BANKS } from "./bank";
 
 export interface QuizResult {
   theme: string;
-  /** option id đã chọn theo thứ tự slot */
+  /** option id đã chọn theo thứ tự câu hỏi */
   answers: string[];
+  /** seed rút đề (v2) — so bài dùng chung để ra cùng 16 câu */
+  seed?: string;
   style: StyleId;
   secondary: StyleId;
   /** -1..1 */
@@ -44,21 +46,92 @@ export interface GameChartOut {
 
 const STYLE_ORDER: StyleId[] = ["khoi_xuong", "kien_tao", "dan_duong", "tam_guong"];
 
+interface ScoredOption {
+  theme: string;
+  points: Record<StyleId, number>;
+  energy: number;
+  pace: number;
+  decision?: DecisionId;
+}
+
+/** Vector năng lượng/nhịp mặc định theo phong cách (cho đáp án kho mới). */
+const STYLE_VECTORS: Record<StyleId, { energy: number; pace: number; decision: DecisionId }> = {
+  khoi_xuong: { energy: 0, pace: 1, decision: "truc_giac" },
+  kien_tao: { energy: 1, pace: 0, decision: "cam_xuc" },
+  dan_duong: { energy: 0, pace: -1, decision: "logic" },
+  tam_guong: { energy: -1, pace: -1, decision: "hoi_han" },
+};
+
+let optionMap: Map<string, ScoredOption> | null = null;
+
+/** Map tra cứu đáp án: kho mới + scenario cũ (link ?d= đời cũ vẫn chấm y nguyên). */
+function getOptionMap(): Map<string, ScoredOption> {
+  if (optionMap) return optionMap;
+  const map = new Map<string, ScoredOption>();
+  for (const [slug, bank] of Object.entries(BANKS)) {
+    for (const q of bank) {
+      q.opts.forEach((o, oi) => {
+        const id = `${q.id}${"abcd"[oi]}`;
+        const v = STYLE_VECTORS[o.s];
+        const je = ((hashSeed(id) % 31) / 100 - 0.15) * 2;
+        const jp = ((hashSeed(`p${id}`) % 31) / 100 - 0.15) * 2;
+        const points: Record<StyleId, number> = { khoi_xuong: 0, kien_tao: 0, dan_duong: 0, tam_guong: 0 };
+        points[o.s] = 2;
+        map.set(id, { theme: slug, points, energy: v.energy + je, pace: v.pace + jp, decision: v.decision });
+      });
+    }
+  }
+  for (const theme of Object.values(THEMES)) {
+    for (const slot of theme.scenarios) {
+      for (const v of slot.variants) {
+        for (const o of v.options) {
+          if (!map.has(o.id)) {
+            map.set(o.id, {
+              theme: theme.slug,
+              points: { ...o.points },
+              energy: o.energy,
+              pace: o.pace,
+              decision: o.decision,
+            });
+          }
+        }
+      }
+    }
+  }
+  optionMap = map;
+  return map;
+}
+
 export function scoreQuiz(theme: GameTheme, answers: string[]): QuizResult {
+  const map = getOptionMap();
   const totals: Record<StyleId, number> = { khoi_xuong: 0, kien_tao: 0, dan_duong: 0, tam_guong: 0 };
   let energy = 0;
   let pace = 0;
-  const decisions: DecisionId[] = [];
-  theme.scenarios.forEach((slot, i) => {
-    const opt = slot.variants.flatMap((v) => v.options).find((o) => o.id === answers[i]);
-    if (!opt) return;
-    for (const s of STYLE_ORDER) totals[s] += opt.points[s] ?? 0;
+  let matched = 0;
+  const votes: Record<DecisionId, number> = { truc_giac: 0, cam_xuc: 0, logic: 0, hoi_han: 0 };
+  const firstSeen: DecisionId[] = [];
+  for (const id of answers) {
+    const opt = map.get(id);
+    if (!opt || opt.theme !== theme.slug) continue;
+    matched += 1;
+    for (const st of STYLE_ORDER) totals[st] += opt.points[st] ?? 0;
     energy += opt.energy;
     pace += opt.pace;
-    if (opt.decision) decisions.push(opt.decision);
-  });
+    if (opt.decision) {
+      votes[opt.decision] += 1;
+      if (!firstSeen.includes(opt.decision)) firstSeen.push(opt.decision);
+    }
+  }
   const ranked = [...STYLE_ORDER].sort((a, b) => totals[b] - totals[a]);
-  const n = Math.max(1, theme.scenarios.length);
+  const n = Math.max(1, matched);
+  let decision: DecisionId = "truc_giac";
+  let best = 0;
+  for (const d of firstSeen) {
+    if (votes[d] > best) {
+      best = votes[d];
+      decision = d;
+    }
+  }
   return {
     theme: theme.slug,
     answers,
@@ -66,33 +139,77 @@ export function scoreQuiz(theme: GameTheme, answers: string[]): QuizResult {
     secondary: ranked[1],
     energy: Math.max(-1, Math.min(1, energy / n)),
     pace: Math.max(-1, Math.min(1, pace / n)),
-    decision: decisions[0] ?? "truc_giac",
+    decision,
   };
 }
 
-/** Chọn ngẫu nhiên 1 biến thể cho mỗi slot (mỗi lượt chơi khác nhau). */
-export function pickVariants(theme: GameTheme): GameScenario[] {
-  return theme.scenarios.map((slot) => {
-    const vs = slot.variants.length > 0 ? slot.variants : [];
-    return vs[Math.floor(Math.random() * vs.length)];
+export const QUESTIONS_PER_PLAY = 16;
+
+export interface PlayOption {
+  id: string;
+  label: string;
+}
+
+export interface PlayQuestion {
+  qid: string;
+  title: string;
+  situation: string;
+  options: PlayOption[];
+}
+
+function shuffled<T>(arr: T[], rand: () => number): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Rút n câu khác nhau từ kho + xáo thứ tự đáp án — cùng seed ra cùng đề. */
+export function sampleQuestions(
+  themeSlug: string,
+  seed: string,
+  n = QUESTIONS_PER_PLAY,
+): PlayQuestion[] {
+  const bank = BANKS[themeSlug] ?? [];
+  const picked = shuffled(bank, mulberry32(hashSeed(`q:${seed}:${themeSlug}`))).slice(
+    0,
+    Math.min(n, bank.length),
+  );
+  return picked.map((q) => {
+    const order = shuffled([0, 1, 2, 3], mulberry32(hashSeed(`o:${seed}:${q.id}`)));
+    return {
+      qid: q.id,
+      title: q.title,
+      situation: q.sit,
+      options: order.map((oi) => ({ id: `${q.id}${"abcd"[oi]}`, label: q.opts[oi].t })),
+    };
   });
 }
 
-/** Mã hóa kết quả vào URL (?d=...) để share không cần DB. */
+export function randomSeed(): string {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Mã hóa kết quả vào URL (?d=...) để share không cần DB. v2 kèm seed rút đề. */
 export function encodeResult(result: QuizResult): string {
-  const raw = JSON.stringify({ t: result.theme, a: result.answers, v: 1 });
+  const raw = JSON.stringify({ t: result.theme, a: result.answers, v: 2, s: result.seed ?? "" });
   return btoa(unescape(encodeURIComponent(raw))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-export function decodeResultParam(param: string | null): { theme: string; answers: string[] } | null {
+export function decodeResultParam(
+  param: string | null,
+): { theme: string; answers: string[]; seed?: string } | null {
   if (!param) return null;
   try {
     const b64 = param.replace(/-/g, "+").replace(/_/g, "/");
     const raw = decodeURIComponent(escape(atob(b64)));
-    const data = JSON.parse(raw) as { t?: unknown; a?: unknown };
+    const data = JSON.parse(raw) as { t?: unknown; a?: unknown; s?: unknown };
     if (typeof data.t !== "string" || !Array.isArray(data.a)) return null;
-    const answers = data.a.filter((x): x is string => typeof x === "string").slice(0, 10);
-    return { theme: data.t, answers };
+    const answers = data.a.filter((x): x is string => typeof x === "string").slice(0, 25);
+    const seed = typeof data.s === "string" && data.s ? data.s : undefined;
+    return { theme: data.t, answers, seed };
   } catch {
     return null;
   }
@@ -293,12 +410,6 @@ function mulberry32(seed: number): () => number {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-/** Chọn biến thể theo seed — cùng seed thì cả cộng đồng ra cùng đề. */
-export function pickSeededVariants(theme: GameTheme, seed: string): GameScenario[] {
-  const rand = mulberry32(hashSeed(seed));
-  return theme.scenarios.map((slot) => slot.variants[Math.floor(rand() * slot.variants.length)]);
 }
 
 export function dailySeed(date = new Date()): string {

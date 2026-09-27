@@ -53,7 +53,7 @@ export async function GET(req: Request) {
           <div style={{ fontSize: 56, fontWeight: 700 }}>{style.name}</div>
         </div>
         <div style={{ marginTop: 24, fontSize: 30, color: "#fcd34d", fontWeight: 700 }}>
-          Bạn có lọt top? Chơi 60 giây →
+          Bạn có lọt top? Chơi 3 phút →
         </div>
       </div>
     ) : (
@@ -83,7 +83,7 @@ export async function GET(req: Request) {
           {style.tagline}
         </div>
         <div style={{ marginTop: 32, fontSize: 28, color: "#fcd34d", fontWeight: 700 }}>
-          Bạn thì sao? Chơi 60 giây →
+          Bạn thì sao? Chơi 3 phút →
         </div>
       </div>
     ),

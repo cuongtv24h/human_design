@@ -296,7 +296,7 @@ export const THEME_NGUOC_DONG: GameTheme = {
   entryDesc: "Bạn thực sự lười biếng, hay đang sống theo tiêu chuẩn của người khác?",
   icon: "🧠",
   intro:
-    "3 khoảnh khắc đời thường. Không có đáp án đúng — chỉ có phản xạ thật của bạn. Chọn ngay lựa chọn đầu tiên nảy ra trong đầu.",
+    "16 khoảnh khắc đời thường. Không có đáp án đúng — chỉ có phản xạ thật của bạn. Chọn ngay lựa chọn đầu tiên nảy ra trong đầu.",
   bridge:
     "Bản phác thảo hành vi đã xong. Giờ nhập ngày giờ sinh để hệ thống tính thiết kế gốc của bạn — và xem hai bản này khớp nhau bao nhiêu phần trăm.",
   scenarios: [
@@ -313,7 +313,7 @@ export const THEME_THUONG_VU: GameTheme = {
   entryDesc: "Bạn là Người Cày Dự Án hay Kẻ Thao Túng Cuộc Chơi?",
   icon: "💼",
   intro:
-    "Bạn bị ném vào một dự án trên bờ vực. 3 quyết định cân não, không có đáp án đúng — chỉ có bản năng làm việc thật của bạn.",
+    "Bạn bị ném vào một dự án trên bờ vực. 16 quyết định cân não, không có đáp án đúng — chỉ có bản năng làm việc thật của bạn.",
   bridge:
     "Phong cách làm việc của bạn đã lộ diện. Nhập ngày giờ sinh để xem thiết kế gốc nói gì về con đường sự nghiệp của bạn.",
   scenarios: [
@@ -454,7 +454,7 @@ export const THEME_LINH_THU: GameTheme = {
   entryDesc: "Linh thú năng lượng nào đang dẫn lối cho bạn?",
   icon: "🔮",
   intro:
-    "Bạn lạc vào khu rừng thần thoại, nơi linh hồn mỗi người hóa thành một sinh vật. Đi qua 3 trạm, rừng sẽ cho bạn thấy hình dạng thật của mình.",
+    "Bạn lạc vào khu rừng thần thoại, nơi linh hồn mỗi người hóa thành một sinh vật. Đi qua 16 trạm, rừng sẽ cho bạn thấy hình dạng thật của mình.",
   bridge:
     "Linh thú của bạn đã lộ diện. Nhập ngày giờ sinh để xem tần số gốc đằng sau linh thú đó là gì.",
   scenarios: [

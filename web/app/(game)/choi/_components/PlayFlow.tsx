@@ -1,26 +1,45 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { GameTheme } from "@/lib/game/content";
-import { pickSeededVariants, pickVariants } from "@/lib/game/engine";
+import { sampleQuestions } from "@/lib/game/engine";
 
 const LETTERS = ["A", "B", "C", "D"];
 
-/** Luồng trả lời câu hỏi (dùng chung cho chơi thường và so bài). Có seed → cả cộng đồng cùng đề. */
+/** Luồng trả lời 16 câu rút từ kho (dùng chung cho chơi thường, đề hôm nay và so bài). */
 export default function PlayFlow({
   theme,
   seed,
   onDone,
 }: {
   theme: GameTheme;
-  seed?: string;
+  seed: string;
   onDone: (answers: string[]) => void;
 }) {
-  const [picked] = useState(() => (seed ? pickSeededVariants(theme, seed) : pickVariants(theme)));
+  const [picked] = useState(() => sampleQuestions(theme.slug, seed));
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+
+  if (picked.length === 0) {
+    return (
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+        <div className="text-5xl">🚧</div>
+        <h1 className="mt-4 text-2xl font-black">Kho câu hỏi đang cập nhật</h1>
+        <p className="mt-2 text-white/60">Quay lại sau ít phút nhé.</p>
+        <Link
+          href="/choi"
+          className="mt-6 inline-block rounded-full bg-amber-300 px-6 py-3 font-bold text-[#14122b]"
+        >
+          ← Chọn cửa khác
+        </Link>
+      </div>
+    );
+  }
+
   const sc = picked[step];
   if (!sc) return null;
+  const half = Math.floor(picked.length / 2);
 
   const pick = (id: string) => {
     const next = [...answers];
@@ -35,7 +54,7 @@ export default function PlayFlow({
       <div>
         <div className="mb-2 flex items-center justify-between text-sm">
           <span className="font-bold text-white/70">
-            Tình huống {step + 1}/{picked.length}
+            Câu {step + 1}/{picked.length}
           </span>
           {step > 0 && (
             <button
@@ -53,6 +72,11 @@ export default function PlayFlow({
             style={{ width: `${Math.round(((step + 1) / picked.length) * 100)}%` }}
           />
         </div>
+        {step === half && (
+          <p className="mt-2 text-center text-sm font-bold text-amber-200">
+            Được nửa đường rồi — cứ theo phản xạ đầu tiên nhé 💪
+          </p>
+        )}
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8">
