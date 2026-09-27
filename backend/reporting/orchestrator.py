@@ -84,7 +84,7 @@ from hd_team_analysis import analyze_team, format_team_report  # noqa: E402
 
 ORCHESTRATOR_VERSION = "0.2.0"
 CALCULATOR_VERSION = "pyswisseph 2.10.3.2 / Human Design calculator"
-KNOWLEDGE_VERSION = "2026-09-24"
+KNOWLEDGE_VERSION = "2026-09-28"
 
 
 def _parse_birth_datetime(date_text: str, time_text: str, timezone_text: str) -> datetime:

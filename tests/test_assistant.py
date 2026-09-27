@@ -278,8 +278,8 @@ def test_search_vietnamese_equiv_and_phrase():
     assert _result_files(text)[0] == "03_36_kenh.md"
     text, _ = search_knowledge("Nuôi dạy con theo HD?")
     files = _result_files(text)
-    assert files[0] in ("07_ung_dung_thuc_tien.md", "11_chuyen_luan_manifestor_tham_van.md")
-    assert "07_ung_dung_thuc_tien.md" in files[:3]
+    # File 22 là tài liệu chuyên về nuôi dạy con nên chiếm top đầu.
+    assert files[0] == "22_nuoi_day_con_theo_thiet_ke.md"
     text, _ = search_knowledge("Type Projector chờ lời mời?")
     assert "04_5_loai_va_chien_luoc.md" in _result_files(text)[:3]
 
