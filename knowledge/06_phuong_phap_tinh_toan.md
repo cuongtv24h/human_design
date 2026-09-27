@@ -3,7 +3,7 @@
 ## 1. Yêu cầu đầu vào
 - Ngày sinh dương lịch
 - Giờ sinh CHÍNH XÁC (đến phút) - Sai 5 phút có thể đổi cổng Mặt Trăng, sai 1 giờ có thể đổi Profile
-- Nơi sinh (để tính múi giờ, nhưng Swiss Ephemeris dùng UTC, nên cần chuyển về UTC)
+- Múi giờ: offset CỐ ĐỊNH do người dùng khai báo (mặc định +07:00 giờ Việt Nam). Hệ thống KHÔNG tự tra giờ mùa hè (DST) lịch sử: người sinh ở nơi có DST (Mỹ, châu Âu...) phải nhập đúng offset áp dụng tại ngày giờ sinh (VD New York tháng 7/1990 = -04:00 EDT, tháng 1/1990 = -05:00 EST — tra cứu qua timeanddate.com). Nhập sai 1 giờ có thể đổi cổng Mặt Trăng/Profile.
 - Hệ tọa độ: Tropical Zodiac (không phải Sidereal)
 
 ## 2. Bước 1: Tính Personality (Ý thức)
@@ -105,14 +105,30 @@ Thứ tự ưu tiên:
 
 - Tên Cross (ví dụ Right Angle Cross of the Sphinx) cần tra bảng 192 Cross từ Jovian Archive.
 
-## 11. Độ chính xác và lưu ý
+## 11. Bước 10: Variables — 4 mũi tên (PHS)
+Từ Color/Tone của Sun và North Node (Personality + Design), theo quy ước gethumandesign.com/docs/variable:
+- Trái trên Determination (PHS, cách ăn-tiêu hóa) = Color của Design Sun; Trái dưới Environment (môi trường đúng) = Color của Design Node
+- Phải trên Motivation (động lực) = Color của Personality Sun; Phải dưới Perspective (góc nhìn) = Color của Personality Node
+- Hướng mũi tên lấy từ Tone của chính vị trí đó: Tone 1-3 = trái (chủ động), 4-6 = phải (thụ động)
+- Cognition (giác quan tin cậy) = Tone của Design Sun: 1 Smell, 2 Taste, 3 Outer Vision, 4 Inner Vision, 5 Feeling, 6 Touch
+- Bảng Color: Determination 1-6 Appetite/Taste/Thirst/Touch/Sound/Light; Environment 1-6 Caves/Markets/Kitchens/Mountains/Valleys/Shores; Motivation 1-6 Fear/Hope/Desire/Need/Guilt/Innocence; Perspective 1-6 Survival/Possibility/Power/Wanting/Probability/Personal
+- Tầng thực nghiệm: chỉ luận sau khi thân chủ đã sống đúng Strategy + Authority; cần giờ sinh chính xác đến phút (sai Tone đổi hướng mũi tên)
+
+## 12. Bước 11: Transits và mốc chu kỳ
+- Ảnh transit tại thời điểm xem (mặc định hiện tại): tính cổng/hào của 10 hành tinh + North Node, so với natal — (a) hành tinh rơi vào trung tâm MỞ natal (vùng điều kiện hóa hôm nay), (b) nối điện từ: cổng transit + cổng treo natal tạo thành kênh
+- Mốc chu kỳ lớn (quét + tinh chỉnh điểm Mặt Trời/hành tinh về đúng kinh độ natal): Solar Return mỗi năm, Jupiter Return ~11.86 năm, Saturn Return ~29.46 năm, Uranus đối đỉnh ~42 tuổi, Uranus Return ~84 tuổi
+- Transit phụ thuộc ngày xem nên báo cáo ghi rõ ngày (tái lập được khi xem cùng ngày); phần còn lại của chart thuần hàm ngày sinh
+
+## 13. Độ chính xác và lưu ý
 - Swiss Ephemeris chính xác hơn 99% tool online
 - Cần giờ sinh chính xác: Moon di chuyển ~13°/ngày => 0.5°/giờ => có thể đổi gate trong 2-3 giờ
 - Các hành tinh chậm (Pluto, Neptune) ít thay đổi giữa P và D
 - Các hành tinh nhanh (Moon, Mercury) thay đổi nhiều
+- Node dùng True Node (không phải Mean Node): chênh nhau <2°, chỉ ảnh hưởng Color/Tone/Base, hiếm khi đổi Line/Gate
+- Tìm Design JD tinh chỉnh đến 0.0001° (~0.36 giây); so sánh với Jovian Archive, 64keys, Genetic Matrix cho sai số <0.1°
 - Không tính Chiron, Lilith trong hệ thống gốc (có thể thêm mở rộng)
 
-## 12. Kiểm thử
+## 14. Kiểm thử
 Đã test với các ngày:
 - 1987-01-01: Projector 2/4 Splenic
 - 1990-06-15: Generator 2/4 Sacral

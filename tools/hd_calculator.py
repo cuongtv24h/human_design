@@ -365,13 +365,12 @@ def calculate_hd_chart(birth_datetime):
         authority = "Splenic"
     elif "Heart" in defined_centers:
         # Ego Manifested = Heart nối Throat (21-45); Ego Projected = Heart nối
-        # G (25-51, cần lời mời).
+        # G (25-51, cần lời mời). Mọi kênh Heart còn lại (26-44 kéo Spleen,
+        # 40-37 kéo Solar) đều đã rẽ nhánh Splenic/Emotional ở trên.
         if (21, 45) in defined_channels or (45, 21) in defined_channels:
             authority = "Ego (Heart) - Manifested"
         elif (25, 51) in defined_channels or (51, 25) in defined_channels:
             authority = "Ego (Heart) - Projected"
-        elif "G" in defined_centers:
-            authority = "Self-Projected (G-Center)" if hd_type == "Projector" else "Ego (Heart)"
         else:
             authority = "Ego (Heart)"
     elif "G" in defined_centers:

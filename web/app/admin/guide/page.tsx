@@ -9,7 +9,7 @@ const TAO_BAO_CAO = `## Tạo báo cáo
 
 **Bước 1 — Khách hàng.** Chọn khách hàng có sẵn (danh sách gần đây, tìm kiếm hoặc [thêm mới](/clients)). Ngày giờ sinh và nơi sinh lấy từ hồ sơ khách.
 
-**Bước 2 — Loại báo cáo.** Chọn *mức độ chuyên sâu*, *cách trình bày* (mẫu dựng sẵn hoặc mẫu riêng soạn trong [Studio](/templates)) và *chủ đề chuyên sâu* (có thể chọn nhiều).
+**Bước 2 — Loại báo cáo.** Chọn *mức độ chuyên sâu*, *cách trình bày* (mẫu dựng sẵn hoặc mẫu riêng soạn trong [Studio](/templates)) và *chủ đề chuyên sâu* (có thể chọn nhiều). Khi chọn chủ đề *Tình yêu & Mối quan hệ*, khung **Đối tác composite** hiện ra — nhập ngày + giờ sinh đối tác để báo cáo có thêm mục Composite 2 người (bỏ trống nếu chỉ phân tích một người).
 
 **Bước 3 — Cách viết nội dung.** Hai chế độ:
 
@@ -54,8 +54,24 @@ Mỗi mẫu riêng có thể sở hữu một **hồ sơ văn phong** (giọng �
 3. **Dùng**: khi tạo báo cáo ở chế độ AI biên tập với mẫu có văn phong, bật công tắc **Dùng văn phong của mẫu** (có nút **Thử giọng** ngay trong bước tạo). Báo cáo đính kèm bản chụp hồ sơ lúc tạo — đổi giọng sau này không ảnh hưởng báo cáo cũ.
 4. **Đánh giá và cải tiến**: mỗi báo cáo có nút thích/không thích cho văn phong; trang mẫu thống kê theo từng bản để biết bản nào được lòng người đọc. Báo cáo cũ có thể **Áp văn phong** để viết lại theo giọng mới (đánh giá cũ bị xóa vì nhận xét giọng cũ).`;
 
+const GIO_SINH = `## Giờ sinh và múi giờ
+
+Chart tính từ **ngày + giờ sinh khai báo và offset múi giờ** bạn nhập — hệ thống không tự đoán hay tra cứu giờ mùa hè (DST).
+
+- **Sinh tại Việt Nam:** để mặc định +07:00.
+- **Sinh ở nước ngoài có DST** (Mỹ, châu Âu...): nhập đúng offset **áp dụng tại ngày giờ sinh**, không phải offset hiện tại. Ví dụ New York tháng 7/1990 là -04:00 (EDT), tháng 1/1990 là -05:00 (EST) — tra cứu tại timeanddate.com rồi nhập offset đó.
+- **Sai 1 giờ có thể đổi cổng Mặt Trăng hoặc Profile**, sai vài phút có thể đổi Variables — luôn đối chiếu giấy khai sinh khi có thể.`;
+
+const TIMING = `## Transit, Variables và Composite ở đâu
+
+- **Transit (quá cảnh hôm nay):** hỏi **Trợ lý Human Design** (nút góc màn hình trang quản trị) với ngày giờ sinh, ví dụ "transit hôm nay của người sinh 15/05/1990 08:30"; trong báo cáo, mục Hành động thực tế và Sứ mệnh cũng có transit + các mốc Solar/Jupiter/Saturn return.
+- **Variables (4 mũi tên + PHS):** xem trên tab **BodyGraph** của báo cáo (4 mũi tên quanh tam giác trên cùng, di chuột để xem tên) và mục Sức khỏe (PHS: chế độ ăn-môi trường). Cần giờ sinh chính xác đến phút.
+- **Composite 2 người:** xem thêm ở bước 2 tạo báo cáo — mục Đối tác composite khi chọn chủ đề Tình yêu & Mối quan hệ.`;
+
 const SECTIONS = [
   { id: "tao-bao-cao", label: "Tạo báo cáo", body: TAO_BAO_CAO },
+  { id: "gio-sinh", label: "Giờ sinh và múi giờ", body: GIO_SINH },
+  { id: "timing", label: "Transit, Variables, Composite", body: TIMING },
   { id: "dung-mau", label: "Dùng mẫu báo cáo", body: DUNG_MAU },
   { id: "van-phong", label: "Văn phong AI", body: VAN_PHONG },
 ];
