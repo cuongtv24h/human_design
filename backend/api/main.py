@@ -56,8 +56,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if sweeper is not None:
             sweeper.stop()
 
+    # Docs chỉ ở môi trường dev/test: production không public surface 44 route.
+    is_prod = settings.environment == "production"
     app = FastAPI(title="Human Design Admin API", version="1.0.0", lifespan=lifespan,
-                  docs_url=f"{API_PREFIX}/docs", openapi_url=f"{API_PREFIX}/openapi.json", redoc_url=None)
+                  docs_url=None if is_prod else f"{API_PREFIX}/docs",
+                  openapi_url=None if is_prod else f"{API_PREFIX}/openapi.json",
+                  redoc_url=None)
     app.state.settings = settings
     app.state.secret_key = resolve_secret_key(settings.secret_key, Path(settings.secret_key_file))
     app.state.llm_transport = None  # tests inject a fake OpenAI-compatible transport
@@ -66,8 +70,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.db.create_all()
 
     if settings.cors_origins:
-        app.add_middleware(CORSMiddleware, allow_origins=list(settings.cors_origins), allow_credentials=True,
-                           allow_methods=["*"], allow_headers=["*"])
+        # Enumerate thay vì "*": CSRF của app dựa hoàn toàn vào header custom
+        # (X-HD-Request) — nếu allow_methods/headers "*" thì bất kỳ origin nào
+        # trong allowlist đều gửi được header đó → vô hiệu hóa biện pháp CSRF.
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(settings.cors_origins),
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+            allow_headers=["Accept", "Content-Type", "Authorization", "X-HD-Request",
+                           "X-HD-Embedded"],
+            max_age=600,
+        )
 
     @app.middleware("http")
     async def csrf_guard(request: Request, call_next):

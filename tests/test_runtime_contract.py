@@ -67,3 +67,17 @@ def test_openapi_app_imports():
     assert "/calculate-chart" in paths
     assert "/generate-team-report" in paths
     assert {"/reports/generate", "/reports/llm-brief", "/reports/apply-draft", "/reports/bodygraph.svg", "/reports/infographic.html"} <= paths
+
+
+def test_read_knowledge_blocks_path_traversal():
+    """_read_knowledge chỉ đọc file trực tiếp trong knowledge/ — chặn ../ và đường dẫn tuyệt đối."""
+    from server import _read_knowledge
+
+    good = _read_knowledge("00_tong_quan_he_thong.md")
+    assert len(good) > 200 and "không hợp lệ" not in good
+    for evil in ("../../.env", "../mcp/server.py", "/etc/passwd", "..", "sub/../../secret"):
+        out = _read_knowledge(evil)
+        assert "không hợp lệ" in out, evil
+        assert "root:" not in out and "HD_SECRET" not in out
+    # File không tồn tại INSIDE knowledge/ vẫn đi vào nhánh OSError bình thường.
+    assert "Không thể đọc" in _read_knowledge("khong-ton-tai.md")

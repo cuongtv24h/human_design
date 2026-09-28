@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     "content-type": "application/json",
     accept: "text/event-stream",
   };
-  for (const key of ["cookie", "authorization", "x-hd-request", "x-hd-embedded", "x-forwarded-for"] as const) {
+  for (const key of ["cookie", "authorization", "x-hd-request", "x-hd-embedded", "x-forwarded-for", "x-real-ip"] as const) {
     const value = req.headers.get(key);
     if (value) headers[key] = value;
   }

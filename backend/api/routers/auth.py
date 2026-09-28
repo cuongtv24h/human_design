@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import secrets
 import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
@@ -22,14 +23,31 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 _FAILURES: dict[str, deque[float]] = defaultdict(deque)
 _WINDOW_S = 15 * 60
 _MAX_FAILURES = 5
+# Chống password-spray: 1 mật khẩu thử trên hàng trăm email cùng IP — mỗi email
+# chỉ cộng 1 nên bucket `ip|email` không bao giờ kích hoạt. Cần bucket IP thuần riêng.
+_MAX_IP_FAILURES = 20
+
+# Hash Argon2 giả: đăng nhập email KHÔNG tồn tại vẫn chạy đúng một lần verify
+# → thời gian phản hồi bằng nhau, không leak "email có tồn tại" qua timing.
+_DUMMY_HASH = hash_password(secrets.token_urlsafe(16))
 
 
-def _too_many(key: str) -> bool:
+def _prune(key: str) -> deque[float]:
     bucket = _FAILURES[key]
     now = time.monotonic()
     while bucket and now - bucket[0] > _WINDOW_S:
         bucket.popleft()
-    return len(bucket) >= _MAX_FAILURES
+    return bucket
+
+
+def _too_many(key: str, limit: int = _MAX_FAILURES) -> bool:
+    return len(_prune(key)) >= limit
+
+
+def _record_failure(*keys: str) -> None:
+    now = time.monotonic()
+    for key in keys:
+        _FAILURES[key].append(now)
 
 
 def user_out(user: User) -> UserOut:
@@ -43,17 +61,20 @@ def login(payload: LoginIn, request: Request, response: Response, db: Session = 
     email = payload.email.strip().lower()
     ip = client_ip(request)
     key = f"{ip}|{email}"
-    if _too_many(key):
+    if _too_many(key) or _too_many(ip, _MAX_IP_FAILURES):
         raise HTTPException(status_code=429, detail="Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.")
     user = db.scalar(select(User).where(func.lower(User.email) == email))
-    if user is None or not verify_password(user.password_hash, payload.password):
-        _FAILURES[key].append(time.monotonic())
+    # Email không tồn tại → vẫn verify hash giả, cùng chi phí Argon2 (chống timing).
+    password_ok = verify_password(_DUMMY_HASH if user is None else user.password_hash, payload.password)
+    if user is None or not password_ok:
+        _record_failure(key, ip)
         audit(db, user, "auth.login_failed", "user", user.id if user else "", ip=ip, email=email)
         db.commit()
         raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng.")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Tài khoản đã bị khóa.")
     _FAILURES.pop(key, None)
+    _FAILURES.pop(ip, None)
     settings = request.app.state.settings
     token, token_hash = new_session_token()
     now = datetime.now(timezone.utc)

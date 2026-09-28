@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base, JSONType
@@ -286,6 +286,9 @@ class TemplateStyleVersion(Base):
     """Lịch sử hồ sơ văn phong: mỗi lần đổi = 1 bản mới (P4)."""
 
     __tablename__ = "template_style_versions"
+    # Đồng bộ với migration 0009 — nếu thiếu, `alembic check` báo drift và
+    # db.create_all() (dev/test) sẽ tạo bảng KHÔNG có unique constraint như production.
+    __table_args__ = (UniqueConstraint("template_id", "version_no", name="uq_style_version_no"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     template_id: Mapped[int] = mapped_column(ForeignKey("report_templates.id", ondelete="CASCADE"), index=True)
@@ -342,6 +345,8 @@ class GameStreakDay(Base):
     """Ngày đã điểm danh đề hôm nay của 1 session (G4, ngày theo giờ VN)."""
 
     __tablename__ = "game_streak_days"
+    # Đồng bộ với migration 0012 (xem chú thích ở TemplateStyleVersion).
+    __table_args__ = (UniqueConstraint("session_id", "day", name="uq_game_streak_session_day"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     session_id: Mapped[str] = mapped_column(String(64), index=True)

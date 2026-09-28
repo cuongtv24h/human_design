@@ -84,6 +84,7 @@ def put_llm(payload: LlmSettingsIn, request: Request, user: User = Depends(requi
     existing = stored_providers(org)
     entries: list[dict[str, Any]] = []
     key_changes: list[str] = []
+    url_changes: list[str] = []
     for index, item in enumerate(payload.providers):
         old = existing[index] if index < len(existing) else {}
         encrypted = old.get("api_key_enc") or ""
@@ -95,6 +96,11 @@ def put_llm(payload: LlmSettingsIn, request: Request, user: User = Depends(requi
             else:
                 encrypted = ""
                 change = "cleared"
+        old_base = str(old.get("base_url") or "")
+        if old_base != item.base_url:
+            # Audit cả base_url: cần truy vết khi phiên admin bị chiếm
+            # (base_url mới xác định nơi server gửi request + khóa API).
+            url_changes.append(f"{item.name}: {old_base or '—'} -> {item.base_url}")
         entries.append({
             "name": item.name,
             "base_url": item.base_url,
@@ -110,7 +116,8 @@ def put_llm(payload: LlmSettingsIn, request: Request, user: User = Depends(requi
     org.llm_settings = {"providers": entries, "updated_by": user.email,  # new dict => SQLAlchemy sees it
                         "updated_at": datetime.now(timezone.utc).isoformat()}
     audit(db, user, "settings.llm", "organization", org.id, ip=client_ip(request),
-          providers=[e["name"] for e in entries], key=key_changes)  # never the keys themselves
+          providers=[e["name"] for e in entries], key=key_changes,  # never the keys themselves
+          urls=url_changes)  # base_url cũ -> mới (không chứa khóa)
     db.commit()
     return _view(org, secret)
 

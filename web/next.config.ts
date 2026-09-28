@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "same-origin" },
+          // HSTS: trình duyệt chỉ áp dụng khi truy cập qua HTTPS (bỏ qua khi là HTTP).
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          // Không dùng quyền trình duyệt không cần thiết.
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+          // Chống clickjacking nhưng vẫn cho phép iframe preview (e2b) nhúng trang admin.
+          // CSP full (script-src nonce) cần middleware nonce của Next — làm riêng để không vỡ App Router.
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self' *.e2b.app" },
         ],
       },
     ];

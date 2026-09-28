@@ -112,8 +112,15 @@ def chart_to_dict(chart: dict) -> dict:
 
 
 def _read_knowledge(filename: str) -> str:
-    """Return a canonical knowledge file through an MCP resource."""
-    path = os.path.join(KNOWLEDGE_DIR, filename)
+    """Return a canonical knowledge file through an MCP resource.
+
+    Chống path traversal: sau khi ``realpath``, file phải nằm **trực tiếp** trong
+    ``knowledge/`` — chặn ``../``, đường dẫn tuyệt đối hay symlink trỏ ra ngoài.
+    """
+    base = os.path.realpath(KNOWLEDGE_DIR)
+    path = os.path.realpath(os.path.join(base, filename))
+    if os.path.dirname(path) != base:
+        return f"Tên file knowledge không hợp lệ: {filename!r}"
     try:
         with open(path, "r", encoding="utf-8") as handle:
             return handle.read()

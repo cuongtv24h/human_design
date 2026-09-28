@@ -27,10 +27,15 @@ type Loaded = { kind: "ok"; data: PublicReport } | { kind: "gone" | "missing" | 
 async function load(token: string): Promise<Loaded> {
   const incoming = await headers();
   const forwarded = incoming.get("x-forwarded-for") ?? "";
+  const realIp = incoming.get("x-real-ip") ?? "";
   try {
     const res = await fetch(`${API_INTERNAL_URL}/api/v1/public/r/${encodeURIComponent(token)}`, {
       cache: "no-store",
-      headers: { Accept: "application/json", ...(forwarded ? { "X-Forwarded-For": forwarded } : {}) },
+      headers: {
+        Accept: "application/json",
+        ...(forwarded ? { "X-Forwarded-For": forwarded } : {}),
+        ...(realIp ? { "X-Real-IP": realIp } : {}),
+      },
     });
     if (res.ok) return { kind: "ok", data: (await res.json()) as PublicReport };
     const body = await res.json().catch(() => ({}));

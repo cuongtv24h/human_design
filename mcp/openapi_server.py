@@ -3,22 +3,39 @@ Human Design API Server - Cầu nối cho ChatGPT Web (Custom GPT Actions)
 Chuyển đổi MCP Tools thành REST API theo chuẩn OpenAPI 3.0 để ChatGPT web có thể gọi
 
 Chạy: python openapi_server.py
-Hoặc: uvicorn openapi_server:app --host 0.0.0.0 --port 8000
+Hoặc: uvicorn openapi_server:app --host 127.0.0.1 --port 8000
+
+BẢO MẬT:
+- Bắt buộc header `Authorization: Bearer <HD_GPT_TOKEN>` (đặt biến môi trường HD_GPT_TOKEN).
+- Khi HD_ENV=production mà thiếu token → server từ chối mọi request (fail-closed).
+- Giữ bind 127.0.0.1; nếu cần expose ra ngoài hãy qua reverse proxy có TLS + kiểm soát truy cập.
+- CORS mặc định TẮT (ChatGPT Action gọi server-side không cần CORS); chỉ bật khi set HD_GPT_CORS_ORIGINS.
 
 Sau đó dùng URL https://your-server.com/openapi.json để tạo Custom GPT Action
+(trong Action thêm field Authorization: Bearer <HD_GPT_TOKEN>)
 """
 
 import sys
 import os
+import hmac
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import json
 
 # Thêm tools vào path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tools'))
+# Nạp .env ở repo root (HD_GPT_TOKEN, HD_ENV, HD_GPT_CORS_ORIGINS) — pm2/system env vẫn thắng.
+sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), '..')))
+try:
+    from backend.api.settings import load_dotenv  # backend/__init__ + api/__init__ chỉ là docstring
+    load_dotenv()
+except ImportError:  # chạy standalone thiếu backend/ vẫn khởi động được
+    pass
 
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER, CHANNEL_TO_CENTERS, GATE_ORDER, CHANNELS
 from hd_analyzer import analyze_chart, TYPE_ANALYSIS, PROFILE_ANALYSIS, CENTER_ANALYSIS
@@ -159,14 +176,41 @@ app = FastAPI(
     }
 )
 
-# CORS cho ChatGPT
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# --- BẢO MẬT: xác thực Bearer token cho MỌI request ---------------------------
+# - HD_GPT_TOKEN được đọc theo request (test monkeypatch được; đổi env không cần reload).
+# - Chưa set token: DEV vẫn mở để test; PRODUCTION fail-closed (503).
+async def _gpt_auth(request, call_next):
+    token = os.environ.get("HD_GPT_TOKEN", "").strip()
+    if token:
+        header = request.headers.get("authorization", "")
+        supplied = header[7:].strip() if header.lower().startswith("bearer ") else ""
+        if not hmac.compare_digest(supplied, token):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Thiếu hoặc sai header Authorization: Bearer <HD_GPT_TOKEN>."},
+            )
+    elif os.environ.get("HD_ENV", "development").strip().lower() == "production":
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "HD_GPT_TOKEN chưa được cấu hình — GPT bridge tạm dừng (fail-closed)."},
+        )
+    return await call_next(request)
+
+
+# Đăng ký qua add_middleware (KHÔNG dùng @app.middleware decorator) để
+# tests/test_runtime_contract.py không đếm nhầm thành route (giữ đúng 44).
+app.add_middleware(BaseHTTPMiddleware, dispatch=_gpt_auth)
+
+# CORS CHỈ khi chỉ định origin qua HD_GPT_CORS_ORIGINS (mặc định tắt — không wildcard).
+_gpt_origins = [o.strip() for o in os.environ.get("HD_GPT_CORS_ORIGINS", "").split(",") if o.strip()]
+if _gpt_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_gpt_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 # ==================== MODELS ====================
 
@@ -985,14 +1029,18 @@ if __name__ == "__main__":
     print("""
 ╔════════════════════════════════════════════════════════════╗
 ║  Human Design API Server - Cho ChatGPT Web (Custom GPT)    ║
-║  Chạy tại: http://localhost:8000                           ║
-║  Docs: http://localhost:8000/docs                          ║
-║  OpenAPI: http://localhost:8000/openapi.json               ║
+║  Chạy tại: http://127.0.0.1:8000 (không bind 0.0.0.0)      ║
+║  Docs:     http://127.0.0.1:8000/docs                       ║
 ║                                                            ║
-║  Để tích hợp ChatGPT Web:                                  ║
-║  1. Deploy server này lên public URL (ngrok, railway, v.v.)║
-║  2. Tạo Custom GPT tại https://chat.openai.com/gpts/editor ║
-║  3. Thêm Action với URL openapi.json                       ║
+║  BẢO MẬT — bắt buộc trước khi dùng:                        ║
+║  export HD_GPT_TOKEN="<token ngẫu nhiên dài>"              ║
+║  → mọi request cần header: Authorization: Bearer <token>   ║
+║  → HD_ENV=production mà thiếu token = server từ chối (503)  ║
+║                                                            ║
+║  Tích hợp Custom GPT:                                       ║
+║  1. Đặt sau reverse proxy có TLS + IP allowlist            ║
+║     (KHÔNG expose thẳng public, không ngrok không token)   ║
+║  2. Tạo GPT → Action: openapi.json + Authorization Bearer  ║
 ╚════════════════════════════════════════════════════════════╝
     """)
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

@@ -20,6 +20,7 @@ một lần gọi HTTP và đọc ``usage`` (số token) từ phản hồi.
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import os
 import re
@@ -27,6 +28,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping
+from urllib.parse import urlparse
 
 Transport = Callable[[str, Mapping[str, str], dict[str, Any], float], dict[str, Any]]
 
@@ -39,6 +41,59 @@ SYSTEM_MESSAGE = (
 
 class LLMError(RuntimeError):
     """Raised when the LLM is unavailable or returns unusable output."""
+
+
+# --- SSRF guard cho base_url ---------------------------------------------------
+
+def allowed_private_llm_hosts() -> frozenset[str]:
+    """``HD_LLM_ALLOWED_PRIVATE_HOSTS`` — whitelist ``host`` hoặc ``host:port`` nội bộ
+    (9router, Ollama, vLLM…), cách nhau dấu phẩy. Mặc định rỗng = chặn hết."""
+    raw = os.environ.get("HD_LLM_ALLOWED_PRIVATE_HOSTS", "")
+    return frozenset(item.strip().lower() for item in raw.split(",") if item.strip())
+
+
+def validate_llm_base_url(value: str, allow_private: frozenset[str] | None = None) -> str:
+    """Chống SSRF cho ``base_url`` — server sẽ tự ``urlopen`` địa chỉ này.
+
+    Quy tắc (theo thứ tự):
+    1. URL phải là http(s) có hostname.
+    2. IP **link-local** (``169.254.x`` — metadata đám mây) bị chặn vô điều kiện,
+       kể cả khi nằm trong whitelist.
+    3. Host nằm trong ``HD_LLM_ALLOWED_PRIVATE_HOSTS`` → cho qua, kể cả ``http://``
+       và IP nội bộ/localhost (dành cho router local như 9router/Ollama).
+    4. Còn lại: bắt buộc ``https://`` + (nếu là IP literal) phải là IP **công khai**
+       — chặn 127/8, 10/8, 172.16/12, 192.168/16, ::1, fc00::/7, CGNAT…
+    """
+    url = value.strip().rstrip("/")
+    try:
+        parsed = urlparse(url)
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("URL/cổng không hợp lệ") from exc
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ValueError("phải là URL http(s) hợp lệ, ví dụ https://api.openai.com/v1")
+    host = parsed.hostname.lower().rstrip(".")
+    port = port or (443 if parsed.scheme == "https" else 80)
+
+    try:
+        ip: ipaddress.IPv4Address | ipaddress.IPv6Address | None = ipaddress.ip_address(host)
+    except ValueError:
+        ip = None
+
+    if ip is not None and ip.is_link_local:
+        raise ValueError("không cho phép IP link-local (169.254.x — metadata đám mây)")
+
+    allow = allowed_private_llm_hosts() if allow_private is None else allow_private
+    if host in allow or f"{host}:{port}" in allow:
+        return url
+
+    if host == "localhost" or host.endswith(".localhost"):
+        raise ValueError("không cho phép localhost (thêm vào HD_LLM_ALLOWED_PRIVATE_HOSTS nếu tự host)")
+    if parsed.scheme != "https":
+        raise ValueError("chỉ chấp nhận https:// (hoặc thêm host vào HD_LLM_ALLOWED_PRIVATE_HOSTS)")
+    if ip is not None and not ip.is_global:
+        raise ValueError("không cho phép IP nội bộ/riêng (cần https công khai hoặc HD_LLM_ALLOWED_PRIVATE_HOSTS)")
+    return url
 
 
 @dataclass(frozen=True)
@@ -125,6 +180,10 @@ def estimate_cost(usage: LLMUsage, input_price: float, output_price: float) -> f
 def _http_transport(
     url: str, headers: Mapping[str, str], payload: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
+    try:
+        validate_llm_base_url(url)  # phòng thủ lần cuối trước khi server tự request
+    except ValueError as exc:
+        raise LLMError(f"base_url bị chặn (chống SSRF): {exc}") from exc
     request = urllib.request.Request(
         url,
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),

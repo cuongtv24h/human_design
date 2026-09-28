@@ -314,6 +314,122 @@ def test_embedded_preview_token_fallback(app):
     assert no_cookie.get("/api/v1/auth/me", headers=bearer).status_code == 401
 
 
+def test_access_token_scoped_to_file_exports(app):
+    """Query token KHÔNG còn xác thực endpoint dữ liệu tùy ý (chỉ route xuất file)."""
+    embedded = TestClient(app).post("/api/v1/auth/login", json={"email": "admin@example.com", "password": PASSWORD},
+                                    headers={**H, "X-HD-Embedded": "1"})
+    token = embedded.json()["session_token"]
+    anon = TestClient(app)
+    # Trước sửa: GET /auth/me?access_token= → 200 (token lọt vào access log). Giờ phải 401.
+    assert anon.get(f"/api/v1/auth/me?access_token={token}").status_code == 401
+    assert anon.get(f"/api/v1/clients?access_token={token}").status_code == 401
+    assert anon.get(f"/api/v1/reports?access_token={token}").status_code == 401
+    # Route xuất file vẫn hoạt động (cover ở test_embedded_preview_token_fallback với bodygraph.svg).
+
+
+def test_client_ip_prefers_real_ip_then_last_hop():
+    """X-Real-IP (nginx) thắng; không có thì lấy phần tử CUỐI XFF — không bao giờ phần tử đầu."""
+    from starlette.requests import Request
+
+    from backend.api.deps import client_ip
+
+    def req(headers: dict, client=("203.0.113.9", 1234)) -> Request:
+        scope = {"type": "http", "http_version": "1.1", "method": "GET", "path": "/", "raw_path": b"/",
+                 "query_string": b"", "scheme": "http", "server": ("127.0.0.1", 80), "client": client,
+                 "headers": [(k.lower().encode(), v.encode()) for k, v in headers.items()]}
+        return Request(scope)
+
+    # Spoofed leftmost XFF bị bỏ qua khi có X-Real-IP (chuỗi nginx thật).
+    spoof = {"X-Real-IP": "198.51.100.7", "X-Forwarded-For": "1.2.3.4, 198.51.100.7"}
+    assert client_ip(req(spoof)) == "198.51.100.7"
+    # Không có X-Real-IP: hop cuối cùng (do proxy thêm) thắng phần tử spoofed phía trước.
+    assert client_ip(req({"X-Forwarded-For": "1.2.3.4, 198.51.100.7"})) == "198.51.100.7"
+    # Không có header proxy: dùng peer trực tiếp.
+    assert client_ip(req({})) == "203.0.113.9"
+
+
+def test_docs_hidden_in_production(tmp_path):
+    """Production không public /api/v1/docs lẫn /openapi.json."""
+    application = create_app(Settings(database_url=f"sqlite:///{tmp_path / 'prod.db'}",
+                                      artifact_dir=str(tmp_path / "artifacts"), secret_key="test-secret",
+                                      environment="production", auto_create_tables=True))
+    client = TestClient(application)
+    assert client.get("/api/v1/docs").status_code == 404
+    assert client.get("/api/v1/openapi.json").status_code == 404
+    assert client.get("/api/v1/health").status_code == 200  # health vẫn chạy để monitor
+
+
+def test_load_dotenv_warns_on_permissive_file(tmp_path, caplog):
+    """.env (chứa HD_SECRET_KEY + khóa LLM) group/other đọc được → phải cảnh báo chmod 600."""
+    import backend.api.settings as settings_mod
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("HD_PERM_PROBE=1\n", encoding="utf-8")
+    try:
+        env_file.chmod(0o644)
+        with caplog.at_level("WARNING", logger="hd.settings"):
+            settings_mod.load_dotenv(env_file)
+        assert any("chmod 600" in r.getMessage() for r in caplog.records), "thiếu cảnh báo quyền lỏng lẻo"
+
+        caplog.clear()
+        env_file.chmod(0o600)
+        with caplog.at_level("WARNING", logger="hd.settings"):
+            settings_mod.load_dotenv(env_file)
+        assert not [r for r in caplog.records if "chmod 600" in r.getMessage()]
+    finally:
+        import os as _os
+        _os.environ.pop("HD_PERM_PROBE", None)
+
+
+def test_cors_preflight_enumerates_methods_and_headers(tmp_path):
+    """CORS (khi bật) chỉ cho method/header cần thiết — không wildcard (bảo vệ CSRF)."""
+    application = create_app(Settings(database_url=f"sqlite:///{tmp_path / 'cors.db'}",
+                                      artifact_dir=str(tmp_path / "a"), secret_key="test-secret",
+                                      cors_origins=("https://partner.example",)))
+    client = TestClient(application)
+    # Preflight hợp lệ: echo đúng allow-list, không wildcard.
+    pre = client.options("/api/v1/auth/login", headers={
+        "Origin": "https://partner.example",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type,x-hd-request",
+    })
+    assert pre.status_code == 200
+    allow_headers = pre.headers.get("access-control-allow-headers", "").lower()
+    allow_methods = pre.headers.get("access-control-allow-methods", "").upper()
+    assert "x-hd-request" in allow_headers and "content-type" in allow_headers
+    assert allow_methods == "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+    # Preflight kèm header lạ (ngoài allow-list) → Starlette từ chối 400 → browser chặn.
+    evil = client.options("/api/v1/auth/login", headers={
+        "Origin": "https://partner.example",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type,x-hd-request,x-evil-header",
+    })
+    assert evil.status_code == 400 and "x-evil-header" not in evil.headers.get("access-control-allow-headers", "").lower()
+    # Origin không nằm trong allowlist → không có CORS header nào.
+    outsider = client.options("/api/v1/auth/login", headers={
+        "Origin": "https://evil.example",
+        "Access-Control-Request-Method": "POST",
+    })
+    assert "access-control-allow-origin" not in outsider.headers
+
+
+def test_login_ip_wide_rate_limit_blocks_spray(app):
+    """Password-spray: 1 mật khẩu, nhiều email cùng IP — bucket IP thuần chặn ở lần 21."""
+    anon = TestClient(app)
+    for i in range(20):
+        r = anon.post("/api/v1/auth/login",
+                      json={"email": f"u{i}@spray.vn", "password": "mat-khau-sai"}, headers=H)
+        assert r.status_code == 401, r.text   # mỗi email 1 bucket riêng → chưa chặn
+    # Bucket IP (20 lỗi/15 phút) đầy → kể cả email mới cũng 429.
+    blocked = anon.post("/api/v1/auth/login",
+                        json={"email": "u21@spray.vn", "password": "sai"}, headers=H)
+    assert blocked.status_code == 429
+    # Đăng nhập đúng của admin cùng IP cũng bị tạm chặn cho tới khi bucket nguội
+    # (chống dò pass từ IP đã gây 20 lỗi).
+    assert anon.post("/api/v1/auth/login",
+                     json={"email": "admin@example.com", "password": PASSWORD}, headers=H).status_code == 429
+
+
 def test_clients_order_recent(app):
     admin = login(app)
     a = admin.post("/api/v1/clients", json={**CLIENT, "full_name": "Khách A"}, headers=H).json()

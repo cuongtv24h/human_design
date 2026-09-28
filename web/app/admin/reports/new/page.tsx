@@ -381,14 +381,14 @@ function Wizard() {
                   ["Mức độ", TIER_LABEL[tier]],
                   ["Trình bày", TEMPLATE_LABEL[template] ?? cat.templates.find((t) => t.value === template)?.label ?? template],
                   ["Chủ đề chuyên sâu", domains.length ? cat.domains.filter((d) => domains.includes(d.value)).map((d) => d.label).join(", ") : "Không"],
-                  ...(partnerPayload ? [["Đối tác (composite)", `${partnerPayload.name || "Đối tác"} — ${partnerPayload.birth_date} ${partnerPayload.birth_time} (${partnerPayload.timezone})`] as [string, string][]] : []),
+                  ...(partnerPayload ? [["Đối tác (composite)", `${partnerPayload.name || "Đối tác"} — ${partnerPayload.birth_date} ${partnerPayload.birth_time} (${partnerPayload.timezone})`]] : []),
                   ["Nội dung", mode === "llm" && cat.llm_providers.length
                     ? `${MODE_LABEL[mode]} (${cat.llm_providers.map((p) => `${p.name} · ${p.model}`).join(" → ")})`
                     : MODE_LABEL[mode]],
-                ].map(([k, v]) => (
-                  <div key={k} className="grid grid-cols-3 gap-3 px-4 py-3">
-                    <dt className="text-muted">{k}</dt>
-                    <dd className="col-span-2 text-ink">{v}</dd>
+                ].map((pair) => (
+                  <div key={pair[0]} className="grid grid-cols-3 gap-3 px-4 py-3">
+                    <dt className="text-muted">{pair[0]}</dt>
+                    <dd className="col-span-2 text-ink">{pair[1]}</dd>
                   </div>
                 ))}
               </dl>

@@ -10,6 +10,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend.reporting.contract import ContentMode, DomainName, ReportTier, SubjectInput
+from backend.reporting.llm_client import validate_llm_base_url
 
 
 class Problem(BaseModel):
@@ -386,10 +387,9 @@ class LlmProviderIn(BaseModel):
     @field_validator("base_url")
     @classmethod
     def _url(cls, value: str) -> str:
-        value = value.strip().rstrip("/")
-        if not value.startswith(("https://", "http://")):
-            raise ValueError("phải bắt đầu bằng https:// hoặc http://")
-        return value
+        # Chống SSRF: https bắt buộc + chặn IP nội bộ/link-local,
+        # trừ host có trong HD_LLM_ALLOWED_PRIVATE_HOSTS (9router/Ollama…).
+        return validate_llm_base_url(value)
 
     @field_validator("model")
     @classmethod

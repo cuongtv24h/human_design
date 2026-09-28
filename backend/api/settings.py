@@ -6,9 +6,12 @@ set in the process environment (pm2/systemd values always win).
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+
+log = logging.getLogger("hd.settings")
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -17,6 +20,12 @@ def load_dotenv(path: Path | None = None) -> None:
     env_path = path or Path(os.environ.get("HD_ENV_FILE", ROOT / ".env"))
     if not env_path.is_file():
         return
+    # .env chứa HD_SECRET_KEY + khóa LLM — cảnh báo nếu group/other đọc được.
+    if os.name == "posix":
+        mode = env_path.stat().st_mode & 0o777
+        if mode & 0o077:
+            log.warning(".env (%s) đang có quyền %03o — nên chchmod 600: chmod 600 %s",
+                        env_path, mode, env_path)
     for raw in env_path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
