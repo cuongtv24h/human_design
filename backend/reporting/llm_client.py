@@ -177,6 +177,18 @@ def estimate_cost(usage: LLMUsage, input_price: float, output_price: float) -> f
         usage.completion_tokens / 1_000_000 * max(0.0, output_price)
 
 
+# WAF/Cloudflare chặn User-Agent mặc định của urllib ("Python-urllib/…") → HTTP 403
+# "error code: 1010" (banned based on browser signature). Gửi UA của app; đổi qua
+# HD_LLM_USER_AGENT nếu nhà cung cấp siết chặt hơn (ép UA bắt đầu bằng Mozilla/…).
+def api_headers(config: LLMConfig) -> dict[str, str]:
+    return {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {config.api_key}",
+        "User-Agent": os.environ.get("HD_LLM_USER_AGENT")
+        or "Mozilla/5.0 (compatible; HumanDesign/1.0)",
+    }
+
+
 def _http_transport(
     url: str, headers: Mapping[str, str], payload: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
@@ -244,10 +256,7 @@ def call_llm_with_usage(
             {"role": "user", "content": brief},
         ],
     }
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {config.api_key}",
-    }
+    headers = api_headers(config)
     response = (transport or _http_transport)(
         f"{config.base_url}/chat/completions", headers, payload, config.timeout
     )
@@ -277,7 +286,7 @@ def ping_llm(config: LLMConfig, transport: Transport | None = None) -> str:
         "temperature": 0,
         "messages": [{"role": "user", "content": "Trả lời đúng một từ: OK"}],
     }
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {config.api_key}"}
+    headers = api_headers(config)
     response = (transport or _http_transport)(
         f"{config.base_url}/chat/completions", headers, payload, min(config.timeout, 30.0)
     )
@@ -347,7 +356,7 @@ def stream_chat_completion(
     """
     payload: dict[str, Any] = {"model": config.model, "temperature": config.temperature,
                                "messages": messages, **(extra or {})}
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {config.api_key}"}
+    headers = api_headers(config)
     url = f"{config.base_url}/chat/completions"
     if transport is not None:
         response = transport(url, headers, payload, config.timeout)

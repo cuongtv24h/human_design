@@ -14,7 +14,13 @@ for path in (ROOT, ROOT / "tools", ROOT / "mcp"):
 
 from test_api_v1 import H, app, login  # noqa: F401,E402  (fixture re-export)
 
-from backend.reporting.llm_client import LLMError, _http_transport, validate_llm_base_url  # noqa: E402
+from backend.reporting.llm_client import (  # noqa: E402
+    LLMConfig,
+    LLMError,
+    _http_transport,
+    ping_llm,
+    validate_llm_base_url,
+)
 
 EMPTY = frozenset()
 
@@ -96,3 +102,23 @@ def test_put_llm_accepts_private_when_allowlisted(app, monkeypatch):
     ok = admin.put("/api/v1/settings/llm", json=_payload("http://10.0.0.5:8080/v1"), headers=H)
     assert ok.status_code == 200
     assert ok.json()["providers"][0]["base_url"] == "http://10.0.0.5:8080/v1"
+
+
+# --- User-Agent (chống WAF Cloudflare 1010) ------------------------------------
+
+def test_ping_sends_app_user_agent_not_python_urllib(monkeypatch):
+    """WAF chặn UA mặc định của urllib (Cloudflare HTTP 403 "error code: 1010") —
+    request LLM phải mang UA của app, cho override qua HD_LLM_USER_AGENT."""
+    seen: dict[str, str] = {}
+
+    def transport(url, headers, payload, timeout):
+        seen.update(headers)
+        return {"choices": [{"message": {"content": "OK"}}]}
+
+    ping_llm(LLMConfig(api_key="sk-test"), transport=transport)
+    ua = seen.get("User-Agent", "")
+    assert ua and "Python-urllib" not in ua
+
+    monkeypatch.setenv("HD_LLM_USER_AGENT", "Vendor-Agent/9")
+    ping_llm(LLMConfig(api_key="sk-test"), transport=transport)
+    assert seen["User-Agent"] == "Vendor-Agent/9"
