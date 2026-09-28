@@ -327,7 +327,11 @@ export default function LlmSettingsPage() {
                   <Field label="Khóa API" htmlFor={`llm-key-${f.uid}`}
                     hint={saved?.has_key ? (f.keyDirty ? "Sẽ đổi khóa khi bấm Lưu." : "Để trống nếu không đổi khóa. Khóa được mã hóa khi lưu.") : "Khóa được mã hóa khi lưu và không bao giờ hiển thị lại."}>
                     <div className="flex gap-2">
-                      <Input id={`llm-key-${f.uid}`} type="password" autoComplete="off" value={f.apiKey}
+                      {/* name riêng + new-password: chặn trình duyệt tự chèn mật khẩu đăng nhập
+                          đã lưu vào đây (autoComplete="off" bị Chrome bỏ qua với ô password —
+                          chèn vào là keyDirty=true → lưu nhầm đè khóa thật). */}
+                      <Input id={`llm-key-${f.uid}`} type="password" name={`llm_api_key_${f.uid}`}
+                        autoComplete="new-password" value={f.apiKey}
                         onChange={(e) => patch(f.uid, { apiKey: e.target.value, keyDirty: true })}
                         placeholder={saved?.has_key ? saved.key_hint : "sk-…"} />
                       {saved?.has_key && (
@@ -348,19 +352,17 @@ export default function LlmSettingsPage() {
                       disabled={delOne.isPending || (saveOne.isPending && !savingThis)}>
                       <Save className="size-4" /> Lưu nhà cung cấp này
                     </Button>
-                    {dirty && !savingThis && <span className="text-xs text-amber-700">● Có thay đổi chưa lưu</span>}
-                    {!dirty && savedTick[f.uid] && <span className="text-xs text-emerald-700">Đã lưu ✓</span>}
-                  </div>
-                  {saveOne.error && saveOne.variables?.uid === f.uid && <ErrorBox error={saveOne.error} />}
-                  <div className="flex flex-wrap items-center gap-2">
                     <Button type="button" variant="secondary" loading={check.isPending}
                       disabled={f.serverIndex === null || !saved?.has_key}
                       onClick={() => f.serverIndex !== null && check.mutate(f.serverIndex)}>
                       <PlugZap className="size-4" /> Kiểm tra nhà cung cấp này
                     </Button>
-                    {f.serverIndex === null && <span className="text-xs text-muted">Bấm Lưu ở trên trước rồi mới kiểm tra được.</span>}
+                    {dirty && !savingThis && <span className="text-xs text-amber-700">● Có thay đổi chưa lưu</span>}
+                    {!dirty && savedTick[f.uid] && <span className="text-xs text-emerald-700">Đã lưu ✓</span>}
+                    {f.serverIndex === null && <span className="text-xs text-muted">Bấm Lưu trước rồi mới kiểm tra được.</span>}
                     {f.serverIndex !== null && !saved?.has_key && <span className="text-xs text-muted">Lưu khóa trước rồi mới kiểm tra được.</span>}
                   </div>
+                  {saveOne.error && saveOne.variables?.uid === f.uid && <ErrorBox error={saveOne.error} />}
                   {f.serverIndex !== null && tests[f.serverIndex] && <TestResult test={tests[f.serverIndex]} />}
                 </div>
                 </form>
