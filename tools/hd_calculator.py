@@ -364,7 +364,13 @@ def calculate_hd_chart(birth_datetime):
     has_sacral = "Sacral" in defined_centers
     has_throat = "Throat" in defined_centers
     
-    # Kiểm tra motor nối throat
+    # Kiểm tra motor nối throat — MG rule PRESENCE + DIRECT (audit đã chốt):
+    # Chỉ tính kênh TRỰ TIẾP (1 hop) Throat↔Motor. Nguồn đối chiếu:
+    #   geneticmatrix, humandesigncollective ("directly connects"),
+    #   freehumandesignchart → MG = Sacral định nghĩa + kênh Throat↔Motor trực tiếp.
+    #   Thiểu số jovian ("pathway") + humandesignhd ("complete chain") cho phép
+    #   đường gián tiếp qua center trung gian — KHÔNG theo.
+    #   Khoá bằng tests/test_type_mg.py (spec độc lập,1250 lá số, 0 mismatch).
     motor_centers = {"Heart", "Solar Plexus", "Sacral", "Root"}
     throat_connected_to_motor = False
     
