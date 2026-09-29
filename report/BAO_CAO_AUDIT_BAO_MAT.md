@@ -253,3 +253,29 @@ Toàn bộ 5 việc + cơ chế allowlist LLM đã triển khai. Test: **233/233
 **Ghi chú:**
 - Issue [#4](https://github.com/cuongtv24h/human_design/issues/4): bot tạo được issue nhưng **không có quyền comment/close** ("Resource not accessible by integration") — cần đóng/cập nhật tay sau khi duyệt.
 - Lợi ích ẩn của fix models: trước đây dev/test (`db.create_all()`) tạo bảng **thiếu 2 unique constraint** mà production có → dev không phản ánh đúng hành vi prod (chèn trùng streak/style version chỉ prod bắt lỗi).
+
+## 9. Cập nhật 2026-09-29 — audit phần mới (knowledge search + pipeline đóng góp)
+
+Phạm vi: `1172b02 → 42cbcb4` (search API/reader/menu, pipeline A+B+C `99e5c54`, MG test `42cbcb4`).
+Phương pháp: đọc code + probe thực nghiệm (tmp corpus) + gate `check.sh`.
+Gate: **pytest 267/267** · alembic `0001→0015` + `check` drift=0 · tsc 0 · build đủ route · `npm audit` 0.
+
+### Đạt (không bất thường)
+Auth matrix 8 endpoint (anon 401 / coach 403 / IDOR 404) · traversal `target_file` → 422 · reader d5 → 404 ·
+query 52KB → 422, cold 151ms / warm 7.5ms (memo P3) · `react-markdown` chặn raw HTML (không XSS qua content md) ·
+dedupe 60KB = 150ms · MG spec 0 mismatch/1250 lá số.
+
+### Bất thường tìm thấy + đã fix cùng turn (duyệt "sửa trọn gói")
+
+| # | Mức | Finding (probe xác nhận) | Fix |
+|---|-----|--------------------------|-----|
+| M1 | **MEDIUM** | `source_url="javascript:..."` được chấp nhận (201) + trang duyệt render `<a href>` raw → Admin bấm "nguồn" chạy JS cùng origin (click-XSS chiếm quyền Admin) | API chặn scheme ≠ http/https (`valid_source_url`, kể cả hoa/thường) + FE chỉ render `<a>` khi match `^https?://`, còn lại text thường; test 5 payload |
+| M2 | LOW–MED | Title chứa `\n` → chèn **heading giả** vào `KNOWLEDGE_SOURCES.md` (probe: `## Doi gia` xuất hiện) | Reject title chứa ký tự điều khiển (422); `safe_md_name` chặn nốt control char |
+| L1 | LOW | Title/reason toàn khoảng trắng → lưu `''` | strip trước, rỗng → 422 |
+| L2 | LOW | Không rate-limit submit: 30 req = 3.75s CPU, pending không chặn | **Cap ≤5 bài pending/người** (`MAX_PENDING_PER_USER`) → 422, nhả slot khi duyệt/từ chối |
+| L3 | LOW | TOCTOU approve: check status trong RAM → 2 request song song approve đôi; publish trước commit DB | **Claim atomic** `UPDATE…WHERE status='pending'` (rowcount=1) TRƯỚC publish, giữ row-lock tới commit; lỗi ghi file → rollback DB + unlink file tạo mới |
+
+### Residual (chấp nhận, ghi nhận)
+- Append-mode khi lỗi giữa chừng không bù trừ được nội dung đã nối (hiếm; create-mode có unlink).
+- `knowledge_queries.jsonl` chưa rotation — stats O(file); làm khi file lớn.
+- AI-brief injection khả thi nhưng `ai_notes` chỉ advisory · dedupe 0.90 né được bằng filler (giới hạn inherent).
