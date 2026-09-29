@@ -20,14 +20,18 @@ import swisseph as swe
 from hd_calculator import (
     CHANNELS,
     GATE_TO_CENTER,
-    PLANETS,
     calculate_hd_chart,
+    get_all_planets,
     get_planet_longitude,
     julian_day,
 )
 
-TRANSIT_PLANETS = ("Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter",
-                   "Saturn", "Uranus", "Neptune", "Pluto", "North Node")
+# Đủ13 thiên thể như get_all_planets(): CÓ Earth (= Sun+180) và South Node
+# (= North+180) — trước đây thiếu2 body này nên transit_snapshot() bỏ lỡ
+# ~15% hit (Earth luôn đối đỉnh Sun — không thiếu được) và mất canal electromagnet.
+TRANSIT_PLANETS = ("Sun", "Earth", "Moon", "North Node", "South Node",
+                   "Mercury", "Venus", "Mars", "Jupiter", "Saturn",
+                   "Uranus", "Neptune", "Pluto")
 
 
 def _signed_diff(lon: float, target: float) -> float:
@@ -126,8 +130,9 @@ def transit_snapshot(birth_datetime: datetime, asof: datetime | None = None) -> 
     hanging = set(natal["all_activated_gates"]) - channeled
 
     planets: dict[str, dict] = {}
+    lons = get_all_planets(asof_jd)   # đủ13 body: Earth/South Node suy từ Sun/Node
     for name in TRANSIT_PLANETS:
-        lon = get_planet_longitude(asof_jd, PLANETS[name])
+        lon = lons[name]
         from hd_calculator import longitude_to_gate_line
         info = longitude_to_gate_line(lon)
         planets[name] = {"gate": info["gate"], "line": info["line"],
