@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Bot, FilePlus2, FileText, Gamepad, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, UserCog, UserPlus, Users, X } from "lucide-react";
+import { BookOpen, Bot, FilePlus2, FileText, Gamepad, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, PanelLeftClose, PanelLeftOpen, UserCog, UserPlus, Users, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -12,14 +12,57 @@ import { api, ApiError } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { setSessionToken } from "@/lib/session";
 
-const NAV = [
-  { href: "/admin", label: "Tổng quan", icon: LayoutDashboard, exact: true },
-  { href: "/admin/clients", label: "Khách hàng", icon: Users },
-  { href: "/admin/reports", label: "Báo cáo", icon: FileText, exclude: "/admin/reports/new" },
-  { href: "/admin/reports/new", label: "Tạo báo cáo", icon: FilePlus2 },
-  { href: "/admin/templates", label: "Mẫu báo cáo", icon: LayoutTemplate },
-  { href: "/admin/guide", label: "Hướng dẫn", icon: BookOpen },
+// Sidebar gom nhóm theo chủ đề (thay vì11 mục phẳng). Mục đánh dấu adminOnly
+// chỉ hiện cho role admin — với coach nhóm tương ứng tự rỗng và bị ẩn.
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+  exclude?: string;
+  adminOnly?: boolean;
+};
+type NavGroup = { title?: string; adminOnly?: boolean; items: NavItem[] };
+
+const GROUPS: NavGroup[] = [
+  {
+    // Mục đầu không có tiêu đề nhóm — giữ cảm giác "trang chủ" như trước.
+    items: [{ href: "/admin", label: "Tổng quan", icon: LayoutDashboard, exact: true }],
+  },
+  {
+    title: "Khách hàng",
+    items: [
+      { href: "/admin/clients", label: "Khách hàng", icon: Users },
+      { href: "/admin/leads", label: "Khách tiềm năng", icon: UserPlus, adminOnly: true },
+    ],
+  },
+  {
+    title: "Báo cáo",
+    items: [
+      { href: "/admin/reports", label: "Báo cáo", icon: FileText, exclude: "/admin/reports/new" },
+      { href: "/admin/reports/new", label: "Tạo báo cáo", icon: FilePlus2 },
+      { href: "/admin/templates", label: "Mẫu báo cáo", icon: LayoutTemplate },
+    ],
+  },
+  {
+    title: "Công cụ",
+    items: [
+      { href: "/admin/guide", label: "Hướng dẫn", icon: BookOpen },
+      { href: "/admin/game", label: "Game", icon: Gamepad, adminOnly: true },
+    ],
+  },
+  {
+    title: "Hệ thống",
+    adminOnly: true,
+    items: [
+      { href: "/admin/settings/users", label: "Tài khoản", icon: UserCog },
+      { href: "/admin/settings/llm", label: "AI / LLM", icon: Bot },
+      { href: "/admin/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare },
+    ],
+  },
 ];
+
+const NAV_COLLAPSED_KEY = "hd.admin.nav.collapsed";
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   const [form, setForm] = useState({ current_password: "", new_password: "", confirm: "" });
@@ -81,6 +124,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const me = useMe();
   const [open, setOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
+  // Thu nhỏ sidebar (chỉ desktop; nhớ qua localStorage). Khởi tại false để
+  // SSR/client render khớp nhau — đọc storage trong useEffect sau hydration.
+  const [collapsed, setCollapsed] = useState(false);
   // Trang login nằm trong /admin nên phải thoát khỏi guard — không thì máy chưa
   // đăng nhập sẽ kẹt ở "Đang kiểm tra đăng nhập…" vì form login không bao giờ render.
   const isLoginPage = pathname === "/admin/login" || pathname.startsWith("/admin/login/");
@@ -91,6 +137,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }, [me.error, pathname, router, isLoginPage]);
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(NAV_COLLAPSED_KEY) === "1");
+    } catch {
+      /* localStorage không sẵn sàng — để mở rộng */
+    }
+  }, []);
+
+  const toggleCollapsed = () =>
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem(NAV_COLLAPSED_KEY, next ? "1" : "0");
+      } catch {
+        /* bỏ qua */
+      }
+      return next;
+    });
 
   if (isLoginPage) return <>{children}</>;
 
@@ -106,9 +170,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
   const user = me.data;
-  const nav = user.role === "admin"
-    ? [...NAV, { href: "/admin/settings/users", label: "Tài khoản", icon: UserCog }, { href: "/admin/settings/llm", label: "AI / LLM", icon: Bot }, { href: "/admin/settings/assistant", label: "Trợ lý AI", icon: MessagesSquare }, { href: "/admin/leads", label: "Khách tiềm năng", icon: UserPlus }, { href: "/admin/game", label: "Game", icon: Gamepad }]
-    : NAV;
+  const isAdmin = user.role === "admin";
+  const groups = GROUPS.filter((g) => !g.adminOnly || isAdmin)
+    .map((g) => ({ ...g, items: g.items.filter((it) => !it.adminOnly || isAdmin) }))
+    .filter((g) => g.items.length > 0);
 
   async function logout() {
     await api.post("/auth/logout").catch(() => undefined);
@@ -117,55 +182,117 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     router.replace("/admin/login");
   }
 
-  const isActive = (item: (typeof nav)[number]) => {
-    if ("exact" in item && item.exact) return pathname === item.href;
-    if ("exclude" in item && item.exclude && pathname.startsWith(item.exclude)) return false;
+  const isActive = (item: NavItem) => {
+    if (item.exact) return pathname === item.href;
+    if (item.exclude && pathname.startsWith(item.exclude)) return false;
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
 
-  const sidebar = (
-    <nav className="flex h-full flex-col">
-      <Link href="/admin" className="flex items-center gap-3 px-5 py-5">
-        <Logo />
-        <div className="leading-tight">
-          <div className="text-sm font-bold text-ink">Human Design</div>
-          <div className="text-xs text-muted">{user.org_name || "Studio"}</div>
+  // desktop=true chỉ dùng cho sidebar cố định (lg+); drawer mobile luôn mở
+  // đầy đủ nhãn vì người dùng mở nó theo hành động bấm.
+  const renderSidebar = (desktop: boolean) => {
+    const mini = desktop && collapsed;
+    const iconBtn =
+      "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-paper hover:text-ink";
+    const iconBtnMini = "justify-center px-0";
+    return (
+      <nav className="flex h-full flex-col">
+        <Link
+          href="/admin"
+          className={cx("flex items-center gap-3 px-5 py-5", mini && "justify-center px-0")}
+          title={mini ? "Human Design Studio" : undefined}
+        >
+          <Logo className={mini ? "size-7" : undefined} />
+          {!mini && (
+            <div className="min-w-0 leading-tight">
+              <div className="text-sm font-bold text-ink">Human Design</div>
+              <div className="text-xs text-muted">{user.org_name || "Studio"}</div>
+            </div>
+          )}
+        </Link>
+
+        <div className="flex-1 overflow-y-auto px-3">
+          {groups.map((group) => (
+            <div key={group.title ?? "main"}>
+              {group.title && !mini && (
+                <div className="px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                  {group.title}
+                </div>
+              )}
+              {group.title && mini && <div className="mx-2 my-2 border-t border-line" />}
+              <ul className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        title={mini ? item.label : undefined}
+                        className={cx(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                          mini && iconBtnMini,
+                          active ? "bg-brand-50 text-brand-700" : "text-muted hover:bg-paper hover:text-ink",
+                        )}
+                      >
+                        <Icon className="size-4 shrink-0" aria-hidden />
+                        {!mini && item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
-      </Link>
-      <ul className="flex-1 space-y-1 px-3">
-        {nav.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item);
-          return (
-            <li key={item.href}>
-              <Link href={item.href} aria-current={active ? "page" : undefined}
-                className={cx("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-brand-50 text-brand-700" : "text-muted hover:bg-paper hover:text-ink")}>
-                <Icon className="size-4" aria-hidden /> {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-      <div className="border-t border-line p-4">
-        <div className="mb-3 min-w-0">
-          <div className="truncate text-sm font-medium text-ink">{user.full_name || user.email}</div>
-          <div className="truncate text-xs text-muted">{user.role === "admin" ? "Quản trị viên" : "Chuyên viên tư vấn"} · {user.email}</div>
+
+        <div className="border-t border-line p-4">
+          {!mini && (
+            <div className="mb-3 min-w-0">
+              <div className="truncate text-sm font-medium text-ink">{user.full_name || user.email}</div>
+              <div className="truncate text-xs text-muted">
+                {isAdmin ? "Quản trị viên" : "Chuyên viên tư vấn"} · {user.email}
+              </div>
+            </div>
+          )}
+          {desktop && (
+            <button
+              onClick={toggleCollapsed}
+              aria-expanded={!collapsed}
+              title={mini ? "Mở rộng menu" : "Thu nhỏ menu"}
+              className={cx(iconBtn, mini && iconBtnMini)}
+            >
+              {mini ? <PanelLeftOpen className="size-4" aria-hidden /> : <PanelLeftClose className="size-4" aria-hidden />}
+              {!mini && "Thu nhỏ menu"}
+            </button>
+          )}
+          <button
+            onClick={() => setPwOpen(true)}
+            title={mini ? "Đổi mật khẩu" : undefined}
+            className={cx(iconBtn, mini && iconBtnMini)}
+          >
+            <KeyRound className="size-4" aria-hidden /> {!mini && "Đổi mật khẩu"}
+          </button>
+          <button onClick={logout} title={mini ? "Đăng xuất" : undefined} className={cx(iconBtn, mini && iconBtnMini)}>
+            <LogOut className="size-4" aria-hidden /> {!mini && "Đăng xuất"}
+          </button>
         </div>
-        <button onClick={() => setPwOpen(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-paper hover:text-ink">
-          <KeyRound className="size-4" aria-hidden /> Đổi mật khẩu
-        </button>
-        <button onClick={logout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted hover:bg-paper hover:text-ink">
-          <LogOut className="size-4" aria-hidden /> Đăng xuất
-        </button>
-      </div>
-    </nav>
-  );
+      </nav>
+    );
+  };
 
   return (
-    <div className="min-h-screen lg:pl-64">
+    <div className={cx("min-h-screen", collapsed ? "lg:pl-16" : "lg:pl-64")}>
       {pwOpen && <ChangePasswordModal onClose={() => setPwOpen(false)} />}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-line bg-white lg:block">{sidebar}</aside>
+      <aside
+        className={cx(
+          "fixed inset-y-0 left-0 hidden border-r border-line bg-white lg:block",
+          collapsed ? "w-16" : "w-64",
+        )}
+      >
+        {renderSidebar(true)}
+      </aside>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-ink/30" onClick={() => setOpen(false)} />
@@ -173,7 +300,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <button className="absolute right-3 top-4 rounded-md p-1 text-muted hover:bg-paper" onClick={() => setOpen(false)} aria-label="Đóng menu">
               <X className="size-5" />
             </button>
-            {sidebar}
+            {renderSidebar(false)}
           </aside>
         </div>
       )}
