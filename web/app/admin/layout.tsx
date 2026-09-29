@@ -1,11 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Bot, FilePlus2, FileText, Gamepad, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, PanelLeftClose, PanelLeftOpen, UserCog, UserPlus, Users, X, type LucideIcon } from "lucide-react";
+import { BookOpen, Bot, FilePlus2, FileText, Gamepad, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu, MessagesSquare, PanelLeftClose, PanelLeftOpen, Search, UserCog, UserPlus, Users, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { AssistantWidget } from "@/components/AssistantWidget";
+import { CommandPalette } from "@/components/CommandPalette";
 import { Logo } from "@/components/Logo";
 import { Button, ErrorBox, Field, Input, Modal, Spinner, cx } from "@/components/ui";
 import { api, ApiError } from "@/lib/api";
@@ -47,6 +48,7 @@ const GROUPS: NavGroup[] = [
   {
     title: "Công cụ",
     items: [
+      { href: "/admin/knowledge", label: "Tra cứu tri thức", icon: Search },
       { href: "/admin/guide", label: "Hướng dẫn", icon: BookOpen },
       { href: "/admin/game", label: "Game", icon: Gamepad, adminOnly: true },
     ],
@@ -127,6 +129,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   // Thu nhỏ sidebar (chỉ desktop; nhớ qua localStorage). Khởi tại false để
   // SSR/client render khớp nhau — đọc storage trong useEffect sau hydration.
   const [collapsed, setCollapsed] = useState(false);
+  const [palOpen, setPalOpen] = useState(false);
   // Trang login nằm trong /admin nên phải thoát khỏi guard — không thì máy chưa
   // đăng nhập sẽ kẹt ở "Đang kiểm tra đăng nhập…" vì form login không bao giờ render.
   const isLoginPage = pathname === "/admin/login" || pathname.startsWith("/admin/login/");
@@ -143,6 +146,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     } catch {
       /* localStorage không sẵn sàng — để mở rộng */
     }
+  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPalOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const toggleCollapsed = () =>
@@ -212,6 +225,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </Link>
 
         <div className="flex-1 overflow-y-auto px-3">
+          <button
+            onClick={() => setPalOpen(true)}
+            title={mini ? "Tìm kiếm (⌘K)" : undefined}
+            className={cx(
+              "mb-1 mt-1 flex w-full items-center gap-2 rounded-lg border border-line bg-paper/60 px-3 py-2 text-sm text-muted hover:text-ink",
+              mini && "justify-center px-0",
+            )}
+          >
+            <Search className="size-4 shrink-0" aria-hidden />
+            {!mini && (
+              <>
+                <span className="flex-1 text-left">Tìm kiếm…</span>
+                <kbd className="rounded border border-line bg-white px-1.5 py-0.5 text-[10px] font-sans">
+                  ⌘K
+                </kbd>
+              </>
+            )}
+          </button>
           {groups.map((group) => (
             <div key={group.title ?? "main"}>
               {group.title && !mini && (
@@ -285,6 +316,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className={cx("min-h-screen", collapsed ? "lg:pl-16" : "lg:pl-64")}>
       {pwOpen && <ChangePasswordModal onClose={() => setPwOpen(false)} />}
+      {palOpen && <CommandPalette onClose={() => setPalOpen(false)} />}
       <aside
         className={cx(
           "fixed inset-y-0 left-0 hidden border-r border-line bg-white lg:block",
@@ -307,6 +339,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
         <button onClick={() => setOpen(true)} className="rounded-md p-1 text-ink hover:bg-paper" aria-label="Mở menu">
           <Menu className="size-5" />
+        </button>
+        <button
+          onClick={() => setPalOpen(true)}
+          className="ml-auto rounded-md p-1 text-ink hover:bg-paper"
+          aria-label="Tìm kiếm (⌘K)"
+        >
+          <Search className="size-5" />
         </button>
         <Logo className="size-7" />
         <span className="text-sm font-semibold">Human Design Studio</span>
