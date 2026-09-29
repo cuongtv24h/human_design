@@ -286,6 +286,40 @@ def find_design_jd(birth_jd, birth_sun_lon):
     
     return best_jd
 
+def get_authority(defined_centers, defined_channels):
+    """Chọn Authority từ center + kênh đã định nghĩa — hàm thuần, không phụ thuộc lá số.
+
+    Thứ tự ưu tiên chuẩn: Emotional → Sacral → Splenic → Ego (Heart) →
+    Self-Projected (G) → Mental → Lunar (Reflector).
+
+    Ego chi tiết: kênh 21-45 (Heart–Throat) = *Manifested*; 25-51 (Heart–G) =
+    *Projected*. Heart đã định nghĩa LUÔN ra Ego — kể cả Projector (nhánh cũ
+    ``Self-Projected nếu Projector`` khi Heart+G đã bị dọn ở dot 6 vì trái quy tắc
+    HD: Heart định nghĩa thì quyền quyết định thuộc Heart, không thuộc G).
+    """
+    centers = set(defined_centers)
+    channels = {tuple(ch) for ch in defined_channels}
+    if "Solar Plexus" in centers:
+        return "Emotional - Solar Plexus"
+    if "Sacral" in centers:
+        return "Sacral"
+    if "Spleen" in centers:
+        return "Splenic"
+    if "Heart" in centers:
+        # Mọi kênh Heart còn lại (26-44 kéo Spleen, 40-37 kéo Solar) đều đã
+        # rẽ nhánh Splenic/Emotional ở trên.
+        if (21, 45) in channels or (45, 21) in channels:
+            return "Ego (Heart) - Manifested"
+        if (25, 51) in channels or (51, 25) in channels:
+            return "Ego (Heart) - Projected"
+        return "Ego (Heart)"
+    if "G" in centers:
+        return "Self-Projected (G-Center)"
+    if centers and ({"Ajna", "Throat", "Head"} & centers):
+        return "Mental - Environment / No Inner Authority"
+    return "Lunar - Reflector"
+
+
 def calculate_hd_chart(birth_datetime):
     """Tính toán full chart"""
     birth_jd = julian_day(birth_datetime)
@@ -357,28 +391,7 @@ def calculate_hd_chart(birth_datetime):
             hd_type = "Projector"
     
     # Authority
-    if "Solar Plexus" in defined_centers:
-        authority = "Emotional - Solar Plexus"
-    elif "Sacral" in defined_centers:
-        authority = "Sacral"
-    elif "Spleen" in defined_centers:
-        authority = "Splenic"
-    elif "Heart" in defined_centers:
-        # Ego Manifested = Heart nối Throat (21-45); Ego Projected = Heart nối
-        # G (25-51, cần lời mời). Mọi kênh Heart còn lại (26-44 kéo Spleen,
-        # 40-37 kéo Solar) đều đã rẽ nhánh Splenic/Emotional ở trên.
-        if (21, 45) in defined_channels or (45, 21) in defined_channels:
-            authority = "Ego (Heart) - Manifested"
-        elif (25, 51) in defined_channels or (51, 25) in defined_channels:
-            authority = "Ego (Heart) - Projected"
-        else:
-            authority = "Ego (Heart)"
-    elif "G" in defined_centers:
-        authority = "Self-Projected (G-Center)"
-    elif defined_centers and ("Ajna" in defined_centers or "Throat" in defined_centers or "Head" in defined_centers):
-        authority = "Mental - Environment / No Inner Authority"
-    else:
-        authority = "Lunar - Reflector"
+    authority = get_authority(defined_centers, defined_channels)
     
     # Profile
     p_sun_line = personality_gates["Sun"]["line"]
