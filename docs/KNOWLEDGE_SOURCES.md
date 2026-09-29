@@ -104,3 +104,11 @@ Tool chat mới `calculate_transits`; skill 19 lấp số đã giữ sẵn cho P
 Wiring đợt 6: PHS vào báo cáo Health (mục 7), mốc chu kỳ vào Purpose (mục 7),
 transit hôm nay vào Practical; 4 mũi tên Variables lên BodyGraph SVG;
 file 27 gắn domain PURPOSE.
+
+## Đợt 7 — 2026-09-29 — Crawl: Human Design Collective Blog
+
+| # | Nguồn | Ngày crawl | Điểm chính khai thác | File đích |
+|---|-------|------------|----------------------|-----------|
+| 1 | [HDC — Generators & The Sacral Response](https://humandesigncollective.com/generators-the-sacral-response/) (John Cole) | 2026-09-29 | Sacral response, waiting to respond, sacral sounds, sacral vs mind | `28_generators_the_sacral_response.md` |
+| 2 | [HDC — The Self-Projected Projector Paradox](https://humandesigncollective.com/the-self-projected-projector-paradox/) (Zette Harbour) | 2026-09-29 | Defined G, Self-Projected Authority,3 câu hỏi, hao mòn nền tảng | `29_self_projected_projector_paradox.md` |
+| 3 | [HDC — Manifesting, Creating the Life You Want](https://humandesigncollective.com/manifesting-creating-the-life-you-want-and-living-by-design/) (podcast S1E5) | 2026-09-29 | Manifesting vs S&A theo Type, điều kiện từng type | `30_manifesting_living_by_design.md` |
