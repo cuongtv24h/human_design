@@ -144,13 +144,41 @@ def _phrases(terms: list[str]) -> list[str]:
     return out
 
 
-@lru_cache(maxsize=1)
-def knowledge_chunks() -> list[tuple[str, str, str]]:
-    """``(filename, title, chunk_text)`` — mỗi chunk là một mục ``##`` trong kho kiến thức."""
+DOCS_DIR = ROOT / "docs"
+# docs/ tham gia tra cứu nhưng LOẠI file hạ tầng/meta — không cần cho Coach tra cứu.
+_DOCS_PREFIXES = ("Wiki Ph\u00e2n m\u1ee5c", "B\u00e1o c\u00e1o Wiki T\u1ed5ng quan")
+_DOCS_EXACT = frozenset({"KNOWLEDGE_SOURCES.md", "NARRATIVE_STANDARD.md", "REPORTING_ARCHITECTURE.md"})
+
+
+def _docs_allowed(filename: str) -> bool:
+    return filename.startswith(_DOCS_PREFIXES) or filename in _DOCS_EXACT
+
+
+def _md_fingerprint(directory: Path) -> tuple[int, int, int]:
+    """(số file, tổng byte, mtime_ns mới nhất) — key invalidate cache theo đĩa."""
+    count = total = newest = 0
+    if not directory.is_dir():
+        return (0, 0, 0)
+    for path in directory.glob("*.md"):
+        try:
+            st = path.stat()
+        except OSError:
+            continue
+        count += 1
+        total += st.st_size
+        newest = max(newest, st.st_mtime_ns)
+    return (count, total, newest)
+
+
+def _parse_md_dir(directory: Path, allowed=None,
+                   levels: tuple[int, ...] = (2,)) -> list[tuple[str, str, str]]:
+    """``(filename, title, chunk_text)`` — mỗi chunk là một mục ``##`` trong file."""
     chunks: list[tuple[str, str, str]] = []
-    if not KNOWLEDGE_DIR.is_dir():
+    if not directory.is_dir():
         return chunks
-    for path in sorted(KNOWLEDGE_DIR.glob("*.md")):
+    for path in sorted(directory.glob("*.md")):
+        if allowed is not None and not allowed(path.name):
+            continue
         try:
             text = path.read_text(encoding="utf-8")
         except OSError:
@@ -158,8 +186,12 @@ def knowledge_chunks() -> list[tuple[str, str, str]]:
         title = next((line[2:].strip() for line in text.splitlines() if line.startswith("# ")), path.stem)
         current: list[str] = []
         sections: list[str] = []
+        def is_heading(line: str) -> bool:
+            marks = len(line) - len(line.lstrip("#"))
+            return marks in levels and line[marks:marks + 1] == " "
+
         for line in text.splitlines():
-            if line.startswith("## ") and current:
+            if is_heading(line) and current:
                 sections.append("\n".join(current).strip())
                 current = [line]
             else:
@@ -170,6 +202,27 @@ def knowledge_chunks() -> list[tuple[str, str, str]]:
             for part in _split_big(section):
                 chunks.append((path.name, title, part))
     return chunks
+
+
+@lru_cache(maxsize=4)
+def _cached_chunks(directory: str, fingerprint: tuple[int, int, int]) -> tuple[tuple[str, str, str], ...]:
+    # fingerprint là ARG của lru_cache: file trên đĩa đổi → key đổi → cache miss tự nhiên.
+    is_docs = Path(directory) == DOCS_DIR
+    allowed = _docs_allowed if is_docs else None
+    # knowledge: giữ nguyên tách "## " như cũ (hợp đồng golden). docs: wiki dùng
+    # "###"/"####" nên tách cả 2–4; file md chuẩn (##) vẫn tách bình thường.
+    levels = (2, 3, 4) if is_docs else (2,)
+    return tuple(_parse_md_dir(Path(directory), allowed, levels))
+
+
+def knowledge_chunks() -> list[tuple[str, str, str]]:
+    """``(filename, title, chunk_text)`` — mỗi chunk là một mục ``##`` trong kho kiến thức."""
+    return list(_cached_chunks(str(KNOWLEDGE_DIR), _md_fingerprint(KNOWLEDGE_DIR)))
+
+
+def docs_chunks() -> list[tuple[str, str, str]]:
+    """``(filename, title, chunk_text)`` — docs/*.md whitelist (wiki + chuẩn nội dung)."""
+    return list(_cached_chunks(str(DOCS_DIR), _md_fingerprint(DOCS_DIR)))
 
 
 def _split_big(section: str, limit: int = 2000) -> list[str]:
@@ -223,11 +276,24 @@ def _snippet(chunk: str, anchors: list[str], size: int = 1400) -> str:
     return chunk[start:start + size]
 
 
-def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
+def _knowledge_corpus() -> list[tuple[str, str, str, str]]:
+    return [("knowledge", fn, title, chunk) for fn, title, chunk in knowledge_chunks()]
+
+
+def _docs_corpus() -> list[tuple[str, str, str, str]]:
+    return [("docs", fn, title, chunk) for fn, title, chunk in docs_chunks()]
+
+
+def _rank(query: str,
+          corpus: list[tuple[str, str, str, str]]) -> list[tuple[float, str, str, str, str, list[str]]]:
+    """Core scoring dùng chung (tool chatbot + API tra cứu).
+
+    Trả về ``(score, source, file, title, chunk, anchors)`` sắp giảm dần score.
+    """
     raws = _raw_terms(query)
     terms = [fold_vi(t) for t in raws]
     if not terms:
-        return "Từ khóa quá ngắn, hãy hỏi cụ thể hơn.", ""
+        return []
     phrases = _phrases(terms)
     raw_of = dict(zip(phrases, _phrases(raws)))
     raw_by_fold: dict[str, set[str]] = {}
@@ -248,9 +314,9 @@ def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
         return len(pats1[s].findall(text))
 
     chunks = []
-    for filename, title, chunk in knowledge_chunks():
+    for source, filename, title, chunk in corpus:
         full = f"{title}\n{chunk}"
-        chunks.append((filename, title, chunk, _norm(fold_vi(full)), _norm(full.lower()),
+        chunks.append((source, filename, title, chunk, _norm(fold_vi(full)), _norm(full.lower()),
                        _norm(fold_vi(title)), _norm(title.lower())))
     # Bỏ từ xuất hiện ở >60% số chunk ("cho", "mỗi"...). Cụm nguyên văn vẫn
     # được tính — chỉ bỏ điểm từ lẻ.
@@ -262,8 +328,8 @@ def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
         ] or terms
     else:
         active = terms
-    scored: list[tuple[float, str, str, str, list[str]]] = []
-    for filename, title, chunk, fm, t1, ft, t1t in chunks:
+    scored: list[tuple[float, str, str, str, str, list[str]]] = []
+    for source, filename, title, chunk, fm, t1, ft, t1t in chunks:
         # 2 tầng: đúng dấu (10đ) = từ điển tương đương (10đ, "type"~"loại") >
         # chỉ khớp bỏ dấu (3đ, vì "lời/lợi", "mời/mỗi" nhập nhằng).
         cov, eff_hits, title_pts = 0, 0.0, 0
@@ -328,16 +394,56 @@ def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
         score += min(layer + min(equiv_title, 2) * 4, 24)
         if score < 11:  # chỉ trúng 1 từ lẻ, yếu — bỏ để khỏi nhiễu
             continue
-        scored.append((score, filename, title, chunk, list(active) + matched + list(equivs)))
+        scored.append((score, source, filename, title, chunk, list(active) + matched + list(equivs)))
     scored.sort(key=lambda item: -item[0])
-    if not scored:
+    return scored
+
+
+def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
+    """Tool chatbot: snippet từng hit + dòng nguồn — hợp đồng output giữ nguyên."""
+    if not _raw_terms(query):
+        return "Từ khóa quá ngắn, hãy hỏi cụ thể hơn.", ""
+    ranked = _rank(query, _knowledge_corpus())
+    if not ranked:
         return f"Không tìm thấy gì cho “{query}” trong kho kiến thức.", ""
     parts, sources = [], []
-    for _, filename, title, chunk, anchors in scored[:top_k]:
+    for _score, _source, filename, title, chunk, anchors in ranked[:top_k]:
         parts.append(f"[{title} — {filename}]\n{_snippet(chunk, anchors)}")
         if title not in sources:
             sources.append(title)
     return "\n\n---\n\n".join(parts), "Kho kiến thức: " + "; ".join(sources)
+
+
+def search_knowledge_hits(query: str, top_k: int = 10, source: str = "all",
+                          file: str | None = None) -> list[dict[str, Any]]:
+    """Hit có cấu trúc cho API tra cứu nội bộ — cùng scoring với tool chatbot.
+
+    ``source``: "all" | "knowledge" | "docs". ``file``: lọc đúng một file (filename).
+    Hit: file, title, section (tiêu đề ##), source, score, snippet, text (nguyên văn).
+    """
+    if source == "knowledge":
+        corpus = _knowledge_corpus()
+    elif source == "docs":
+        corpus = _docs_corpus()
+    else:
+        corpus = _knowledge_corpus() + _docs_corpus()
+    if file:
+        corpus = [c for c in corpus if c[1] == file]
+    ranked = _rank(query, corpus)
+    hits: list[dict[str, Any]] = []
+    for score, src, filename, title, chunk, anchors in ranked[:top_k]:
+        heading = next((ln for ln in chunk.splitlines() if ln.startswith("##")), "")
+        section = heading.lstrip("#").strip()
+        hits.append({
+            "file": filename,
+            "title": title,
+            "section": section,
+            "source": src,
+            "score": round(score, 1),
+            "snippet": _snippet(chunk, anchors),
+            "text": chunk,
+        })
+    return hits
 
 
 @lru_cache(maxsize=1)
@@ -505,4 +611,5 @@ def make_executor(db: Session, user: User):
 
 
 __all__ = ["calculate_chart", "calculate_transits", "client_chart", "fold_vi", "knowledge_chunks", "list_skills", "make_executor",
-           "read_skill", "report_info", "search_clients", "search_knowledge", "skill_files"]
+           "docs_chunks", "read_skill", "report_info", "search_clients", "search_knowledge",
+           "search_knowledge_hits", "skill_files"]

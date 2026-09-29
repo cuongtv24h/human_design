@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .db import Database
 from .routers import (admin_settings, assistant, auth, catalog, clients, dashboard, editor, game_admin,
-                      leads, public,
+                      knowledge, leads, public,
                       reports, shares, templates, users)
 from .security import CSRF_HEADER, resolve_secret_key
 from .settings import Settings
@@ -111,7 +111,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"status": "ok", "environment": settings.environment}
 
     for module in (auth, catalog, clients, editor, shares, reports, dashboard, users, admin_settings, assistant,
-                   public, templates, leads, game_admin):
+                   public, templates, leads, game_admin, knowledge):
         app.include_router(module.router, prefix=API_PREFIX)
     return app
 
