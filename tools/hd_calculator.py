@@ -10,7 +10,7 @@ Chức năng:
 """
 
 import swisseph as swe
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 
 # Cấu hình Swiss Ephemeris
@@ -507,7 +507,9 @@ def calculate_hd_chart(birth_datetime):
         "birth_datetime": birth_datetime,
         "birth_jd": birth_jd,
         "design_jd": design_jd,
-        "design_datetime": datetime.utcfromtimestamp((design_jd - 2440587.5) * 86400),
+        "design_datetime": datetime.fromtimestamp(
+            (design_jd - 2440587.5) * 86400, tz=timezone.utc
+        ).replace(tzinfo=None),  # UTC-naive như cũ; bỏ utcfromtimestamp deprecated
         "personality_gates": personality_gates,
         "design_gates": design_gates,
         "all_activated_gates": sorted(list(all_activated_gates)),

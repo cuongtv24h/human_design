@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from hd_calculator import calculate_hd_chart, GATE_MEANINGS, GATE_TO_CENTER
 from hd_language import vn_authority, vn_strategy
 from hd_transits import cycle_events
-from datetime import datetime as _dt
+from datetime import datetime as _dt, timezone
 
 QUARTERS = {
     "Initiation": {"vn": "Khởi xướng (Tâm trí)", "purpose": "Mục đích qua TÂM TRÍ - học hỏi, đặt câu hỏi, tìm hiểu, khởi đầu. Bạn ở đây để tâm trí dẫn đường cho hành trình."},
@@ -163,7 +163,7 @@ def _purpose_milestones(birth_datetime):
         events = cycle_events(birth_datetime)
     except Exception:
         return []
-    now = _dt.utcnow()
+    now = _dt.now(tz=timezone.utc).replace(tzinfo=None)  # UTC-naive
     past = [e for e in events if e["date"] <= now]
     future = [e for e in events if e["date"] > now]
     picked = (past[-1:] if past else []) + future[:4]

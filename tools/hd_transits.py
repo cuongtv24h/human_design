@@ -13,7 +13,7 @@ Mọi datetime dùng chung quy ước với hd_calculator (UTC naive).
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import swisseph as swe
 
@@ -76,7 +76,10 @@ def find_hits(planet_id: int, target: float, jd_start: float, jd_end: float,
 
 
 def _jd_to_dt(jd: float) -> datetime:
-    return datetime.utcfromtimestamp((jd - 2440587.5) * 86400.0)
+    # UTC-naive như cũ; thay utcfromtimestamp() deprecated (py3.12)
+    return datetime.fromtimestamp(
+        (jd - 2440587.5) * 86400.0, tz=timezone.utc
+    ).replace(tzinfo=None)
 
 
 def cycle_events(birth_datetime: datetime, years_after: int = 85,
@@ -122,7 +125,7 @@ def cycle_events(birth_datetime: datetime, years_after: int = 85,
 
 def transit_snapshot(birth_datetime: datetime, asof: datetime | None = None) -> dict:
     """Ảnh transit tại `asof` (mặc định hiện tại UTC) so với natal."""
-    asof = asof or datetime.utcnow()
+    asof = asof or datetime.now(tz=timezone.utc).replace(tzinfo=None)  # UTC-naive
     natal = calculate_hd_chart(birth_datetime)
     asof_jd = julian_day(asof)
     defined = set(natal["defined_centers"])
