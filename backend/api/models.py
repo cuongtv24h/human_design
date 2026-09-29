@@ -424,3 +424,29 @@ class GameNode(Base):
     time_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
     question_ids: Mapped[list] = mapped_column(JSONType, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class KnowledgeSubmission(Base):
+    """Đóng góp tri thức chờ Admin duyệt (pipeline A–C: sàng lọc → duyệt → xuất kho)."""
+
+    __tablename__ = "knowledge_submissions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    org_id: Mapped[int] = mapped_column(ForeignKey("organizations.id"), index=True)
+    contributor_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    reviewer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    title: Mapped[str] = mapped_column(String(200))
+    # File đích gợi ý (vd "17_decision_authority.md"); rỗng = Admin chọn lúc duyệt
+    # hoặc hệ thống tạo file mới đánh số tiếp.
+    target_file: Mapped[str] = mapped_column(String(200), default="")
+    content_md: Mapped[str] = mapped_column(Text)
+    source_url: Mapped[str] = mapped_column(String(500), default="")
+    # pending | approved | rejected — pattern như ReportTemplate.
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)
+    # Kết quả chống trùng tự động: {max_similarity, level, matches:[...]}.
+    dedupe_report: Mapped[dict] = mapped_column(JSONType, default=dict)
+    # Ghi chú AI kiểm duyệt (JSON string) — None nếu chưa chạy / LLM lỗi.
+    ai_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reject_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

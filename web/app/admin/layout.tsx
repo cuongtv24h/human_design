@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Bot, FilePlus2, FileText, Gamepad, KeyRound, LayoutDashboard, LayoutTemplate, Library, LogOut, Menu, MessagesSquare, PanelLeftClose, PanelLeftOpen, Search, UserCog, UserPlus, Users, X, type LucideIcon } from "lucide-react";
+import { BookOpen, Bot, FilePlus2, FileText, Gamepad, Inbox, KeyRound, LayoutDashboard, LayoutTemplate, Library, LogOut, Menu, MessagesSquare, PanelLeftClose, PanelLeftOpen, Search, Upload, UserCog, UserPlus, Users, X, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -50,6 +50,8 @@ const GROUPS: NavGroup[] = [
     title: "Công cụ",
     items: [
       { href: "/admin/knowledge", label: "Tra cứu tri thức", icon: Search },
+      { href: "/admin/knowledge/submit", label: "Đóng góp tài liệu", icon: Upload },
+      { href: "/admin/knowledge/reviews", label: "Duyệt đóng góp", icon: Inbox, adminOnly: true },
       { href: "/admin/docs", label: "Đọc tài liệu", icon: Library, adminOnly: true },
       { href: "/admin/game", label: "Game", icon: Gamepad, adminOnly: true },
     ],
