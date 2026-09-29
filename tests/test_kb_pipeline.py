@@ -286,3 +286,73 @@ def test_ai_review_stats_and_scan(app, kb_env, monkeypatch):
     for pair in data["pairs"]:
         assert pair["similarity"] >= 0.7
         assert pair["a"]["file"] != pair["b"]["file"] or pair["a"]["section"] != pair["b"]["section"]
+
+
+def _uniq_content(tag: str) -> str:
+    """Nội dung khác biệt hoàn toàn theo tag — không dính hard-dup khi test cap."""
+    body = " ".join(f"{tag}no{i}x" for i in range(30))
+    return (f"# Tieu de {tag}\n\n## Muc rieng {tag}\n"
+            f"Noi dung rieng biet {body} de khong trung voi cac bai khac trong luong.\n")
+
+
+def test_source_url_scheme_and_title_reason_validation(app, kb_env):
+    """Audit M1+M2+L1: chặn javascript:/data:/ftp (click-XSS), title xuống dòng
+    (injection heading vào sổ nguồn), title/reason toàn khoảng trắng."""
+    coach = _login_coach(app)
+    admin = login(app)
+    db = _db(app)
+
+    for i, bad in enumerate(("javascript:alert(1)", "data:text/html,<b>x</b>",
+                             "ftp://x.com/f", "https://", "JaVaScRiPt:alert(1)")):
+        r = coach.post("/api/v1/knowledge/submissions",
+                       json={"title": f"URL test {i}", "content_md": _uniq_content(f"urlbad{i}"),
+                             "source_url": bad}, headers=H)
+        assert r.status_code == 422, (bad, r.text)
+    assert _count(db) == 0
+
+    good_url = coach.post("/api/v1/knowledge/submissions",
+                          json={"title": "URL hop le", "content_md": _uniq_content("urlgood"),
+                                "source_url": "https://example.com/bai-viet"}, headers=H)
+    assert good_url.status_code == 201, good_url.text
+
+    # title chứa newline (đã từng chèn được heading giả vào KNOWLEDGE_SOURCES.md)
+    r_nl = coach.post("/api/v1/knowledge/submissions",
+                      json={"title": "Hop le\n## Doi gia", "content_md": _uniq_content("nl")}, headers=H)
+    assert r_nl.status_code == 422 and "điều khiển" in r_nl.json()["detail"]
+    # title toàn khoảng trắng
+    r_ws = coach.post("/api/v1/knowledge/submissions",
+                      json={"title": "   ", "content_md": _uniq_content("ws")}, headers=H)
+    assert r_ws.status_code == 422
+    assert _count(db) == 1
+
+    # reject reason toàn khoảng trắng → 422, bài vẫn pending
+    sid = good_url.json()["id"]
+    r_rj = admin.post(f"/api/v1/knowledge/submissions/{sid}/reject",
+                      json={"reason": "  "}, headers=H)
+    assert r_rj.status_code == 422
+    detail = admin.get(f"/api/v1/knowledge/submissions/{sid}", headers=H).json()
+    assert detail["status"] == "pending"
+
+
+def test_pending_cap_per_user(app, kb_env):
+    """Audit L2: ≤5 bài pending/người — nộp thứ 6 →422; duyệt1 bài là có slot."""
+    coach = _login_coach(app)
+    admin = login(app)
+    for i in range(kb_pipeline.MAX_PENDING_PER_USER):
+        r = coach.post("/api/v1/knowledge/submissions",
+                       json={"title": f"Bai {i}", "content_md": _uniq_content(f"cap{i}")}, headers=H)
+        assert r.status_code == 201, (i, r.text)
+    over = coach.post("/api/v1/knowledge/submissions",
+                      json={"title": "Bai thu 6", "content_md": _uniq_content("capover")}, headers=H)
+    assert over.status_code == 422 and "chờ duyệt" in over.json()["detail"]
+
+    # Admin duyệt1 bài → nhả slot → nộp được again
+    items = admin.get("/api/v1/knowledge/submissions", params={"status": "pending"},
+                      headers=H).json()["items"]
+    assert len(items) == kb_pipeline.MAX_PENDING_PER_USER
+    ap = admin.post(f"/api/v1/knowledge/submissions/{items[0]['id']}/approve",
+                    json={}, headers=H)
+    assert ap.status_code == 200, ap.text
+    again = coach.post("/api/v1/knowledge/submissions",
+                       json={"title": "Sau khi duyet", "content_md": _uniq_content("capagain")}, headers=H)
+    assert again.status_code == 201, again.text

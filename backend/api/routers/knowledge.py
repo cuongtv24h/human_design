@@ -7,6 +7,7 @@ không tốn token, kết quả có cấu trúc để hiển thị danh sách.
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -15,7 +16,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from ..assistant_tools import (
@@ -192,10 +193,31 @@ def create_submission(
     Lỗi hard (rỗng/quá lớn/thiếu heading/lộ bí mật/trùng ≥90%) → 422, KHÔNG lưu.
     """
     errors = kb_pipeline.screen_content(payload.content_md)
+    title = payload.title.strip()
+    source_url = payload.source_url.strip()
+    if not title:
+        errors.append("Tiêu đề không được để trống.")
+    elif re.search(r"[\x00-\x1f\x7f]", title):
+        errors.append("Tiêu đề không được chứa ký tự điều khiển (xuống dòng/tab).")
+    if not kb_pipeline.valid_source_url(source_url):
+        errors.append("Nguồn tham khảo phải là URL http(s) có hợp lệ (chặn javascript:/data:).")
     if payload.target_file and not kb_pipeline.safe_md_name(payload.target_file):
         errors.append("File đích không hợp lệ (chỉ tên file .md, không có thư mục).")
     if errors:
         raise HTTPException(status_code=422, detail=" ".join(errors))
+    pending_n = db.scalar(
+        select(func.count(KnowledgeSubmission.id)).where(
+            KnowledgeSubmission.org_id == user.org_id,
+            KnowledgeSubmission.contributor_id == user.id,
+            KnowledgeSubmission.status == "pending",
+        )
+    ) or 0
+    if pending_n >= kb_pipeline.MAX_PENDING_PER_USER:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Đã có {pending_n} bài đang chờ duyệt — chờ Admin xử lý trước "
+                   f"(giới hạn {kb_pipeline.MAX_PENDING_PER_USER} bài pending/người).",
+        )
     dedupe = kb_pipeline.dedupe_check(payload.content_md,
                                       extra_chunks=_pending_others(db, user.org_id))
     if dedupe["level"] == "hard":
@@ -208,10 +230,10 @@ def create_submission(
     sub = KnowledgeSubmission(
         org_id=user.org_id,
         contributor_id=user.id,
-        title=payload.title.strip(),
+        title=title,
         target_file=(payload.target_file or "").strip(),
         content_md=payload.content_md,
-        source_url=payload.source_url.strip(),
+        source_url=source_url,
         status="pending",
         dedupe_report=dedupe,
     )
@@ -288,22 +310,44 @@ def approve_submission(
     if dedupe["level"] == "hard":
         raise HTTPException(status_code=422,
                             detail="Nội dung trùng lặp với bài đang chờ duyệt khác — gộp bài rồi thử lại.")
+    # Claim atomic (TOCTOU): UPDATE ... WHERE status='pending' — request song song
+    # thứ hai nhận rowcount=0 → 422, KHÔNG thể approve đôi. Giữ row lock tới commit.
+    claimed = db.execute(
+        update(KnowledgeSubmission)
+        .where(KnowledgeSubmission.id == sub.id,
+               KnowledgeSubmission.org_id == user.org_id,
+               KnowledgeSubmission.status == "pending")
+        .values(status="approved", reviewer_id=user.id,
+                decided_at=datetime.now(timezone.utc))
+    ).rowcount
+    if claimed != 1:
+        db.rollback()
+        raise HTTPException(status_code=422, detail="Bài này đã được xử lý trước đó.")
+    published = None
     try:
         published = kb_pipeline.publish_content(content, target, sub.title)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    contributor = db.get(User, sub.contributor_id)
-    label = (contributor.full_name or contributor.email) if contributor else "unknown"
-    kb_pipeline.append_sources_log(published["file"], sub.title, sub.source_url, label)
+        contributor = db.get(User, sub.contributor_id)
+        label = (contributor.full_name or contributor.email) if contributor else "unknown"
+        kb_pipeline.append_sources_log(published["file"], sub.title, sub.source_url, label)
+    except Exception:
+        # Bù trừ best-effort: file tạo mới bị unlink; DB rollback → status về pending.
+        if published and published.get("mode") == "create":
+            try:
+                (kb_pipeline.KNOWLEDGE_DIR / published["file"]).unlink(missing_ok=True)
+            except OSError:
+                pass
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Ghi file kho thất bại — bài được giữ nguyên ở trạng thái chờ duyệt.",
+        ) from None
     sub.content_md = content
     sub.target_file = published["file"]
-    sub.status = "approved"
-    sub.reviewer_id = user.id
-    sub.decided_at = datetime.now(timezone.utc)
     sub.dedupe_report = dedupe
     audit(db, user, "knowledge.approve", "kb_submission", str(sub.id),
           meta={"file": published["file"], "mode": published["mode"]})
     db.commit()
+    db.refresh(sub)
     return {"submission": _submission_out(sub, contributor=label), "published": published}
 
 
@@ -317,13 +361,24 @@ def reject_submission(
     sub = _get_submission(db, user.org_id, sub_id)
     if sub.status != "pending":
         raise HTTPException(status_code=422, detail="Bài này đã được xử lý trước đó.")
-    sub.status = "rejected"
-    sub.reject_reason = payload.reason.strip()
-    sub.reviewer_id = user.id
-    sub.decided_at = datetime.now(timezone.utc)
+    reason = payload.reason.strip()
+    if not reason:
+        raise HTTPException(status_code=422, detail="Lý do từ chối không được để trống.")
+    claimed = db.execute(
+        update(KnowledgeSubmission)
+        .where(KnowledgeSubmission.id == sub.id,
+               KnowledgeSubmission.org_id == user.org_id,
+               KnowledgeSubmission.status == "pending")
+        .values(status="rejected", reviewer_id=user.id,
+                decided_at=datetime.now(timezone.utc), reject_reason=reason)
+    ).rowcount
+    if claimed != 1:
+        db.rollback()
+        raise HTTPException(status_code=422, detail="Bài này đã được xử lý trước đó.")
     audit(db, user, "knowledge.reject", "kb_submission", str(sub.id),
-          meta={"reason": sub.reject_reason[:200]})
+          meta={"reason": reason[:200]})
     db.commit()
+    db.refresh(sub)
     contributor = db.get(User, sub.contributor_id)
     return _submission_out(sub, contributor=(contributor.full_name or contributor.email)
                            if contributor else "")

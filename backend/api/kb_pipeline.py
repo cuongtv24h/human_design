@@ -17,6 +17,7 @@ import time
 import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -36,6 +37,8 @@ SOURCES_FILE = ROOT / "docs" / "KNOWLEDGE_SOURCES.md"
 MAX_CONTENT_BYTES = 60_000
 DUP_HARD = 0.90   # >= : trùng cứng → chặn nộp
 DUP_SOFT = 0.70   # >= : gần trùng → cảnh báo Admin
+MAX_PENDING_PER_USER = 5   # cap bài chờ duyệt / người (chống spam CPU+DB)
+CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 
 # Chặn dữ liệu nhạy cảm lọt vào kho (corpus được chatbot phục vụ cho mọi người).
 _SECRET_PATTERNS: list[tuple[re.Pattern, str]] = [
@@ -149,8 +152,19 @@ def search_preview(content: str, top_k: int = 3) -> list[dict[str, Any]]:
 
 def safe_md_name(name: str) -> bool:
     name = (name or "").strip()
-    return bool(name) and name.endswith(".md") and "/" not in name and "\\" not in name \
-        and ".." not in name and Path(name).name == name
+    if not name or not name.endswith(".md") or CONTROL_CHARS.search(name):
+        return False
+    return "/" not in name and "\\" not in name and ".." not in name and Path(name).name == name
+
+
+def valid_source_url(url: str) -> bool:
+    """Chỉ nhận URL http/https có host — chặn javascript:/data:/... (click-XSS)."""
+    if not url:
+        return True
+    if CONTROL_CHARS.search(url):
+        return False
+    parsed = urlparse(url)
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
 def slugify(title: str) -> str:

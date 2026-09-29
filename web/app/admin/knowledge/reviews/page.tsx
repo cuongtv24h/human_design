@@ -192,7 +192,11 @@ export default function KnowledgeReviewsPage() {
                   <p className="mt-0.5 text-xs text-muted">
                     Bởi {current.contributor} · {current.created_at ? new Date(current.created_at).toLocaleString("vi-VN") : ""}
                     {current.source_url ? (
-                      <> · <a className="text-brand-600 underline" href={current.source_url} target="_blank" rel="noreferrer">nguồn</a></>
+                      /^https?:\/\//i.test(current.source_url) ? (
+                        <> · <a className="text-brand-600 underline" href={current.source_url} target="_blank" rel="noreferrer">nguồn</a></>
+                      ) : (
+                        <> · <span className="text-muted">nguồn (chỉ hiển thị): {current.source_url}</span></>
+                      )
                     ) : null}
                   </p>
                 </div>
