@@ -12,10 +12,17 @@ from pathlib import Path
 from time import perf_counter
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from ..assistant_tools import docs_chunks, knowledge_chunks, search_knowledge_hits
-from ..deps import current_user
+from ..assistant_tools import (
+    DOCS_DIR,
+    KNOWLEDGE_DIR,
+    _docs_allowed,
+    docs_chunks,
+    knowledge_chunks,
+    search_knowledge_hits,
+)
+from ..deps import current_user, require_admin
 from ..models import User
 
 router = APIRouter(tags=["knowledge"])
@@ -70,6 +77,34 @@ def _log_search(request: Request, user: User, q: str, source: str, file: str,
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
     except OSError:
         pass
+
+
+@router.get("/knowledge/doc")
+def knowledge_doc(
+    file: str = Query(..., max_length=200),
+    user: User = Depends(require_admin),
+) -> dict:
+    """Nộp nội dung 1 file md tri thức để ĐỌC TRỰC TIẾP (trang Đọc tài liệu — Admin only).
+
+    knowledge/*.md: mọi file nội dung. docs/*.md: WHITELIST tri thức (loại deploy/
+    hạ tầng). Chặn traversal bằng basename-only + không "..", không "/" (404 im lặng).
+    """
+    name = file.strip()
+    if (not name.endswith(".md") or "/" in name or "\\" in name or ".." in name
+            or Path(name).name != name):
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu.")
+    if (KNOWLEDGE_DIR / name).is_file():
+        path, source = KNOWLEDGE_DIR / name, "knowledge"
+    elif _docs_allowed(name) and (DOCS_DIR / name).is_file():
+        path, source = DOCS_DIR / name, "docs"
+    else:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu.")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise HTTPException(status_code=404, detail="Không đọc được tài liệu.") from exc
+    title = next((ln[2:].strip() for ln in text.splitlines() if ln.startswith("# ")), path.stem)
+    return {"file": name, "title": title, "source": source, "text": text}
 
 
 @router.get("/knowledge/files")

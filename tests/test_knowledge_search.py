@@ -147,6 +147,46 @@ def test_search_writes_query_log(app):
     assert "ts" in record and "source" in record
 
 
+def _login_coach(app) -> TestClient:
+    admin = login(app)
+    resp = admin.post("/api/v1/users", json={"email": "coach@example.com", "password": PASSWORD,
+                                             "full_name": "Coach Đọc", "role": "coach"}, headers=H)
+    assert resp.status_code in (200, 201), resp.text
+    client = TestClient(app)
+    r = client.post("/api/v1/auth/login", json={"email": "coach@example.com", "password": PASSWORD},
+                    headers=H)
+    assert r.status_code == 200, r.text
+    return client
+
+
+def test_doc_reader_admin_traversal_and_roles(app):
+    """Đọc tài liệu (Admin): nội dung OK, chặn traversal/file hạ tầng, coach=403, anon=401."""
+    admin = login(app)
+
+    ok = admin.get("/api/v1/knowledge/doc", params={"file": "00_tong_quan_he_thong.md"}, headers=H)
+    assert ok.status_code == 200, ok.text
+    body = ok.json()
+    assert body["source"] == "knowledge" and len(body["text"]) > 200
+    assert body["file"] == "00_tong_quan_he_thong.md" and body["title"]
+
+    wiki = "Wiki Phân mục 1_ Cấu trúc Nền tảng & Cơ học BodyGraph.md"
+    ok2 = admin.get("/api/v1/knowledge/doc", params={"file": wiki}, headers=H)
+    assert ok2.status_code == 200, ok2.text
+    assert ok2.json()["source"] == "docs"
+
+    # traversal + file ngoài whitelist + file không tồn tại → 404 im lặng
+    for bad in ("../.env", "../../etc/passwd", "DEPLOY_VPS.md", "khong_ton_tai.md"):
+        assert admin.get("/api/v1/knowledge/doc", params={"file": bad}, headers=H).status_code == 404, bad
+
+    # coach bị chặn (chỉ Admin), anon chưa đăng nhập
+    coach = _login_coach(app)
+    assert coach.get("/api/v1/knowledge/doc",
+                     params={"file": "00_tong_quan_he_thong.md"}, headers=H).status_code == 403
+    anon = TestClient(app)
+    assert anon.get("/api/v1/knowledge/doc",
+                    params={"file": "00_tong_quan_he_thong.md"}, headers=H).status_code == 401
+
+
 def test_api_files_list(app):
     client = login(app)
     resp = client.get("/api/v1/knowledge/files", headers=H)
