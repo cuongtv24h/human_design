@@ -1,8 +1,8 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ChevronDown, FileText, Library, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, FileText, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, EmptyState, ErrorBox, PageHeader, Spinner, cx } from "@/components/ui";
 import { api, qs } from "@/lib/api";
 import { useDebounced } from "@/lib/hooks";
@@ -19,6 +19,24 @@ type Hit = {
 type SearchResp = { query: string; hits: Hit[]; count: number; took_ms: number };
 type FileEntry = { file: string; title: string; source: "knowledge" | "docs"; sections: number };
 type SourceFilter = "all" | "knowledge" | "docs";
+
+// Query seed khi idle — kết quả mặc định hiển thị trên trang trống.
+const SEED_QUERY = "human design";
+// Popular queries: click là chạy ngay (debounce 300ms).
+const SUGGESTED = [
+  "manifesting generator",
+  "thẩm quyền sacral",
+  "profile dòng 6",
+  "nuôi dạy con",
+  "kênh điện từ",
+  "not self",
+  "điều kiện hóa",
+  "transit hôm nay",
+  "192 chữ thập",
+  "sợ hãi",
+  "quan hệ",
+  "tiền bạc",
+];
 
 const SOURCE_LABEL: Record<SourceFilter, string> = {
   all: "Tất cả",
@@ -73,6 +91,7 @@ export default function KnowledgeSearchPage() {
   const [file, setFile] = useState("");
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const dq = useDebounced(q, 300);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Deep-link ?q=… (vd từ palette ⌘K) — đọc sau mount để không ảnh hưởng SSR.
   useEffect(() => {
@@ -89,16 +108,16 @@ export default function KnowledgeSearchPage() {
     (f) => source === "all" || f.source === source,
   );
 
+  const idle = dq.trim().length < 2;
+  const effectiveQ = idle ? SEED_QUERY : dq;
   const searchQuery = useQuery({
-    queryKey: ["knowledge-search", dq, source, file],
+    queryKey: ["knowledge-search", effectiveQ, source, file, idle ? 6 : 12],
     queryFn: () =>
-      api.get<SearchResp>(`/knowledge/search${qs({ q: dq, limit: 12, source, file })}`),
-    enabled: dq.trim().length >= 2,
+      api.get<SearchResp>(`/knowledge/search${qs({ q: effectiveQ, limit: idle ? 6 : 12, source, file })}`),
     placeholderData: keepPreviousData,
   });
 
   const hits = searchQuery.data?.hits ?? [];
-  const idle = dq.trim().length < 2;
 
   return (
     <>
@@ -110,6 +129,7 @@ export default function KnowledgeSearchPage() {
       <div className="relative mb-3 max-w-2xl">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
         <input
+          ref={inputRef}
           autoFocus
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -154,24 +174,46 @@ export default function KnowledgeSearchPage() {
 
       <ErrorBox error={searchQuery.error} className="mb-4" />
 
-      {idle ? (
-        <EmptyState
-          icon={<Library className="size-8" />}
-          title="Nhập từ khóa để tra cứu"
-          description={'Không dấu vẫn trúng (vd: "nuoi day con"). Lọc thêm theo nguồn Knowledge/Docs và từng file bên trên.'}
-        />
-      ) : searchQuery.isLoading && !searchQuery.data ? (
+      {idle && (
+        <Card className="mb-4 p-4">
+          <div className="mb-1 text-sm font-semibold text-ink">Gợi ý tra cứu phổ biến</div>
+          <p className="mb-3 text-xs text-muted">
+            Bấm một gợi ý để tìm ngay — không dấu vẫn trúng (vd: "nuoi day con").
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {SUGGESTED.map((s) => (
+              <button
+                key={s}
+                onClick={() => {
+                  setQ(s);
+                  setFile("");
+                  inputRef.current?.focus();
+                }}
+                className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {searchQuery.isLoading && !searchQuery.data ? (
         <Spinner />
       ) : !hits.length ? (
-        <EmptyState
-          icon={<Search className="size-8" />}
-          title="Không tìm thấy kết quả"
-          description={`Không có mục nào cho “${dq}”. Thử từ khóa rộng hơn hoặc bỏ bộ lọc file.`}
-        />
+        idle ? null : (
+          <EmptyState
+            icon={<Search className="size-8" />}
+            title="Không tìm thấy kết quả"
+            description={`Không có mục nào cho “${dq}”. Thử từ khóa rộng hơn hoặc bỏ bộ lọc file.`}
+          />
+        )
       ) : (
         <>
           <p className="mb-3 text-xs text-muted">
-            {hits.length} kết quả · {searchQuery.data?.took_ms} ms
+            {idle
+              ? `Gợi ý mặc định · “${SEED_QUERY}” · ${hits.length} mục`
+              : `${hits.length} kết quả · ${searchQuery.data?.took_ms} ms`}
           </p>
           <div className="space-y-3">
             {hits.map((hit, i) => {
