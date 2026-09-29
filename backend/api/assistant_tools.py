@@ -114,6 +114,9 @@ _PHRASE_EQUIV_PAIRS = [
     ("cho dap ung", ["wait to respond", "wait for a response", "responding"]),
     ("cho loi moi", ["wait for the invitation", "invitation"]),
     ("thong bao", ["inform", "informing"]),
+    ("nghi ngoi", ["kiet suc", "burnout"]),
+    ("nghi", ["nghi ngoi", "kiet suc", "burnout"]),
+    ("ngoi", ["nghi ngoi", "kiet suc", "burnout"]),
     ("cay dang", ["bitterness", "bitter"]),
     ("that vong", ["frustration", "disappointment"]),
     ("thoa man", ["satisfaction", "satisfied"]),
@@ -215,6 +218,18 @@ def _cached_chunks(directory: str, fingerprint: tuple[int, int, int]) -> tuple[t
     return tuple(_parse_md_dir(Path(directory), allowed, levels))
 
 
+@lru_cache(maxsize=4)
+def _annotated_chunks(directory: str,
+                      fingerprint: tuple[int, int, int]) -> tuple[tuple[str, str, str, str, str, str, str], ...]:
+    """``_cached_chunks`` +4 trường fold/norm TĨNH — trước đây tính lại mỗi query (P1 perf)."""
+    out = []
+    for filename, title, chunk in _cached_chunks(directory, fingerprint):
+        full = f"{title}\n{chunk}"
+        out.append((filename, title, chunk, _norm(fold_vi(full)), _norm(full.lower()),
+                    _norm(fold_vi(title)), _norm(title.lower())))
+    return tuple(out)
+
+
 def knowledge_chunks() -> list[tuple[str, str, str]]:
     """``(filename, title, chunk_text)`` — mỗi chunk là một mục ``##`` trong kho kiến thức."""
     return list(_cached_chunks(str(KNOWLEDGE_DIR), _md_fingerprint(KNOWLEDGE_DIR)))
@@ -276,16 +291,30 @@ def _snippet(chunk: str, anchors: list[str], size: int = 1400) -> str:
     return chunk[start:start + size]
 
 
-def _knowledge_corpus() -> list[tuple[str, str, str, str]]:
-    return [("knowledge", fn, title, chunk) for fn, title, chunk in knowledge_chunks()]
+@lru_cache(maxsize=256)
+def _rank_memo(query: str, source: str, file: str,
+               fp_k: tuple[int, int, int],
+               fp_d: tuple[int, int, int]) -> tuple:
+    """Memo full kết quả xếp hạng theo (query, source, file, fingerprint đĩa).
 
-
-def _docs_corpus() -> list[tuple[str, str, str, str]]:
-    return [("docs", fn, title, chunk) for fn, title, chunk in docs_chunks()]
+    Cùng query lặp lại (vd seed "human design", Coach tra từ khoá cũ) = ~0 ms;
+    file đổi đĩa → fingerprint đổi → tự invalidate. Kết quả thuần túy
+    (hàm scoring không side-effect) nên memo không đổi hành vi.
+    """
+    if source == "knowledge":
+        rows = [("knowledge",) + r for r in _annotated_chunks(str(KNOWLEDGE_DIR), fp_k)]
+    elif source == "docs":
+        rows = [("docs",) + r for r in _annotated_chunks(str(DOCS_DIR), fp_d)]
+    else:
+        rows = ([("knowledge",) + r for r in _annotated_chunks(str(KNOWLEDGE_DIR), fp_k)]
+                + [("docs",) + r for r in _annotated_chunks(str(DOCS_DIR), fp_d)])
+    if file:
+        rows = [r for r in rows if r[1] == file]
+    return tuple(_rank(query, rows))
 
 
 def _rank(query: str,
-          corpus: list[tuple[str, str, str, str]]) -> list[tuple[float, str, str, str, str, list[str]]]:
+          corpus: list[tuple]) -> list[tuple[float, str, str, str, str, list[str]]]:
     """Core scoring dùng chung (tool chatbot + API tra cứu).
 
     Trả về ``(score, source, file, title, chunk, anchors)`` sắp giảm dần score.
@@ -313,18 +342,16 @@ def _rank(query: str,
     def C1(text: str, s: str) -> int:
         return len(pats1[s].findall(text))
 
-    chunks = []
-    for source, filename, title, chunk in corpus:
-        full = f"{title}\n{chunk}"
-        chunks.append((source, filename, title, chunk, _norm(fold_vi(full)), _norm(full.lower()),
-                       _norm(fold_vi(title)), _norm(title.lower())))
+    # corpus đã kèm fm/t1/ft/t1t (annotate một lần, cache theo fingerprint).
+    chunks = corpus
     # Bỏ từ xuất hiện ở >60% số chunk ("cho", "mỗi"...). Cụm nguyên văn vẫn
-    # được tính — chỉ bỏ điểm từ lẻ.
+    # được tính — chỉ bỏ điểm từ lẻ. c[4] = fm (fold+norm) — TRƯỚC refactor
+    # tuple không có source ở đầu nên là c[3]; chèn source làm lệch index.
     if len(terms) > 2:
         n_chunks = max(len(chunks), 1)
         active = [
             t for t in terms
-            if sum(1 for c in chunks if pats[t].search(c[3])) <= 0.6 * n_chunks
+            if sum(1 for c in chunks if pats[t].search(c[4])) <= 0.6 * n_chunks
         ] or terms
     else:
         active = terms
@@ -403,7 +430,8 @@ def search_knowledge(query: str, top_k: int = 3) -> tuple[str, str]:
     """Tool chatbot: snippet từng hit + dòng nguồn — hợp đồng output giữ nguyên."""
     if not _raw_terms(query):
         return "Từ khóa quá ngắn, hãy hỏi cụ thể hơn.", ""
-    ranked = _rank(query, _knowledge_corpus())
+    ranked = _rank_memo(query, "knowledge", "",
+                        _md_fingerprint(KNOWLEDGE_DIR), _md_fingerprint(DOCS_DIR))
     if not ranked:
         return f"Không tìm thấy gì cho “{query}” trong kho kiến thức.", ""
     parts, sources = [], []
@@ -421,15 +449,8 @@ def search_knowledge_hits(query: str, top_k: int = 10, source: str = "all",
     ``source``: "all" | "knowledge" | "docs". ``file``: lọc đúng một file (filename).
     Hit: file, title, section (tiêu đề ##), source, score, snippet, text (nguyên văn).
     """
-    if source == "knowledge":
-        corpus = _knowledge_corpus()
-    elif source == "docs":
-        corpus = _docs_corpus()
-    else:
-        corpus = _knowledge_corpus() + _docs_corpus()
-    if file:
-        corpus = [c for c in corpus if c[1] == file]
-    ranked = _rank(query, corpus)
+    ranked = _rank_memo(query, source, file or "",
+                        _md_fingerprint(KNOWLEDGE_DIR), _md_fingerprint(DOCS_DIR))
     hits: list[dict[str, Any]] = []
     for score, src, filename, title, chunk, anchors in ranked[:top_k]:
         heading = next((ln for ln in chunk.splitlines() if ln.startswith("##")), "")

@@ -131,6 +131,22 @@ def test_api_search_and_validation(app):
     assert client.get("/api/v1/knowledge/search?q=ok&limit=99", headers=H).status_code == 422
 
 
+def test_search_writes_query_log(app):
+    """P3: mỗi lượt tra cứu ghi 1 dòng JSONL vào artifact_dir (không được crash nếu lỗi I/O)."""
+    import json
+
+    client = login(app)
+    resp = client.get("/api/v1/knowledge/search?q=nu\u00f4i+d\u1ea5y+con&limit=3", headers=H)
+    assert resp.status_code == 200, resp.text
+    log = pathlib.Path(app.state.settings.artifact_dir) / "knowledge_queries.jsonl"
+    assert log.exists(), "chưa ghi knowledge_queries.jsonl"
+    record = json.loads(log.read_text(encoding="utf-8").splitlines()[-1])
+    assert record["query"] == "nu\u00f4i d\u1ea5y con"
+    assert record["count"] >= 1 and record["took_ms"] >= 0
+    assert record["top_files"] and record["user_id"] >= 1
+    assert "ts" in record and "source" in record
+
+
 def test_api_files_list(app):
     client = login(app)
     resp = client.get("/api/v1/knowledge/files", headers=H)
