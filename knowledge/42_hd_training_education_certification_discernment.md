@@ -43,7 +43,7 @@ Sau khi hoàn các Khóa Nền tảng, cảnh quan giáo dục mở ra theo vài
 
 Một lựa chọn là đào tạo **Living Your Design Guide**. Chương trình chuẩn bị người để tổ chức và giảng workshop Living Your Design, tập trung vào truyền đạt rõ ràng và có trách nhiệm các cơ học nền tảng. Mục đích của nó không phải đủ điều kiện ai cung cấp reading bản đồ chuyên môn, mà chia sẻ các khía cạnh thực tiễn cơ bản nhất của Human Design với người mới.
 
-Với người quan tâm trở thành chuyên gia phân tích Human Design chuyên nghiệp, **Chương trình Đào tạo Chuyên gia Phân tích (PTL)** offering con đường dài hơn, đòi hỏi hơn. Đào tạo này thường kéo dài hai năm trở lên và bao gồm phân tích hợp tác, chu kỳ sống, Chữ thập Hóa thân, và luận điểm chính nâng cao (advanced keynoting), đỉnh điểm là chứng chỉ để cung cấp reading chuyên môn với tư cách chuyên gia được IHDS chứng nhận.
+Với người quan tâm trở thành chuyên gia phân tích Human Design chuyên nghiệp, **Chương trình Đào tạo Chuyên gia Phân tích (PTL)** cung cấp con đường dài hơn, đòi hỏi hơn. Đào tạo này thường kéo dài hai năm trở lên và bao gồm phân tích hợp tác, chu kỳ sống, Chữ thập Hóa thân, và luận điểm chính nâng cao (advanced keynoting), đỉnh điểm là chứng chỉ để cung cấp reading chuyên môn với tư cách chuyên gia được IHDS chứng nhận.
 
 Cũng có track giáo dục song song tại **BG5 Institute**, một cánh tay của IHDS, áp dụng nguyên lý Human Design vào bối cảnh sự nghiệp và kinh doanh. BG5 dùng ngôn ngữ và keynote khác để mô tả các khái niệm Human Design tương tự, và tập trung vào động lực tổ chức, lãnh đạo, và cơ học nhóm thay vì reading đời cá nhân.
 
@@ -71,4 +71,4 @@ Giáo dục chính quy có thể hỗ trợ sâu khi nó đến đúng lúc. Nó
 
 Tại Human Design Collective, chúng tôi làm việc với người ở nhiều mức tham gia. Người vừa bắt đầu. Người đang học sâu. Người ra vào giáo dục chính quy theo thời gian. Vai trò của chúng tôi không phải quyết định điều đó cho ai mà cung cấp thông tin rõ, hướng dẫn vững, và không gian nơi sự phân biệt được tôn trọng.
 
-Nếu bạn cảm hút khám phá thêm, tin sự tò mò của bạn. Nếu bạn không chắc, tin điều đó too.
+Nếu bạn cảm hút khám phá thêm, tin sự tò mò của bạn. Nếu bạn không chắc, tin điều đó nữa.
