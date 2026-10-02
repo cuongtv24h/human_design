@@ -11,7 +11,7 @@ Chúng ta thường tin mình kiểm soát lựa chọn — hành động từ c
 
 Nhưng thực ra ý nghĩa gì? Khoa học ngày càng gợi ý quyết định không nổi từ chỉ suy nghĩ có ý thức. Thần kinh học, sinh học, và thậm chí nghiên cứu lượng tử chỉ ra nhiều thứ ta gọi "lựa chọn" thực ra mở trước khi ta ý thức.
 
-Ta thường tự thấy mình đang chọn, nhưng Human Design lộ tâm trí không hoạt động như người lái — nó hoạt động như hành khách, quan sát hành trình thay vì hướng nó. Nếu hành khách kiểm soát xe, nó không cònqualify là hành khách.
+Ta thường tự thấy mình đang chọn, nhưng Human Design lộ tâm trí không hoạt động như người lái — nó hoạt động như hành khách, quan sát hành trình thay vì hướng nó. Nếu hành khách kiểm soát xe, nó không còn xứng là hành khách.
 
 Thần kinh học dường như hỗ trợ khái niệm. Nghiên cứu của [Benjamin Libet](https://www.psychologytoday.com/us/blog/out-the-darkness/201709/benjamin-libet-and-the-denial-free-will) và các nghiên cứu sau dùng fMRI chỉ ra não khởi động quyết định trước khi ta có ý thức nhận ra. Nói cách khác, thứ ta coi "chọn" thường thể hiện tâm trí hợp lý hóa quá trình đã bắt đầu chuyển động ở chiều sâu hơn.
 
