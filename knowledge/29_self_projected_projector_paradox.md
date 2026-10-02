@@ -55,7 +55,7 @@ Cuối cùng, nền móng hỏng đủ nhiều để khi cơn bão kế tiếp �
 
 Giờ thì, ngôi nhà của bạn trông tuyệt từ nền móng trở lên. Không ai từ bên ngoài có thể tưởng tượng có điều gì đó không ổn đang khiến bạn mất khả năng chuyển động tự tin, nhẹ nhàng theo hướng làm bạn sống lại, và cảm thấy kết nối với tình yêu bản thân.
 
-Bởi vì tất cả đều khuất tầm nhìn, dưới mặt đất. Ở dưới đó, mọi thứ tồi tệ. Mốc, bùn, và không khí unhealthy — đó là nơi bạn không thể ở lâu. Bạn tránh đối mặt với mớ hỗn độn này vì cảm giác bất khả của việc mang đủ nắng và không khí trong lành vào dọn sạch nó làm bạn choáng ngợp.
+Bởi vì tất cả đều khuất tầm nhìn, dưới mặt đất. Ở dưới đó, mọi thứ tồi tệ. Mốc, bùn, và không khí ô nhiễm — đó là nơi bạn không thể ở lâu. Bạn tránh đối mặt với mớ hỗn độn này vì cảm giác bất khả của việc mang đủ nắng và không khí trong lành vào dọn sạch nó làm bạn choáng ngợp.
 
 Bạn và mọi người khác đều nghĩ ngôi nhà này nên cho bạn mọi thứ cần để sống tự tin và thành công.
 
@@ -69,7 +69,7 @@ Và dù không phải mọi người có Defined G đều trải nghiệm cùng 
 
 Mọi thứ phía trên áp dụng cho bất kỳ ai có trung tâm G định nghĩa. Nhưng với một tập hợp con cụ thể — Projector Tự Phóng chiếu — sự dễ tổn thương này tạo ra một cường độ bổ sung làm thay đổi hoàn toàn trải nghiệm.
 
-Khi trung tâm G là lõi Uy quyền của bạn — thứ bạn dựa vào cho mọi quyết định — rủi ro xói mòn của nó trở nên tồn tại-căn-cứ (existential).
+Khi trung tâm G là lõi Uy quyền của bạn — thứ bạn dựa vào cho mọi quyết định — rủi ro xói mòn của nó trở nên mang tính hiện hữu (existential).
 
 Nếu bạn là Projector Tự Phóng chiếu — ít hơn 3% dân số — Uy quyền này nghĩa là các quyết định đúng của bạn phát sinh từ trong trung tâm G định nghĩa và di chuyển trực tiếp đến Họng (Throat). Trung tâm G của bạn, với mối quan hệ độc đáo này với biểu đạt và biểu hiện, là nguồn trí tuệ sâu nhất và đúng nhất của bạn. Kết nối với Cao Ngã, cảm nhận sự thật, năng lực điều hướng cuộc sống — tất phát sinh từ trung tâm phi thường này.
 
