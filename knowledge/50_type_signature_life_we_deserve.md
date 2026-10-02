@@ -29,7 +29,7 @@ Chủ đề Not-self là _Sự Bực bội (Frustration)_, có thể cảm như 
 
 _Câu hỏi:_ Tôi có chủ động mà không chờ thứ gì hay ai đó cắt đường? Tôi có bắt đầu thứ gì bị tâm trí thúc đẩy? Tôi có lắng nghe phản hồi ruột? Tôi có chờ cảm năng lượng mình di chuyển về thứ gì và tham gia? Tôi có tự-áp sự kháng của chính cơ thể?
 
-**Projector:** Chữ ký là _Sự Thành công (Success)_, không phải thành tựu mà là cảm giác được nhận ra và trân trọng vì thứ ta vốn tự nhiên. Nó đến qua thứ nhỏ như cuộc trò chuyện thỏa mãn hay lớn như được mời đảm nhận vai trò hay mục đích cụ thể trong quan hệ. Nếu thành công trải trong việc hay sự nghiệp, thường qua công việc không cảm như công việc. Có thể cảm như được công nhận và bù đắp cho thứ ta offering tự do và tự nhiên.
+**Projector:** Chữ ký là _Sự Thành công (Success)_, không phải thành tựu mà là cảm giác được nhận ra và trân trọng vì thứ ta vốn tự nhiên. Nó đến qua thứ nhỏ như cuộc trò chuyện thỏa mãn hay lớn như được mời đảm nhận vai trò hay mục đích cụ thể trong quan hệ. Nếu thành công trải trong việc hay sự nghiệp, thường qua công việc không cảm như công việc. Có thể cảm như được công nhận và bù đắp cho thứ ta trao ra tự do và tự nhiên.
 
 Chủ đề Not-self là _Sự Cay đắng (Bitterness)_, nghe sao vậy — để vị đắng trong miệng. Đó là cảm giác không được công nhận hay bị làm quá theo cách lấy vị ngọt khỏi trải nghiệm. Thứ còn lại là cảm sắc, thường gắt, kiểu oán bên trong và trải nghiệm cảm bị ngoài coi thường, gạt, hay kháng.
 
