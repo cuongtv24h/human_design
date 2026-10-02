@@ -1,97 +1,98 @@
-# Generators & The Sacral Response
+# Generator và Phản hồi Sacral (Generators & The Sacral Response)
 
 > **Nguồn:** Human Design Collective — John Cole, 24/08/2019.
 > URL: https://humandesigncollective.com/generators-the-sacral-response/
-> Crawl: 2026-09-29 — toàn văn bài gốc (giữ credit tác giả), dùng nội bộ cho kho tri thức.
+> Crawl: 2026-09-29 — bản gốc tiếng Anh lưu tại `knowledge/ref_en/28_generators_the_sacral_response.md`.
+> Bản dịch tiếng Việt: giữ nguyên cấu trúc & credit tác giả, thuật ngữ chuyên môn giữ song ngữ.
 
-### The Defined Sacral Center
+### Trung tâm Sacral được định nghĩa (The Defined Sacral Center)
 
-“And we know that the Sacral Center is many things. It is a very powerful motor. It is the reproductive creative center of the being. It is a generative force. It creates this enormous enveloping aura that pulls and drags everything into it. It gives life to the planet.”
+"Chúng ta biết rằng trung tâm Sacral là nhiều thứ. Nó là một cỗ máy cực mạnh. Nó là trung tâm sinh sản sáng tạo của con người. Nó là một lực tạo sinh. Nó tạo ra một trường năng lượng bao trùm khổng lồ, kéo mọi thứ vào trong nó. Nó ban sự sống cho hành tinh."
 
 _– Ra Uru Hu_
 
-When you have the Sacral center defined, you are by definition a “Generator” in the Human Design System. The Sacral center can be compared to an engine, life’s most powerful motor and source of energy. A defined Sacral center represents the potential of consistent access to the energy needed to create, build, and sustain life. This in itself is quite a gift.
+Khi trung tâm Sacral của bạn được định nghĩa (defined), theo định nghĩa bạn là "Generator" trong Hệ thống Human Design. Trung tâm Sacral có thể ví như một động cơ — nguồn năng lượng mạnh nhất của sự sống. Sacral được định nghĩa đại diện cho khả năng truy cập ổn định vào năng lượng cần để kiến tạo, xây dựng và duy trì sự sống. Bản thân điều đó đã là một món quà lớn.
 
-The Generator aura is open and enveloping, designed to meet life directly by taking things in moment by moment. The Sacral energy is ideally used up on a daily basis so you can go to sleep well-spent and recharge each night, but there is a catch. Access to the power of this life-force energy is available and expressed in response (or not). This is a very receptive approach to life, and what the Generator Strategy of “waiting to respond” is about, letting life come to you rather than “doing” or “initiating” from the mind.
+Aura (trường năng lượng) của Generator mở và bao trùm, được thiết kế để tiếp xúc trực tiếp với cuộc sống bằng cách tiếp nhận mọi thứ từng khoảnh khắc. Năng lượng Sacral lý tưởng là được dùng hết mỗi ngày, để bạn ngủ say với một ngày đã "tiêu xài trọn vẹn" và nạp lại vào mỗi đêm — nhưng có một điểm nảy sinh. Việc tiếp cận nguồn sức mạnh sinh lực này chỉ đến và biểu hiện qua **phản hồi** (hay không phản hồi). Đây là cách tiếp cận cuộc sống đầy tính đón nhận, và cũng chính là tinh thần của Chiến lược Generator "chờ để phản hồi" (waiting to respond) — để cuộc sống đến với bạn thay vì "làm" hay "khởi xướng" từ cái đầu.
 
-### Waiting To Respond
+### Chờ để phản hồi (Waiting To Respond)
 
-“This is the limitation of being a Generator that all you can do in life is be receptive. Wait to respond is nothing but another way of saying be receptive to life, deal with life directly, define yourself with life.”
+"Đây là giới hạn của Generator — thứ bạn có thể làm trong đời chỉ là chủ động đón nhận. Chờ để phản hồi không gì khác hơn một cách khác để nói rằng: hãy cởi mở với cuộc sống, tiếp xúc trực tiếp với cuộc sống, định nghĩa bản thân bằng cuộc sống."
 
 _– Alokanand Diaz_
 
-The Generator Strategy of “waiting to respond” is a way to align with the flow of life. That is, not imposing your perceived sense of timing and activity on the world around you, but meeting and aligning with life directly as it happens. This allows you to move through life, reducing the resistance you encounter.
+Chiến lược "chờ để phản hồi" của Generator là cách hòa vào dòng chảy của cuộc sống. Tức là không áp đặt cảm nhận chủ quan về thời điểm và hoạt động của bạn lên thế giới quanh mà tiếp nhận và hòa nhịp với cuộc sống ngay khi nó diễn ra. Điều này cho phép bạn đi qua đời với ít sự cản trở hơn.
 
-For Generators, this means reducing the frustration of trying to initiate or force things. “Frustration” is the “Not-Self” theme for Generators and can be an early warning sign that one is out of sync with life and engaged with the wrong work, people, or situations. Generators often find themselves in this situation due to impatience, mental decision-making, and the influence of others. In these situations, one’s life force is not aligned with or fully engaged in the actual circumstances, leading to frustration and exhaustion and ultimately to giving up. That said, it’s important to note that although quitting can be seen as a negative thing, it can also be the Sacral center protecting yourself from wasting your time, resources, and valuable life force energy.
+Với Generator, điều đó nghĩa là giảm bớt sự thất vọng (frustration) do cố khởi xướng hay ép buộc mọi thứ. "Frustration" là chủ đề Not-Self (phi thân) của Generator và có thể là dấu hiệu báo sớm rằng một người đang không hòa nhịp với cuộc sống, đang dính vào công việc, người hay tình huống sai. Generator thường rơi vào hoàn cảnh này vì thiếu kiên nhẫn, quyết định bằng cái đầu, và ảnh hưởng của người khác. Trong những tình huống ấy, sinh lực của một người không hòa nhập hoặc không gắn hết vào thực tế đang diễn ra, dẫn đến frustration và kiệt sức, cuối cùng là bỏ cuộc. Nói vậy thôi, cần lưu ý rằng dù bỏ cuộc có thể bị xem là điều tiêu cực, đôi khi đó chính là trung tâm Sacral bảo vệ bạn khỏi lãng phí thời gian, nguồn lực và năng lượng sinh lực quý giá.
 
-On the other hand, the Sacral center provides reliable energy and staying power when the gut’s response is “yes”. Generators are said to have an energetic Signature of “Satisfaction”. This is a feeling of energy well-spent on work that is meaningful or done from a place of love. The experience can still be difficult or challenging, but even so, there is the sense that it was worthwhile. The key here is waiting to respond, and only engaging when there is an energetic gut-level “yes”, a feeling of being “turned on” as though your energy comes alive in relation to something you encounter. It can often feel like a natural rise of energy inside you that wants to engage.
+Mặt khác, trung tâm Sacral mang lại năng lượng bền và sức chịu đựng đáng tin cậy khi phản hồi của ruột là "có". Người ta nói Generator có Signature (chữ ký năng lượng) là **Sự thỏa mãn (Satisfaction)** — cảm giác năng lượng được tiêu xài trọn vẹn cho công việc có ý nghĩa hoặc được làm từ nơi của tình yêu. Trải nghiệm vẫn có thể khó khăn, thử thách, nhưng dù vậy vẫn có cảm giác nó xứng đáng. Yếu tố then chốt là chờ để phản hồi, và chỉ tham gia khi có một "có" cấp độ ruột-kinh-tế, một cảm giác được "bật dậy" như thể năng lượng của bạn sống lại trước điều gì đó bạn gặp. Thường đó như một đợt năng lượng dâng lên tự nhiên bên trong, muốn được tham gia.
 
-As tough as it can be to “wait” when it seems nothing is happening or there is nothing to respond to, the truth is that life is constantly happening around you. Someone asks you a question, you receive an email, or something more subtle, such as seeing a sign on the road. All of these are examples of experiences that could elicit a response in the Sacral center, where your body feels naturally moved to engage rather than pressured to work. If you are not getting a strong sacral response at a given time, it probably means there is nothing to do but continue waiting until you feel a response.
+Dù "chờ" có thể khó thế nào khi dường như chẳng có gì xảy ra hay chẳng có gì để phản hồi, thì sự thật là cuộc sống luôn diễn ra quanh bạn. Ai đó hỏi bạn một câu, bạn nhận một email, hoặc điều gì đó tinh tế hơn như thấy một biển báo trên đường. Tất cả đều là những trải nghiệm có thể khơi gợi phản hồi từ trung tâm Sacral — nơi cơ thể bạn tự nhiên muốn tham gia thay vì bị ép phải làm việc. Nếu tại thời điểm nào đó bạn không có phản hồi Sacral mạnh, khả năng là chưa có gì để làm, trừ khi tiếp tục chờ cho đến khi bạn cảm nhận được phản hồi.
 
-Yet, I sometimes hear from many Generators that even after years, they still struggle with their Sacral response. My sense is that they may still be operating from the mind rather than listening to/honoring their Sacral response. The mind interferes with the response by coming up with ideas about what you should do, what someone else wants you to do, or what would produce a certain outcome.
+Tuy vậy, tôi nhiều khi nghe các Generator kể rằng kể cả sau nhiều năm, họ vẫn vật lộn với phản hồi Sacral của mình. Cảm nhận của tôi là họ có thể vẫn đang vận hành từ cái đầu thay vì lắng nghe/ôn trọng phản hồi Sacral. Cái đầu can thiệp vào phản hồi bằng cách nảy ra những ý nghĩ về việc bạn nên làm, việc người khác muốn bạn làm, hay việc gì sẽ cho ra kết quả nào đó.
 
-What also happens is that a Generator will get tired of waiting and feel like they should do something, so they’ll accept or start something that isn’t aligned with who they are or that the circumstances do not actually support. When you try to force something based on mental reasons or justifications, there is a disconnect from the place where you could feel into your response. In other words, you become already engaged in an activity that the mind probably got you into, and there’s no space to actually respond.
+Điều cũng xảy ra là một Generator sẽ chán chờ và cảm thấy mình phải làm gì đó, nên họ chấp nhận hay bắt đầu một thứ không khớp với con người họ, hay hoàn cảnh thực ra không hỗ trợ. Khi bạn ép buộc điều gì đó vì lý do hay sự biện minh của cái đầu, bạn đứt kết nối khỏi nơi bạn có thể cảm nhận phản hồi của mình. Nói cách khác, bạn đã tham gia vào một hoạt động mà cái đầu lôi bạn vào, và không còn không gian để thực sự phản hồi.
 
-So what to do?  Well, you can stop and wait, and you may find that that space opens up again. In that space, it becomes possible to see the mind and its thought patterns and feel into life in a more experiential way. You can feel into what is actually happening. If you can find something that you can engage with in a way that lights you up and feels alive and invigorated, you can experience the way your generative life-force wants to be expressed. Sacral energy is designed to work for the pleasure and satisfaction of it.
+Vậy làm gì? Vâng, bạn có thể dừng lại và chờ, và bạn sẽ thấy không gian đó mở ra trở lại. Trong không gian đó, việc nhận ra cái đầu và các khuôn mẫu tư duy của nó trở nên khả thi, và bạn cảm nhận cuộc sống theo cách trải nghiệm nhiều hơn. Bạn cảm nhận điều thực sự đang diễn ra. Nếu tìm được thứ để tham gia theo cách làm bạn bừng sáng, thấy sống động và tràn đầy năng lượng, bạn sẽ trải nghiệm cách sinh lực tạo sinh của mình muốn được biểu hiện. Năng lượng Sacral được thiết kế để làm việc vì niềm vui và sự thỏa mãn của chính nó.
 
-### Sacral Authority
+### Uy quyền Sacral (Sacral Authority)
 
-“If you want to practice getting your sacral voice moving then having someone ask you y/n questions will help you with exercising those muscles and noticing – but its not actual decision making. You can’t arbitrarily ask someone to ‘ask me if I want to be a gardener’ and get an actual sacral response. It’s a hypothetical question…Now if you see an ad for a gardener position, and you have someone ask you “Do I have the energy to apply for this job” – then you can get an actual response. Don’t confuse the mind’s desires with life actually knocking on your door – one takes place in actual experience, and the other is imaginary.”
+"Nếu bạn muốn luyện cho tiếng nói sacral của mình nói được, hãy nhờ ai đó hỏi bạn các câu có/khó — điều đó giúp bạn tập các 'cơ bắp' đó và nhận ra chúng — nhưng đó không phải ra quyết định thực sự. Bạn không thể tùy tiện bảo ai đó 'hỏi xem tôi có muốn làm vườn không' và nhận được phản hồi sacral thật. Đó là câu hỏi giả định... Giờ nếu bạn thấy một quảng cáo tuyển làm vườn, và ai đó hỏi bạn 'Tôi có đủ năng lượng để ứng tuyển công việc này không' — khi đó bạn có thể nhận được phản hồi thực sự. Đừng nhầm khao khát của cái đầu với cuộc sống thực sự gõ cửa bạn — cái này xảy ra trong trải nghiệm thực, cái kia là tưởng tượng."
 
 _– Leela Swann-Herbert_
 
-All Generators have a defined Sacral center and a Strategy of “waiting to respond”. However, “Sacral Authority” applies only to Generators who **do not** have a defined Solar Plexus center (for those with a defined Solar Plexus, please also see our recent article on Emotional Truth). Having Sacral Authority means that your inner source of truth is rooted deep in your body, in its energetic gut response to life. That gut response is a “yes” or “no” response.
+Tất cả Generator đều có trung tâm Sacral định nghĩa và Chiến lược "chờ để phản hồi". Tuy nhiên, "Uy quyền Sacral (Sacral Authority)" chỉ áp dụng cho Generator **không** có trung tâm đám rối mặt dương (Solar Plexus) định nghĩa (với ai có Solar Plexus định nghĩa, xem thêm bài gần đây của chúng tôi về Sự thật cảm xúc). Có Uy quyền Sacral nghĩa là nguồn sự thật bên trong của bạn bén rễ sâu trong cơ thể, trong phản hồi cấp ruột (gut response) trước cuộc sống. Phản hồi ruột đó là phản hồi "có" hoặc "không".
 
-This is not instinct or intuition (both found in the Splenic center) nor the feelings or emotions (from the Solar Plexus). In fact, the Sacral center is simply a motor. This means that the Sacral center does not have awareness in itself (as the Spleen, Ajna, and Solar Plexus do) and that it responds energetically or not. The response is a rising or movement of energy toward or away from what one encounters, and is your body’s way of affirming or denying that something is correct to engage in or not. In some ways, it is the simplest and most direct inner authority, though it is often not easy because it is uncompromising and does not provide reasons for its responses.
+Đây không phải bản năng hay trực giác (cả hai nằm ở trung tâm Lách/Spleen), cũng không phải cảm xúc hay tình cảm (từ Solar Plexus). Thực chất, trung tâm Sacral chỉ là một động cơ. Nghĩa là Sacral không có nhận thức trong chính nó (như Lách, Ajna và Solar Plexus), mà phản hồi bằng năng lượng hoặc không. Phản hồi là sự dâng lên hay chuyển động của năng lượng tới hoặc tránh khỏi điều một người gặp, và là cách cơ thể bạn xác nhận hay phủ nhận một điều có đúng để tham gia hay không. Theo cách nào đó, đây là uy quyền bên trong đơn giản và trực tiếp nhất, tuy thường không dễ vì nó không thỏa hiệp và không giải thích lý do cho các phản hồi của nó.
 
-This energetic response is often rooted in what are called “Sacral Sounds”. These are guttural sounds originating from deep inside your body, but have been conditioned out of most of us at an early age by our parents, peers, and educational systems, as they were thought to be inappropriate or impolite. For example, it is common to hear Generators in touch with their Sacral response murmuring or grunting “ah-hunh” for yes, “un-un” for no, and “hmmm” for “I don’t know”. This is your body’s way of telling you whether something is right for you, yet the mind is quick to overrule or question it.
+Phản hồi năng lượng này thường bắt rễ từ thứ gọi là "Âm thanh Sacral (Sacral Sounds)". Đó là những âm thanh phát ra từ sâu trong cơ thể, nhưng phần lớn chúng ta đã bị "tẩy ra" từ nhỏ bởi cha mẹ, bạn bè và hệ thống giáo dục, vì bị cho là thô hay bất lịch sự. Ví dụ, thường nghe các Generator gắn với phản hồi Sacral thì thầm hay gừ gừ "uh-huh" (ừ) cho có, "un-un" (không) cho không, và "hmmm" cho "tôi không biết". Đó là cách cơ thể bạn báo cho bạn biết điều gì có đúng với bạn, nhưng cái đầu nhanh chóng gạt đi hoặc chất vấn nó.
 
-To be sure, the Sacral center as an Inner Authority for decision-making is a little different than waiting to see what life puts in front of you. The Sacral Authority often requires a “yes” or “no” question coming in from outside one’s aura and is specific to a particular circumstance or set of conditions. It’s common to have different responses (or no response) coming from the Sacral to a general question of “where do you want to work,” while a more specific question of “do you want to accept a job as a Project Manager at Company XYZ?” might elicit a more specific and noticeable response.
+Cần nói rõ: Sacral làm Uy quyền bên trong để ra quyết định có hơi khác so với việc chờ xem cuộc sống đặt gì trước mặt. Uy quyền Sacral thường cần một câu "có" hoặc "không" đến từ bên ngoài aura của bạn và gắn với một hoàn cảnh hay tập hợp điều kiện cụ thể. Thường thì Sacral cho các phản hồi khác nhau (hay không phản hồi) với câu hỏi chung chung "bạn muốn làm việc ở đâu", trong khi câu hỏi cụ thể hơn "bạn có muốn nhận việc làm Project Manager ở Công ty XYZ không?" có thể khơi phản hồi cụ thể và dễ nhận hơn.
 
-When you are able to engage with life directly and move when and where your Sacral Authority takes you, there’s no longer a need for an intermediary or outside authority (like a guru, priest, teacher, or set of rules) when it comes to what is correct for you. It may be helpful at times to receive guidance from others who are in tune with you, but you have a direct relationship with life as it is, and everything you need is in that.
+Khi bạn có thể tiếp xúc trực tiếp với cuộc sống và chuyển động theo nơi Uy quyền Sacral đưa bạn đi, bạn không còn cần người trung gian hay uy quyền bên ngoài (như guru, thầy tu, giáo viên, hay một bộ quy tắc) nữa khi nói về điều gì đúng với bạn. Đôi khi có thể hữu ích khi nhận hướng dẫn từ những người hòa nhịp với bạn, nhưng bạn có quan hệ trực tiếp với cuộc sống như nó vốn vậy, và mọi thứ bạn cần đều ở trong đó.
 
-It comes back to listening to and trusting your body, and responding to what life puts in front of you rather than to what you think you need to do or should happen. The mind constantly tells us we should be something we’re not, rather than what we actually are.  Truly following a Sacral response requires a kind of surrender to the body’s intelligence, which challenges the mind’s sense of control over the outcome.
+Mọi thứ quay về việc lắng nghe và tin cơ thể, và phản hồi với những gì cuộc sống đặt trước mặt thay vì những gì bạn nghĩ mình cần làm hay nên xảy ra. Cái đầu liên tục nói chúng ta nên là thứ chúng ta không phải, thay vì thứ chúng ta thực sự là. Theo đúng phản hồi Sacral đòi hỏi sự buông bỏ vào trí tuệ của cơ thể — điều thách thức cảm giác kiểm soát kết quả của cái đầu.
 
-### Sacral Authority vs. The Mind
+### Uy quyền Sacral đối với Cái đầu
 
-While the Sacral center is designed to be a perfect navigation system, ready to handle any situation or challenge, it does not provide reasons or rationale for why it engages or not. It is simply the intelligence of the form protecting itself and providing direction for the next step forward.
+Trong khi trung tâm Sacral được thiết kế như một hệ thống điều hướng hoàn hảo, sẵn sàng xử lý mọi tình huống hay thử thách, nó không đưa ra lý do hay lập giải thích vì sao nó tham gia hay không. Đơn giản đó là trí tuệ của thân thể (form) tự bảo vệ mình và chỉ hướng cho bước tiếp theo.
 
-As a result, it’s not uncommon to hear of Generators struggling to distinguish the Sacral response from the workings of the mind. So how do you know what is a true Sacral response and what is not? Here’s an overview of some of the distinguishing factors between responding from the Sacral Authority and initiating from the mind.
+Hậu quả là, không hiếm nghe Generator vật lộn để phân biệt phản hồi Sacral với hoạt động của cái đầu. Vậy làm sao biết đâu là phản hồi Sacral thật và đâu không? Sau đây là tổng hợp một số yếu tố phân biệt giữa phản hồi từ Uy quyền Sacral và khởi xướng từ cái đầu.
 
-**A Sacral response is:**
+**Phản hồi Sacral là:**
 
-- A direct response to a question coming from outside your aura
-- Binary in nature: “yes” or “no”
-- An embodied energetic resonance that lights you up or not
-- A physical or energetic movement towards or away from something
-- Often accompanied by guttural sounds of “ah-hunh” for yes, “un-un” for no, and “hmmm” for “I don’t know”
-- Operates in the present moment, in response to something experiential rather than theoretical
+- Phản hồi trực tiếp với một câu hỏi đến từ bên ngoài aura của bạn
+- Theo bản chất nhị phân: "có" hay "không"
+- Một cộng hưởng năng lượng trong thể xác làm bạn bừng lên hoặc không
+- Một chuyển động vật lý hoặc năng lượng tới hoặc tránh khỏi điều gì
+- Thường kèm theo âm thanh gừ gừ "uh-huh" cho có, "un-un" cho không, "hmmm" cho "tôi không biết"
+- Vận hành trong hiện tại, phản hồi với trải nghiệm thực chứ không phải lý thuyết
 
-**Initiating from the mind is:**
+**Khởi xướng từ cái đầu là:**
 
-- Often lacking physical energy and/or movement
-- Requires excessive effort to motivate action
-- Accompanied by a mental dialogue such as “I should do this” or “this is how it works”
-- Comes with anxiety or concern about the past or future
-- Not grounded in the present experience of what is actually happening
-- Results in frustration, meaningless exhaustion, and giving up
+- Thường thiếu năng lượng vật lý và/hoặc chuyển động
+- Cần nỗ lực quá mức để tạo động lực hành động
+- Kèm theo cuộc đối thoại nội tâm như "mình nên làm cái này" hay "cách này mới đúng"
+- Đi kèm lo lắng hay bận tâm về quá khứ hay tương lai
+- Không bám vào trải nghiệm hiện tại của điều thực sự đang xảy ra
+- Dẫn đến frustration, kiệt sức vô nghĩa, và bỏ cuộc
 
-The mind doesn’t know how to give us the life we’re here for, but the Generator body does and is built for it. When the mind engages in decision-making, you may find yourself saying “yes” to things your energy can’t sustain, leading to frustration and quitting. And if the Sacral response is consistently ignored, even Generators can find themselves exhausted and lifeless, with a range of physical problems cropping up.
+Cái đầu không biết cách mang lại cho chúng ta cuộc sống mà chúng ta đến đây để sống, nhưng cơ thể Generator thì biết và được dựng cho điều đó. Khi cái đầu tham gia ra quyết định, bạn có thể nhận ra mình nói "có" với những thứ năng lượng không thể duy trì, dẫn đến frustration và bỏ cuộc. Và nếu phản hồi Sacral bị phớt lờ thường xuyên, ngay cả Generator cũng có thể kiệt sức và không còn sinh lực, với loạt vấn đề thể chất nảy sinh.
 
-### The Challenge and the Experiment
+### Thử thách và thực nghiệm
 
-The Sacral response is an embodied energetic movement towards or away from whatever life puts in front of you. It is not intellectual, logical, or even negotiable. It is your body’s way of meeting “what is”. Therefore, it can be quite challenging for the mind to accept why you may or may not want to engage in something.
+Phản hồi Sacral là một chuyển động năng lượng trong thể xác tới hoặc tránh khỏi bất cứ điều gì cuộc sống đặt trước mặt bạn. Nó không phải trí thức, không phải logic, thậm chí không thể thương lượng. Đó là cách cơ thể bạn đối diện với "cái đang là". Vì thế, cái đầu có thể gặp khó khi chấp nhận vì sao bạn có thể muốn hoặc không muốn tham gia vào điều gì.
 
-It can also be difficult for others to understand when your response does not align with their expectations for you or the relationship. It can seem stubborn or uncompromising when your energy does not respond in these situations, but it is your body’s way of protecting you from the experiences that are not correct for you and your purpose for being here.
+Cũng khó cho người khác hiểu khi phản hồi của bạn không khớp với kỳ vọng của họ dành cho bạn hay cho mối quan hệ. Có vẻ cứng đầu hay không khoan nhượng khi năng lượng của bạn không phản hồi trong những tình huống đó, nhưng đó là cách cơ thể bạn bảo vệ bạn khỏi những trải nghiệm không đúng với bạn và sứ mệnh hiện hữu của bạn.
 
-When the Sacral response is honored, it will guide you into the relationships and situations that will allow your true creative power to be expressed. However, following one’s Strategy of “waiting to respond” and making decisions based on the Sacral response can be a huge leap of faith for many.
+Khi phản hồi Sacral được tôn trọng, nó sẽ dẫn bạn vào các mối quan hệ và tình huống cho phép sức mạnh sáng tạo thật của bạn được biểu hiện. Tuy nhiên, theo Chiến lược "chờ để phản hồi" và ra quyết định dựa trên phản hồi Sacral có thể là cú nhảy đức tin lớn với nhiều người.
 
-The 7-Centered strategic-minded way of navigating the world is still deeply embedded in our culture. We do not have to look very far to find countless examples of Generators being conditioned to be Manifestors and being told, most of our lives, that if we want something to happen, we need to form a plan, execute on it, and go do it. We’ve been conditioned to believe that thinking results in action and is a viable means of controlling what happens in our lives.
+Cách tiếp cận thế giới mang tư duy chiến lược của người Thất trung tâm (7-Centered) vẫn ăn sâu trong văn hóa chúng ta. Không cần nhìn xa cũng thấy vô số ví dụ Generator bị điều kiện hóa thành Manifesting, và bị nói suốt đời rằng nếu muốn điều gì xảy ra, ta cần lập kế hoạch, thực thi, và đi làm cho bằng được. Chúng ta bị điều kiện hóa để tin rằng tư duy dẫn đến hành động và là phương tiện khả thi để kiểm soát những gì xảy ra trong cuộc sống.
 
-While some of the scripts and formulas that we’ve been given about how to be happy or successful have value, they are based on how something worked for another person and may not always be appropriate for the next person. These scripts and narratives also seem to keep us in our heads and out of our lived experience, ultimately resulting in a high level of frustration and dissatisfaction on this planet.
+Một số kịch bản và công thức được trao về cách hạnh phúc hay thành công có giá trị nhất định, nhưng chúng dựa trên cách điều gì đó hiệu quả với người khác và có thể không phù hợp với người tiếp theo. Những kịch bản và câu chuyện này cũng có vẻ giữ chúng ta trong đầu, xa rời trải nghiệm sống, cuối cùng dẫn đến mức độ cao của frustration và bất mãn trên hành tinh này.
 
-It can be a deeply relieving experience when the Sacral Generator realizes that they already have everything they need inside. The open and enveloping Generator aura is designed to draw life to you, and by following your Strategy of “waiting to respond,” you may find that you have many more opportunities to respond than what the mind thinks is possible. When the mind can finally begin to relax its grip on your life and take a back seat to the innate intelligence of the body, you can receive life as it is, moment by moment, where the correct experiences arise effortlessly. It’s a process of giving up what you _think_ is best for you, in order to let life provide you with its own guidance.
+Đó có thể là trải nghiệm nhẹ nhõm sâu sắc khi Sacral Generator nhận ra họ đã có mọi thứ cần bên trong. Aura Generator mở và bao trùm được thiết kế để kéo cuộc sống về phía bạn, và bằng cách theo Chiến lược "chờ để phản hồi", bạn có thể thấy mình có nhiều cơ hội phản hồi hơn cái đầu cho là khả thi. Khi cái đầu cuối cùng nới lỏng nắm đấm trên cuộc sống bạn và lùi lại trước trí tuệ bẩm sinh của cơ thể, bạn có thể đón nhận cuộc sống như nó đang là, từng khoảnh khắc, nơi các trải nghiệm đúng đắn tự nhiên xuất hiện. Đó là quá trình buông bỏ thứ bạn _nghĩ_ là tốt nhất cho mình, để cuộc sống tự mang đến hướng dẫn của nó.
 
-It’s not about waiting to be led or controlled; rather, it’s waiting for inspiration. The inspiration of what to respond to; something that is truly aligned with who you are and your purpose within the totality. In the old world, the Generators were said to be the slaves whose energy was used to benefit those in positions of authority. However, you now have the possibility to honor the life force within you and lead a deeply engaged and satisfying life that is unique to you.
+Không phải chờ để được dẫn dắt hay kiểm soát; đúng hơn là chờ cảm hứng. Cảm hứng về điều gì để phản hồi; điều gì thực sự khớp với con người bạn và vai trò của bạn trong toàn thể. Trong thế giới cũ, người ta nói Generator là nô lệ, năng lượng của họ bị dùng để lợi cho những người ở vị trí quyền lực. Nhưng giờ bạn có khả năng tôn trọng sinh lực bên trong và sống một đời gắn kết sâu sắc, thỏa mãn, độc nhất cho bạn.
 
-The fundamental Generator question is “Who am I for myself?” or better yet, “How am I using my energy for myself?” This may sound selfish to some, but it is grounded in deep self-love and acceptance, and ultimately benefits everyone when that kind of love and awareness is radiating out into the world through the Generator aura. It is the question that can take the Generator deeper into their unique experiment of awakening, and ultimately be guided through life by the body’s wisdom without the need to think to make decisions.
+Câu hỏi căn bản của Generator là "Tôi là ai cho chính mình?" hay đúng hơn, "Tôi đang dùng năng lượng của mình cho chính mình như thế nào?" Nghe có thể ích kỷ với vài người, nhưng nó bám rễ trong tình yêu bản thân sâu sắc và chấp nhận, và cuối cùng có lợi cho tất cả khi loại tình yêu và nhận thức ấy tỏa ra thế giới qua aura Generator. Đó là câu hỏi đưa Generator sâu hơn vào thực nghiệm thức tỉnh độc đáo của mình, và cuối cùng được dẫn qua đời bằng trí tuệ của cơ thể mà không cần tư duy để ra quyết định.
