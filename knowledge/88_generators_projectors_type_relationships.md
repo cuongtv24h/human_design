@@ -1,173 +1,174 @@
-# Generators, Projectors and Type Relationships
+# Generator, Projector và Quan hệ theo Type (Generators, Projectors and Type Relationships)
 
 > **Nguồn:** Human Design Collective — John Cole, 15/07/2020.
 > URL: https://humandesigncollective.com/generators-projectors-and-type-relationships/
-> Crawl: 2026-09-29 — toàn văn bài gốc (giữ credit tác giả), dùng nội bộ cho kho tri thức.
+> Crawl: 2026-09-29 — bản gốc tiếng Anh lưu tại `knowledge/ref_en/88_generators_projectors_type_relationships.md`.
+> Bản dịch tiếng Việt: giữ nguyên cấu trúc & credit tác giả, thuật ngữ chuyên môn giữ song ngữ.
 
-Sometimes the most profound things are right in front of you in Human Design. Where something that would be easy to take for granted reveals itself as fundamental and obvious.
+Đôi khi thứ sâu nhất nằm ngay trước mặt bạn trong Human Design. Nơi thứ dễ xem là đương nhiên tự lộ ra như nền tảng và hiển nhiên.
 
-The Human Design System has its own language, and like any other system, the entry point is often conceptual as we start by naming and typing things. However, the magic happens when we are able to relate what seem like intellectual and abstract concepts to our direct experience of what is actually happening. Then we might see that all of these words are describing something more fundamental in the underlying mechanics of the way things work.
+Hệ thống Human Design có ngôn ngữ riêng — và như hệ khác — điểm vào thường khái niệm khi ta bắt đầu đặt tên và phân loại. Nhưng phép thuật xảy ra khi ta liên hệ các khái niệm tưởng-trí-học và-trừu-tượng với trải nghiệm trực tiếp cái thật đang xảy ra. Rồi ta thấy các từ này đang mô tả thứ nền tảng hơn trong cơ học ẩn của cách thứ hoạt động.
 
-Amy and I recently had a conversation looking at and discussing the protocols of interaction across different Types and within the same Type. It was for us, a deeper realization of the importance of surface concepts, so we’ve transcribed and edited the conversation here.
+Amy và tôi gần đây có cuộc trò chuyện xem và thảo luận các protocol tương tác giữa các Type khác nhau và trong cùng Type. Với chúng tôi — đó là nhận ra sâu hơn tầm quan trọng của các khái niệm bề mặt — nên chúng tôi biên tập cuộc trò chuyện ở đây.
 
 **John:**
 
-You mentioned that you’ve been noticing that those protocols of interaction may not apply the same way when you’re dealing with Type to Type relationships or interactions. What are you seeing?
+Bạn nói bạn để ý các protocol tương tác này có thể không áp dụng cùng cách khi bạn xử quan hệ hay tương tác Type với Type. Bạn thấy gì?
 
 **Amy:**
 
-Yes, some Human Design teachers say that the protocols for Strategy for each of the Types are most necessary when you’re dealing with someone who is not of your same Type. And, there does seem to be something interesting that happens when you’re interacting with someone of your same Type, where the standard strategy protocols don’t apply in the same way.
+Vâng — vài thầy Human Design nói các protocol Chiến lược với mỗi Type cần nhất khi xử người không cùng Type. Và — dường như có thứ thú vị xảy ra khi tương tác người cùng Type — nơi các protocol chiến lược chuẩn không áp dụng cùng cách.
 
-This is also interesting to consider as we’re approaching 2027. Ra Uru Hu was highlighting the fact that we would be moving into an era when we would be more drawn to resonance, likeness, and similarity. And in that, there seems to be a different set of mechanics going on.
+Điều này cũng thú vị cân khi ta tới 2027. Ra Uru Hu nhấn fact ta sẽ bước vào kỷ nguyên nơi ta bị hút nhiều hơn vào cộng hưởng — tương đồng — và giống. Và trong đó — dường như có bộ cơ học khác đang diễn.
 
-So like you said, all of the Human Design information can be held as a bunch of intellectual concepts, but it’s really fascinating when it dawns on you in the midst of an experience that you’re having, especially in relationship or the material reality, where you realize this system is actually describing the underlying invisible forces that are at play in everything we’re experiencing in the material world, they are the mechanics of the Maya. And those are not just words. It’s a mechanical, energetic reality describing what’s actually happening.
+Nên như bạn nói — mọi thông tin Human Design có thể giữ như bunch khái niệm trí-học — nhưng thật fascinating khi nó dawn với bạn giữa trải nghiệm — đặc biệt trong quan hệ hay thực tại vật chất — khi bạn nhận ra hệ này thật sự mô tả các lực ẩn-được-đang-chơi trong mọi thứ ta trải trong thế giới vật chất — đó là cơ học của Maya. Và chúng không chỉ là từ. Nó là thực tại cơ học — năng lượng — mô tả cái thật đang xảy ra.
 
-So you might say if you’re looking at a Projector and a Generator, for example, that it is a very specific mechanical dynamic that serves a very interesting function based on what Ra said. That the Projector/Generator partnership interaction is the core of a successful Penta. The core of a successful small group or successful family is this interaction between the life force energy of the Generator and the awareness and guidance of the Projector. It doesn’t mean a Projector doesn’t have any energy nor that a Generator doesn’t have any awareness. But there is a protocol and a mechanical nature to the roles that those two types play together.
+Nên bạn có thể nói nếu xem Projector và Generator — ví dụ — đó là động lực cơ học rất cụ thể phục chức năng rất thú vị theo Ra nói. Tương tác hợp tác Projector/Generator là lõi của Penta thành công. Lõi của nhóm nhỏ thành công hay gia đình thành công là tương tác giữa sinh lực của Generator và nhận thức và hướng dẫn của Projector. Nó không nghĩa Projector không có năng lượng hay Generator không có nhận thức. Nhưng có protocol và bản chất cơ học các vai hai type này chơi cùng nhau.
 
-> The dilemma for the Projector is because they are so disturbed by being a non-energy Type, one of the difficult things for them to do is ask for energy instead of taking it. So there is a basic struggle between the Projector and the Generator. It’s interesting to note— the discussions I have with professionals over the years—there is almost a level of distaste that is expressed by Generators for Projectors and Projectors in return for Generators. There is a dilemma in their relationship.
+> Cái khó với Projector là vì họ bị xáo trộn bởi việc là Type không-năng-lượng — một trong các việc khó với họ là xin năng lượng thay vì lấy. Nên có cuộc đấu cơ bản giữa Projector và Generator. Thú vị lưu ý — các thảo luận tôi với chuyên gia nhiều năm — có gần như mức distaste được thể hiện bởi Generator với Projector và Projector đổi lại với Generator. Có cái khó trong quan hệ họ.
 >
 > – Ra Uru Hu
 
-In addition, there can be an underlying discomfort or limit to what the interaction can be based on the differences of what is natural to each type. If you consider the simple aura description for each of these most common types, the Generator aura is full, open and enveloping. The Projector aura is deeply absorbing and penetrating. While there can be a lock and key dynamic, the difference in energetic nature can feel unsettling. Most importantly, it is no one’s fault.
+Thêm — có thể có khó chịu nền hay giới hạn cho tương tác dựa sự khác biệt cái tự nhiên mỗi type. Nếu cân mô tả aura đơn giản với các type phổ biến nhất này — aura Generator đầy — mở và bao. Aura Projector hấp sâu và xuyên. Mặc dù có thể có động lực khóa-và-chốt — khác biệt bản chất năng lượng có thể cảm gây bất an. Quan trọng nhất — không lỗi ai.
 
 **John:**
 
-What kind of things have you seen and experienced in the Generator to Projector interactions in your life? Like what works best and what doesn’t seem to work as well?
+Các thứ bạn thấy và trải trong tương tác Generator với Projector trong đời bạn? Như thứ gì chạy tốt và thứ gì dường như không chạy tốt bằng?
 
 **Amy:**
 
-It feels to me like the Projector/Generator dynamic serves a very particular purpose and a function, especially when you’re looking at it in the context of a small group, family dynamic, or small business for a particular goal or project. But when you’re looking at the value and the experience of the relationship in and of itself, it’s an interesting thing. We’re in a time right now, where I’m seeing more and more people are being drawn toward their own Type in terms of relationship for the sake of connection.
+Nó cảm với tôi như động lực Projector/Generator phục mục đích particular và chức năng — đặc biệt khi xem trong bối cảnh nhóm nhỏ — động lực gia đình — hay doanh nghiệp nhỏ cho mục đích hay dự án particular. Nhưng khi xem giá trị và trải nghiệm chính quan hệ — nó thú vị. Ta ở lúc hiện tại — nơi tôi thấy ngày càng nhiều người bị hút về type riêng về quan hệ vì kết nối.
 
 **John:**
 
-It seems like there’s a sort of ease or comfort within the Type to Type relationships, while there’s an inherent disconnect across Type that is pointing to a fundamental energetic difference in one’s orientation to life. For example, the Generator is here to use their energy by being busy, creating, producing, or maintaining – or in other words, relating through activity. A Projector is not really built for that in such a consistent way, rather they are oriented towards developing their awareness and seeing the other. Projectors are by design, aurically very focused on the other, and seem to go into relationship looking to be still and go deep.
+Dường như có loại ease hay thoải trong quan hệ Type với Type — trong khi có disconnect nền-với-nhau xuyên Type chỉ sự khác biệt năng lượng nền-tảng trong hướng đời. Ví dụ — Generator đến dùng năng lượng bằng cách bận — tạo — sản xuất — hay duy trì — hay cách khác — quan hệ qua hoạt động. Projector không thật được xây cho điều đó nhất quán — thay họ hướng phát triển nhận thức và thấy người. Projector by design — aura rất tập trung vào người — và dường như vào quan hệ tìm sự tĩnh và đi sâu.
 
-> You have to see that there are fundamental, deep differences between the physical Types. Now, there are some potentials. For example, the vast majority of humanity is either Generators or Projectors. That’s just the story. Somewhere around 90%, nine out of every ten people you’re either going to be a Generator or you’re going to be a Projector. I know that mystically there is a very profound relationship between the Generator and the Projector. That it is the very basis of the underlying potential of humanity to be transformed. They have a very special connection to each other.
+> Bạn phải thấy có sự khác biệt nền-tảng — sâu giữa các Type vật lý. Giờ — có vài tiềm năng. Ví dụ — đa số nhân loại là Generator hay Projector. Đó chỉ là story. Khoảng 90% — chín phần mười người — bạn sẽ là Generator hay Projector. Tôi biết về huyền học có quan hệ rất sâu giữa Generator và Projector. Nó chính là nền tảng của tiềm năng ẩn nhân loại để chuyển hóa. Họ có kết nối rất đặc biệt với nhau.
 >
 > – Ra Uru Hu
 
-At the same time, we’re a social species and everyone needs some level of connection, however, a Generator might go into a relationship to do things with the other, having a companion as they go through life using their energy. This may seem like kind of a subtle distinction to make, but I think in practice, this can be actually a very big thing in any Generator/Projector relationship. The bottom line is that each Type is just wired differently and what works for one may not work as well for the other.
+Cùng lúc — ta là loài xã hội và mọi người cần mức kết nối — nhưng Generator có thể vào quan hệ để làm thứ với người — có bạn đồng hành khi đi qua đời dùng năng lượng. Nghe như biệt nhỏ — nhưng tôi nghĩ thực tế đây có thể là chuyện rất lớn trong bất kỳ quan hệ Generator/Projector. Bottom line là mỗi Type chỉ wired khác và thứ chạy cho người này có thể không chạy tốt cho người kia.
 
 **Amy:**
 
-There’s definitely a mechanical dynamic reality in our interactions. Ra said that Generators are inherently uncomfortable with the Projector aura. This is probably happening on an unconscious and purely energetic level. That is unless it’s serving that particular purpose in a moment where a Generator is feeling that they’re having a natural response to the Projector aura.
+Chắc chắn có thực tại động lực cơ học trong tương tác. Ra nói Generator vốn không thoải với aura Projector. Điều này có lẽ xảy ra ở cấp tiềm thức và thuần năng lượng. Tức — trừ khi phục mục đích particular lúc Generator cảm mình có phản hồi tự nhiên với aura Projector.
 
-The Generator has this open enveloping aura, and it’s most comfortable with something that functions in a similar way. There’s a warm quality to it. You put an open enveloping or responsive aura in the presence of a more compact absorbing and penetrating Projector aura and you don’t feel the same level of comfort.
+Generator có aura mở bao — và thoải nhất với thứ hoạt động tương tự. Có chất ấm. Bạn đặt aura mở bao hay responsive vào hiện diện aura Projector gọn hơn — hấp và xuyên — và bạn không cảm cùng mức thoải.
 
 **John:**
 
-You’re saying that the Generator might feel penetrated by the Projector or be uncomfortable with the intensity of their focus?
+Bạn nói Generator có thể cảm bị xuyên bởi Projector hay không thoải với intensity tập trung?
 
 **Amy:**
 
-Yes, they could feel intruded upon if it’s not invited. The Generator could feel pulled down into a depth that actually takes them out of activity, which interferes with their natural state. Of course, both types will have connection and activity in their lives. It’s more about which experience is more of the natural, consistent state for each type.
+Vâng — họ có thể cảm bị xâm nhập nếu không được mời. Generator có thể cảm bị kéo xuống chiều sâu thật sự đưa họ ra khỏi hoạt động — can thiệp trạng thái tự nhiên. Tất nhiên — cả hai type sẽ có kết nối và hoạt động trong đời. Nó nhiều hơn trải nghiệm nào là trạng thái tự nhiên — nhất quán với mỗi type.
 
 **John:**
 
-It could distract them in some way from whatever they’re doing and how they are using their energy. The Projector might come in looking for a certain depth of connection, recognition, and focus. They want to be seen. They want to really look at something together. And the Generator could be too busy or is just not interested in going there.
+Nó có thể phân tâm họ theo cách nào với thứ đang làm và cách dùng năng lượng. Projector có thể đến tìm chiều sâu kết nối — nhận ra — và tập trung. Họ muốn được thấy. Họ muốn thật nhìn thứ cùng. Và Generator có thể bận quá hay chỉ không quan tâm đi tới đó.
 
 **Amy:**
 
-Right, and it’s not that they can’t meet. But if you look at generally, where does a generator want to spend most of their time? A Generator naturally wants to spend most of its time expanding its energy and being engaged in satisfying activity. That’s their general natural state. There may be moments to pause to reflect and to just be still or whatever, but if you look at a Projector it’s going to be different.
+Đúng — và không phải họ không gặp được. Nhưng nếu xem generally — generator muốn dành phần lớn thời gian đâu? Generator tự nhiên muốn dành phần lớn thời gian mở rộng năng lượng và tham gia hoạt động thỏa. Đó là trạng thái tự nhiên generally. Có thể có moment nghỉ phản chiếu hay chỉ tĩnh hay gì — nhưng nếu xem Projector sẽ khác.
 
-The majority of the time, Projectors are more likely to enjoy being still, going deep into their awareness or deep into the relationship with the other. I often hear Projectors in relationship expressing that they just want their Generator partner to stop and be with them, sit still, and just be with them and see them. The important thing is that there is a depth of recognition and the other is with them in it.
+Phần lớn thời gian — Projector có vẻ enjoy khi tĩnh — đi sâu nhận thức hay đi sâu quan hệ với người. Tôi thường nghe Projector trong quan hệ nói chỉ muốn partner Generator dừng và ở cùng — ngồi tĩnh — và chỉ ở cùng và thấy họ. Điều quan trọng là có chiều sâu nhận ra và người ở cùng họ trong đó.
 
-On the other hand, most of the time I see Generators wanting to do things together. They don’t want to just sit and be still. There’s a certain balance of stillness and activity that’s normal for everyone. But there’s a difference in what’s home base to each Type.
+Mặt khác — phần lớn thời gian tôi thấy Generator muốn làm thứ cùng. Họ không muốn chỉ ngồi tĩnh. Có balance nhất định tĩnh và hoạt động bình thường với mọi người. Nhưng có khác biệt về nơi trở về với mỗi type.
 
 **John:**
 
-Yes, the general or overall orientation of the auric Type.
+Vâng — hướng geral hay tổng thể của type aura.
 
-Going back to connections of the same Type. Let’s say we have two Generators together. How do you see the Generators interacting differently amongst themselves in contrast to their interactions with Projectors? And what does that look like, the Generator to Generator relationship?
+Trở lại kết nối cùng type. Giả sử ta có 2 Generator cùng. Bạn thấy Generator tương tác khác thế nào với nhau so với tương tác với Projector? Và nó trông sao — quan hệ Generator với Generator?
 
 **Amy:**
 
-Well, I think that’s where you can really feel the difference in the mechanics. I see it in the Generators that are close to me, where it seems that they’re able to have a certain ease of interaction around their own activity. It’s almost like they understand each other unconsciously or mechanically.
+Ừ — tôi nghĩ đó nơi bạn thật sự cảm khác biệt cơ học. Tôi thấy ở các Generator gần tôi — nơi dường như họ có mức ease tương tác quanh hoạt động riêng. Gần như họ hiểu nhau tiềm thức hay cơ học.
 
-So if they’re interacting in the activity that they’re wanting to do, and it happens to coincide in a way that they can do something together, it just kind of flows along. And even if there’s not an opportunity to do it together, there’s still ease like, “Okay, you’re doing your thing over there and I’m doing my thing over here”.
+Nên nếu họ tương tác trong hoạt động muốn làm — và trùng cách họ làm thứ cùng — nó cứ trôi. Và dù không có cơ hội làm cùng — vẫn ease như "Được — bạn làm việc của bạn ở đó và tôi làm việc của tôi ở đây."
 
-When you bring a Projector into the picture, then you can feel the difference in the dynamic. The Projector is often waiting for recognition or wanting to feel access to the Generator energy. The Generator may be waiting or expecting the Projector to move with them as if they had a Sacral engine of their own. And that’s where the strategy protocol comes in.
+Khi bạn đưa Projector vào — bạn cảm khác biệt động lực. Projector thường đợi nhận ra hay muốn cảm truy cập năng lượng Generator. Generator có thể đợi hay mong Projector move với họ như thể có engine Sacral riêng. Và đó nơi protocol chiến lược vào.
 
-Then the dynamic between the Projector and Generator becomes “do you see me?” The Projector may be energetically waiting for recognition and an invitation, wanting access to the Generator’s energy in a way that they can guide the awareness, and in turn, the Generator also feels seen and valued in the relationship and appreciates the opportunity to respond.
+Rồi động lực Projector và Generator thành "bạn thấy tôi?" Projector có thể về năng lượng đợi nhận ra và lời mời — muốn truy cập năng lượng Generator theo cách họ hướng dẫn nhận thức — và đổi lại Generator cũng cảm thấy thấy và được giá trong quan hệ và trân trọng cơ hội phản hồi.
 
-> Projectors are not here to choose people mentally, and they are not here to spend five minutes with someone, just having a casual meeting that makes no difference for nobody…no! They’re here to have true connection to others, so they’re not here to easily engage with strangers at any serious level.
+> Projector không đến để chọn người bằng tâm trí — và không đến dành 5 phút với ai — chỉ meeting casual không khác gì cho ai… không! Họ đến có kết nối thật với người — nên không đến dễ tham gia người lạ ở mức nghiêm túc.
 >
-> But everything that is meant to last and make a difference for them has to follow a certain formality, there is a certain protocol that always needs to be there. That’s what waiting for the invitation is all about because that’s how they can know who has a natural role to play in their lives.
+> Nhưng mọi thứ định-ở-lâu và khác biệt với họ phải theo certain hình thức — có certain protocol luôn cần ở đó. Đó là_waiting lời mời_ là về — vì đó cách họ biết ai có vai tự nhiên trong đời.
 >
 > – Alokanand Diaz
 
 **John:**
 
-It seems like part of the issue is the dominant mode of interaction or expression we see out in the world, where roughly 70% of the population have a defined Sacral Center and are here to respond. Where it could feel unusual or unfamiliar for them to relate differently to Projectors. In other words, are the Generators expecting Projectors to respond like Generators?
+Dường như một phần vấn đề là mode thống trị tương tác hay biểu ta thấy ngoài thế giới — nơi roughly 70% dân số có Trung tâm Sacral định nghĩa và đến để phản hồi. Nơi có thể cảm lạ khi họ quan hệ khác với Projector. Nói cách khác — Generator có mong Projector phản hồi như Generator?
 
-I’m also concerned that any Generators reading this might feel like this paints a picture of them lacking awareness or intelligence. Or perhaps looking around at the Projectors in their life and not wanting their guidance. Which brings us back to the strategy of waiting to be invited. The Projector really can’t do anything until they’re recognized and invited. Initiating an interaction, seeking attention, and pushing their views on others all seem to be not-self manifestations.
+Tôi cũng lo các Generator đọc cái này cảm như nó vẽ hình họ thiếu nhận thức hay trí thông minh. Hay có lẽ nhìn quanh các Projector trong đời và không muốn hướng dẫn. Điều đó đưa về chiến lược đợi được mời. Projector thật sự không làm gì cho đến khi được nhận ra và mời. Khởi xướng tương tác — tìm chú ý — và ép quan điểm lên người dường như là biểu not-self.
 
-And in my view, there are a lot of not-self Projectors out there who should be more focused on deconditioning and living correctly than being concerned about guiding others. It’s hard to imagine that any Generator used to eating home-cooked organic meals would welcome fast-food and not-self bitterness in the form of guidance. But when the Projector has done their own work and deconditioning, and when their awareness and seeing are actually recognized and invited, then there is a potential for a very complimentary dynamic across the two Types.
+Và theo tôi — có nhiều Projector not-self ngoài kia nên tập trung giải điều kiện hóa và sống đúng hơn là lo hướng dẫn người. Khó imagine Generator quen ăn bữa nấu nhà hữu cơ sẽ welcome đồ ăn nhanh và cay đắng not-self dưới dạng hướng dẫn. Nhưng khi Projector đã làm việc riêng và giải điều kiện hóa — và khi nhận thức và sự thấy thật được nhận ra và mời — có tiềm năng động lực rất bổ sung giữa hai Type.
 
-> Of course, the Generator is here to be asked and the Projector is here to recognize what needs to be asked. Asking someone something is not telling them anything. This is one of the dilemmas for Projector consciousness. That is, how do you use a question to aid somebody? What is the right question for the Generator? What is the right thing that will allow them to respond with a certainty and an authority that is going to be mutually beneficial for the both, because there is a real—how can I put this? A Generator and a Projector have something special to offer each other. And that’s very important.
+> Tất nhiên — Generator đến để được hỏi và Projector đến để nhận ra thứ cần hỏi. Hỏi ai đó điều gì không phải nói họ điều gì. Đây là một cái khó với ý thức Projector. Tức — làm sao dùng câu hỏi giúp ai? Câu hỏi đúng với Generator là gì? Thứ đúng cho phép họ phản hồi với certainty và uy quyền mutually beneficial cho cả hai — vì có thật — để tôi nói sao? Generator và Projector có thứ đặc biệt offer nhau. Và điều đó rất quan trọng.
 >
 > – Ra Uru Hu
 
-This kind of situation may be rarer than we’d like to think in actuality. Where a Generator does truly see a Projector and opens themselves up to their guidance because they recognize the value of it. People and situations are often complicated and we have to look at each case or relationship on its own terms. But going back to the cross-Type protocols, if a Projector is being consistently put into a situation where they are trying to convince the other person of something, I just don’t see that working out very well.
+Loại tình huống này có thể hiếm hơn ta muốn nghĩ thực ra. Nơi Generator thật thấy Projector và mở mình với hướng dẫn vì nhận ra giá trị. Người và tình huống thường phức tạp và ta phải xem từng case hay quan hệ theo điều kiện riêng. Nhưng trở lại cross-Type protocol — nếu Projector luôn bị đặt vào tình huống cố thuyết phục người khác — tôi chỉ không thấy nó chạy tốt.
 
 **Amy:**
 
-No, it doesn’t work out well at all. And I think that may have been what Ra was pointing to in terms of the time we’re moving into. We might be seeing people feeling more and more comfortable and drawn into relationships with their own Type, in terms of where they’re going to spend the majority of their relationship time. And then that shifts the cross-Type dynamic to something that is more punctuated or serves a particular purpose, or perhaps it just happens less frequently.
+Không — nó không chạy tốt chút nào. Và tôi nghĩ đó có thể là thứ Ra chỉ về terms thời ta bước vào. Ta có thể thấy người càng thoải và bị hút vào quan hệ với type riêng — về nơi họ dành phần lớn thời gian quan hệ. Rồi nó shift động lực cross-Type thành thứ punctuated hơn hay phục mục đích particular — hay có lẽ chỉ xảy ra ít thường hơn.
 
 **John:**
 
-As opposed to being a product of conditioning and homogenization? Like “here’s how it works” without any real awareness of the other, what their gifts are, and how they’re designed to operate. The homogenizing influence of the program seems to shove these scripts and templates in our face saying “this is the way it is” and you should do this or not do this based on what works for others. And I think that has the potential of creating major issues in relationships.
+Thay vì là sản phẩm điều kiện hóa và homogenization? Như "cách nó chạy" mà không có nhận thức thật về người — món quà họ — và cách họ được thiết hoạt động. Ảnh hưởng homogenize của chương trình dường như dúi các kịch bản và mẫu vào mặt ta nói "cách nó là" và bạn nên làm cái này hay không làm dựa thứ chạy với người khác. Và tôi nghĩ điều đó có tiềm năng tạo vấn đề lớn trong quan hệ.
 
 **Amy:**
 
-Yes. I think if we can move into a more respectful and differentiated space we may see that these cross-Type interactions and relationships still happen, but in unique and specific ways like for a certain role or function within a certain period. Rather than it just being the way it is all of the time.
+Vâng. Tôi nghĩ nếu ta bước vào không gian tôn trọng và phân hóa hơn — ta có thấy các tương tác và quan hệ cross-Type vẫn xảy ra — nhưng theo cách unique và cụ thể như cho vai trò hay chức năng certain trong giai đoạn certain. Thay vì chỉ là cách nó luôn vậy.
 
-I think quite literally that’s what we’re seeing. Ra was saying with 2027 coming, the whole dynamic of the Penta and group dynamics are going to be changing. We’re coming out of an era where the most successful Penta had a Projector and a Generator at its core. And now that that family system dynamic is breaking down, the function of the way we relate in groups and relating across awareness is changing. I think that’s part of what we’re seeing.
+Tôi nghĩ chính xác đó thứ ta thấy. Ra nói 2027 đến — toàn bộ động lực Penta và động lực nhóm sẽ đổi. Ta đang ra khỏi kỷ nguyên nơi Penta thành công nhất có Projector và Generator ở lõi. Và giờ hệ gia đình đó break — chức năng cách ta quan hệ trong nhóm và quan hệ xuyên nhận thức đang đổi. Tôi nghĩ đó một phần thứ ta thấy.
 
-If you take away the Projector and Generator as the core of the Penta or the family unit, you don’t have the same necessity of having a Projector and a Generator living together all the time. We might be getting pulled to where it actually feels more natural for Generators to spend most of their time with Generators, and Projectors to spend most of the time with Projectors. So then we come together for specific purposes.
+Nếu ta lấy Projector và Generator ra khỏi lõi Penta hay đơn vị gia đình — ta không còn sự cần thiết phải có Projector và Generator sống cùng mọi lúc. Ta có thể bị kéo đến nơi thật tự nhiên hơn với Generator dành phần lớn thời gian với Generator — và Projector dành phần lớn với Projector. Rồi ta tụ vì mục đích cụ thể.
 
-> The Sacral being is the only being who knows how to work. They really know how to work. They’re here to work. They’re here to fill the life with productivity. The Projector is looking for a good life. They want the life. They’re not here for the work. The work is not something that is designed for them. They’re non-energy Types, after all. They’re looking for the quality of life. What the Projector can offer the Generator is a life. And what the Generator can teach the Projector is the value of work.
+> Sinh thể Sacral là sinh thể duy nhất biết làm việc. Họ thật biết làm việc. Họ đến để làm. Họ đến lấp đời với năng suất. Projector tìm đời tốt. Họ muốn đời. Họ không đến vì công việc. Công việc không phải thứ được thiết cho họ. Họ là Type không-năng-lượng — sau cùng. Họ tìm chất lượng đời. Projector offer Generator được gì là đời. Và Generator dạy Projector được gì là giá trị công việc.
 >
 > – Ra Uru Hu
 
-I’m not promoting this in any way, nor do I mean to say that we can’t have all kinds of fulfilling, interesting, and worthwhile relationships. But if you inquire into it in your own direct experience, what does it feel like energetically, what does it feel like for you in your body to be with someone of your own Type that you resonate with versus being with someone of a different Type who you also resonate with? Just to energetically and mechanically feel the difference.
+Tôi không promote điều này cách nào — và không nói ta không thể có các loại quan hệ tròn — thú vị — và đáng. Nhưng nếu bạn hỏi trong trải nghiệm trực tiếp — nó cảm thế nào về năng lượng — cảm thế nào với cơ thể khi ở với người cùng type bạn cộng hưởng so với ở với người type khác bạn cũng cộng hưởng? Chỉ để về năng lượng và cơ học cảm khác biệt.
 
-I think part of what Ra was pointing to is that there’s a certain kind of mechanical friction in cross-Type relationships. And if we’re spending the majority of our time in these relationships, what effect does that have on our bodies and psyche?
+Tôi nghĩ một phần Ra chỉ là có loại ma sát cơ học trong quan hệ cross-Type. Và nếu ta dành phần lớn thời gian các quan hệ này — nó tác động gì đến cơ thể và tâm lý?
 
-It seems like we’re getting pulled in a different way and it’s really fascinating to look at. If that’s the direction we’re going in, and we start to see more and more relationships happening within the same Type. And if the Strategy protocol doesn’t apply the same way, then what are those interactions like?
+Dường như ta bị kéo theo cách khác và thật fascinating xem. Nếu đó hướng ta đi — và ta bắt đầu thấy ngày càng nhiều quan hệ trong cùng type. Và nếu protocol Chiến lược không áp dụng cùng cách — các tương tác đó ra sao?
 
-If you have two Projectors who resonate with each other, there is automatic recognition there, right? It feels natural with the openness and the focus on the other and on the relationship.
+Nếu bạn có 2 Projector cộng hưởng — có nhận ra tự động phải? Nó cảm tự nhiên với sự mở và tập trung vào người và vào quan hệ.
 
 **John:**
 
-Right. And within Type, the mutual expectations for the other will probably be more in alignment. For example, with two Projectors it could be that we’re going to study, look at the world together, and just be. But for two Generators it might be based on doing things together (at risk of over-simplification).
+Đúng. Và trong type — kỳ vọng lẫn nhau có lẽ align hơn. Ví dụ — với 2 Projector có thể là ta sẽ học — xem thế giới cùng — và chỉ là. Nhưng với 2 Generator có thể dựa làm thứ cùng (đánh đổi cách đơn giản hóa).
 
-So yeah, the Type to Type relationships, Manifestors to Manifestors, Generators to Generators, Projectors to Projectors, and if there were more Reflectors out there, Reflectors to Reflectors. How interesting would it be to see Reflector to Reflector relationships?
+Nên vâng — quan hệ Type với Type — Manifestor với Manifestor — Generator với Generator — Projector với Projector — và nếu có nhiều Reflector hơn — Reflector với Reflector. Sẽ thú vị thế nào thấy quan hệ Reflector với Reflector?
 
-But what about these cross-Type relationships? What if we’re already in a cross-Type relationship or want to explore a relationship with a different Type? Is it a question of starting with the understanding that there is an energetic and auric mechanical difference between the two people and what works for one may not work for the other? And that if you’re a Generator wanting to engage with a Projector, then recognition and a more specific invitation can be helpful? Or, if you’re a Projector with a Generator, perhaps realizing that the Generator may be showing their love or care, by asking you to do things with them?
+Nhưng còn các quan hệ cross-Type? Nếu ta đã ở quan hệ cross-Type hay muốn khám phá quan hệ với type khác? Nó là câu hỏi bắt đầu với hiểu rằng có khác biệt cơ học năng lượng và aura giữa 2 người và thứ chạy với người này có thể không chạy người kia? Và nếu bạn là Generator muốn tham gia với Projector — nhận ra và lời mời cụ thể hơn có thể helpful? Hoặc — nếu bạn là Projector với Generator — có lẽ nhận ra Generator có thể đang cho thấy yêu hay quan tâm — qua hỏi bạn làm thứ cùng?
 
-> The Projector is here to be invited. And the Generator is here to respond. The relationship between the Generator and the Projector has to be initiated by the Generator. Yet, the Generator never knows if that’s correct. Think about that. So, the Generator invites the Projector out for lunch. The Projector says to the Generator: Are you interested in me? And the Generator goes: Uh-huh. Then you have something that’s working.
+> Projector đến để được mời. Và Generator đến để phản hồi. Quan hệ giữa Generator và Projector phải do Generator khởi. Nhưng Generator không bao giờ biết cái đó đúng không. Nghĩ về điều đó. Nên — Generator mời Projector đi ăn trưa. Projector nói với Generator: Bạn quan tâm tôi không? Generator nói: Uh-huh. Rồi bạn có thứ vận hành.
 >
 > – Ra Uru Hu
 
 **Amy:**
 
-Yeah. I think some of the things you’re naming are strategies that some people may be able to employ. But I think that a lot of that may just be our mind trying to get what it thinks it wants in life. The best we can do is probably to be as embodied and aware of our own inner authority, our own inner truth, and communicate that to each other as clearly, and honestly as possible. I think the core of it is communication.
+Ừ. Tôi nghĩ vài thứ bạn nêu là chiến lược vài người có thể dùng. Nhưng tôi nghĩ nhiều cái đó chỉ là tâm trí cố lấy thứ nó nghĩ muốn. Cái tốt nhất ta có thể làm có lẽ là thân thể-hóa hết mức và ý thức uy quyền nội — sự thật nội — và truyền điều đó với nhau rõ và chân nhất. Tôi nghĩ lõi là giao tiếp.
 
-You’re not going to be able to negotiate around the truth of a Generator’s response, no matter how much a Generator loves you. If you’re a Projector and the Generator’s response to doing something with you or for you is “no” – then it’s just, no. Even if it may seem very personal, it may not be a reflection of whether or not they love or care about you, but rather their body’s correct response to whatever is put in front of them.
+Bạn sẽ không negotiate quanh sự thật phản hồi Generator — dù Generator yêu bạn nhiều. Nếu bạn Projector và phản hồi Generator với việc cùng bạn hay cho bạn là "không" — thì chỉ là không. Dù có vẻ rất cá nhân — nó có thể không phản chiếu họ yêu hay quan tâm bạn — mà là phản hồi đúng cơ thể với thứ đặt trước.
 
-If you are going to support a Generator in being what they are, you’ve got to support their response and the truth of it. So I don’t know that there’s any strategy for how to hold these things together. I’m not advocating for breaking relationships up, but I think the best we have is to be as honest, real, and communicative as we can. And then we can be creative about how we interact. And it might not look like what we think is normal and it might not look the way we thought things were supposed to be.
+Nếu bạn muốn hỗ trợ Generator là thứ họ — bạn phải hỗ trợ phản hồi và sự thật của nó. Nên tôi không biết có chiến lược nào giữ các thứ cùng. Tôi không chủ trương chia tay — nhưng tôi nghĩ cái tốt nhất ta có là chân — thật — và communicate hết mức. Rồi ta có thể creative về cách tương tác. Và nó có thể không trông như ta nghĩ bình thường — và có thể không như ta nghĩ thứ phải vậy.
 
 **John:**
 
-Right. So back to moving outside of the narratives and templates. That’s where creativity resides. And like you said, a lot of this is happening, from the point of view of Human Design, through the mutation in the global cycle changes. It seems like we’re all being carried into new ways of relating, regardless of whether we’re aware of it or not or whether we like it or not.
+Đúng. Nên trở lại ra ngoài narrative và template. Đó nơi creativity ở. Và như bạn nói — nhiều cái này xảy ra — từ góc Human Design — qua biến dị trong dịch chuyển cycle toàn cầu. Dường như ta đều bị cuốn vào cách quan hệ mới — dù ý thức hay không — dù thích hay không.
 
 **Amy:**
 
-Yes, but I think there’s a lot more freedom in this space. Being able to love and care about each other for what we are, rather than trying to hold ourselves to some kind of template. It takes courage and honesty to live this way. And it can be really hard to see the truth. None of this is meant to be used as an intellectual stance from which to make judgments about the relationships in our lives. Rather the Human Design Type awareness is meant to inform our experience of how to live together in the most functional and fulfilling way for everyone involved. We can only discover than in ourselves, interaction by interaction, relationship by relationship. It is the opportunity to explore how to live from a sense of truth in ourselves and honesty with each other.
+Vâng — nhưng tôi nghĩ có nhiều tự do hơn trong không gian này. Có thể yêu và quan tâm vì ta là — thay vì cố neo mình vào loại template. Nó đòi courage và chân để sống cách này. Và nó có thể thật khó thấy sự thật. Không cái này dùng làm lập trường trí-học để phán quan hệ đời. Thay vào đó ý thức Type Human Design dùng để cung cấp cho trải nghiệm cách sống cùng functional và tròn nhất cho mọi người liên hệ. Ta chỉ khám phá trong mình — tương tác này đến tương tác — quan hệ này đến quan hệ. Đó là cơ hội khám phá cách sống từ sense sự thật trong mình và chân với nhau.
 
-> But it’s one of the things to understand that there is a protocol in the way in which these relationships work. And just as there has to be conformation between Generator and Generator, there has to be a very complex protocol between the Generator and the Projector. I think the term that’s used is genuflection. The ancient shah in Persia — if you were going to be an emissary from another place, another tribe, and you were wanting to have an audience with shah, you would have to train for three months to learn all the different things you would have to do as you approached him, the bending down, the curtsy, and the words you had to say, this and that, and this gesture and that gesture and the other thing. It’s like watching these nature television shows and you get to see a couple of creatures doing their mating dance.
+> Nhưng là một trong các thứ cần hiểu rằng có protocol trong cách các quan hệ này chạy. Và cũng như phải có conformation giữa Generator và Generator — phải có protocol rất phức tạp giữa Generator và Projector. Tôi nghĩ thuật ngữ dùng là genuflection. Shah cổ ở Ba Tư — nếu bạn là sứ giả từ nơi khác — bộ lạc khác — và muốn yết kiến shah — bạn phải tập 3 tháng học mọi thứ phải làm khi đến gần — cái cúi — cái chào vái — và các lời phải nói — cái này cái kia — và cử chỉ này cử chỉ kia và thứ khác. Như xem các chương trình thiên nhiên trên TV và thấy vài sinh vật làm điệu nhảy giao phối.
 >
-> What I want to really make clear—I’m using the technical language of protocol, but there is this bonding protocol that is necessary between Types. What it leads to is the ability through their Authority to confirm that they’re in the right kind of relationship. Again, I’m not just referring to whether this is going to be a lover or a friend or a business associate. As a matter of fact, the Generator/Projector business relationship is one that can be enormously beneficial. But again, it goes back to the protocol.
+> Điều tôi muốn làm rõ — tôi dùng ngôn ngữ kỹ thuật của protocol — nhưng có loại bonding protocol cần giữa Type. Nó dẫn đến năng lực qua Uy quyền xác nhận họ ở đúng loại quan hệ. Lại — tôi không chỉ nói đây là lover hay bạn hay đối tác kinh doanh. Thực tế — quan hệ kinh doanh Generator/Projector là thứ cực beneficial. Nhưng lại — nó trở về protocol.
 >
 > – Ra Uru Hu
