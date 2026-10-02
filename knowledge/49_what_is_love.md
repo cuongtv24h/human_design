@@ -17,7 +17,7 @@ Nếu tôi mời Generator Sacral đi sự kiện với tôi và phản hồi l�
 
 Tôi có thể cãi phản hồi đó. Tôi có thể trách người đó vì không yêu tôi đủ để nhường chỗ cho tôi. Tôi có thể cố ép, làm shame, guilt, hay lý luận với người đó để thuyết phục họ bỏ qua phản hồi thuần và đi với tôi bất chấp.
 
-Nếu tôi thành công, chuyến đi đó sẽ ra sao? Bạn đã bao giờ kéo một Generator ra khỏi phản hồi thật chưa? Tôi đã. Nó khá bừa bộn và thường khổ sở đến cùng. Không có loại phản hồi built-in đó, và với đói năng lượng, công nhận, và quan hệ one-on-one, nhiều Projector có xu hướng tự thỏa hiệp rất nhiều và trở nên cay đắng nếu người khác không làm tương tự.
+Nếu tôi thành công, chuyến đi đó sẽ ra sao? Bạn đã bao giờ kéo một Generator ra khỏi phản hồi thật chưa? Tôi đã. Nó khá bừa bộn và thường khổ sở đến cùng. Không có loại phản hồi có sẵn đó, và với đói năng lượng, công nhận, và quan hệ trực tiếp1-1, nhiều Projector có xu hướng tự thỏa hiệp rất nhiều và trở nên cay đắng nếu người khác không làm tương tự.
 
 Bạn đã đồng ý thứ cảm sai với mình hay tự thỏa hiệp bằng cách đến nơi bạn biết mình không thuộc để cố làm người khác vui hay giữ họ trong đời? Nhiều chuyện xảy ra trong quan hệ không cá nhân. Ra nói: "**Nếu bạn cho phép người ta là họ và họ cho phép bạn là bạn, thì đó là Tình yêu. Mọi thứ khác là tra tấn.**"
 
