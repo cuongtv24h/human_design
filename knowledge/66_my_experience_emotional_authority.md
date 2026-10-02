@@ -1,49 +1,50 @@
-# My Experience With Emotional Authority
+# Trải nghiệm của tôi với Uy quyền Cảm xúc (My Experience With Emotional Authority)
 
 > **Nguồn:** Human Design Collective — Daisy DeBoevere, 07/09/2023.
 > URL: https://humandesigncollective.com/my-experience-with-emotional-authority/
-> Crawl: 2026-09-29 — toàn văn bài gốc (giữ credit tác giả), dùng nội bộ cho kho tri thức.
+> Crawl: 2026-09-29 — bản gốc tiếng Anh lưu tại `knowledge/ref_en/66_my_experience_emotional_authority.md`.
+> Bản dịch tiếng Việt: giữ nguyên cấu trúc & credit tác giả, thuật ngữ chuyên môn giữ song ngữ.
 
-About 50% of the world’s population has Emotional Authority or Solar Plexus Authority. And so have I.
+Khoảng50% dân số thế giới có Uy quyền Cảm xúc hay Uy quyền Solar Plexus. Và tôi cũng vậy.
 
-When we want to make correct decisions, there is no truth in the now. We are always on an emotional wave (which is unique for each of us). We need to ride that wave so that clarity may arise spontaneously with time and patience.
+Khi muốn ra quyết định chính xác, không có sự thật trong hiện tại. Ta luôn trên sóng cảm xúc (riêng với mỗi người). Ta cần cưỡi sóng đó để sự rõ có thể tự nhiên nổi lên theo thời gian và kiên nhẫn.
 
-By getting up close and personal with our emotional wave, we learn to discern what clarity is and when we are still on a “high” or “low” in our wave. Clarity feels more neutral, like arriving in calm water where the decision has lost its emotional charge.
+Bằng cách ở gần và thân với sóng cảm xúc, ta học phân biệt sự rõ là gì và khi ta vẫn trên "cao" hay "thấp" của sóng. Sự rõ cảm trung lập hơn — như đến vùng nước bình yên nơi quyết định đã mất charge cảm xúc.
 
-When I feel nervous, I know I’m not in a state of clarity (yet). It feels like a nervous belly or stomach in my case (everyone will probably describe it differently), telling me that the timing is off to make a decision or take action. There’s a hesitation, and at the beginning, it can be very subtle and easily overlooked.
+Khi tôi cảm hồi hộp, tôi biết mình (chưa) ở trạng thái sự rõ. Với tôi nó cảm như bụng hay dạ dày hồi hộp (mỗi người sẽ mô tả khác), nói tôi timing chưa đúng để ra quyết định hay hành động. Có do dự, và lúc đầu nó rất tinh tế dễ bỏ qua.
 
-Through some years of experimentation with this Authority, I noticed that I am much more attuned to that sensation of nervousness now, while before, I often didn’t know what to feel or how it felt to have clarity or not.
+Qua vài năm thực nghiệm với Uy quyền này, tôi để ý mình hòa hợp với cảm giác hồi hộp đó hơn nhiều, trong khi trước, tôi thường không biết cảm gì hay cảm thế nào là có sự rõ hay không.
 
-In the beginning, I didn’t really notice more subtle feelings of nervousness. It needed to be quite strong before I started listening. I also wasn’t really attuned to my body. I was fearful of feeling my emotions.
+Đầu tiên, tôi thực sự không để ý các cảm hồi hộp tinh tế hơn. Nó phải khá mạnh trước khi tôi bắt đầu lắng nghe. Tôi cũng không thật hòa hợp cơ thể. Tôi sợ cảm cảm xúc.
 
-There were days when I woke up in the morning with feelings of melancholy and I would know I was in a “low.” And there were times when I experienced tremendous excitement — I could often hear it in the tone of my voice when speaking to someone — and then I knew I was on a “high.”
+Có ngày tôi thức sáng với cảm u sầu và biết mình đang "thấp." Và có lúc trải excite lớn — tôi often nghe trong giọng khi nói chuyện — rồi tôi biết mình trên "cao."
 
-But often, I wasn’t really sure about where I was on that emotional wave. Sometimes the only way to know if there was clarity or not was to wait until I woke up the next day and then compare it to the day before: “Hey, yesterday I wanted to do this, but today I feel different about it. Interesting…” And then I waited another day and often, it would feel different again.
+Nhưng thường, tôi không chắc mình ở đâu trên sóng. Đôi khi cách duy nhất biết có sự rõ hay không là chờ đến khi thức ngày hôm sau và so với ngày hôm trước: "Ê, hôm qua tôi muốn làm điều này, nhưng hôm nay tôi cảm khác. Thú vị…" Rồi tôi chờ thêm ngày và thường, sẽ cảm khác nữa.
 
-With time, I would notice that my wave flattened out, and I would experience something like “calmer waters.” Clarity arrived, but it’s not 100% clarity or certainty, but enough clarity to help me relax and accept the consequences of my decision. A kind of calm “readiness” if you will.
+Theo thời gian, tôi để ý sóng phẳng ra, và trải thứ như "nước êm hơn." Sự rõ đến, nhưng nó không100% sự rõ hay chắc chắn, mà đủ sự rõ giúp tôi thư giãn và chấp nhận hậu quả quyết định. Loại "sẵn sàng" bình yên nếu muốn.
 
-These days, I can feel more subtle feelings of nervousness. That nagging, insecure, wobbly feeling in my stomach. It feels like there’s a slight hesitation, and I need to go through something first, even though my mind has set its mind on something or I feel the pressure to act.
+Dạo này, tôi cảm các cảm hồi hộp tinh tế hơn. Cảm cứ rứt, bất an, lắc léo trong bụng. Cảm như có chút do dự, và tôi cần đi qua thứ gì trước, dù tâm trí đã quyết hay tôi cảm áp lực hành động.
 
-That slight nervousness now stops me in my tracks, without me having to know exactly what is going on. It’s not a mental anguish or a lack of self-confidence, nor is it perfectionism; it’s just a nervousness telling me that the timing isn’t quite right. And that’s what I’ve come to honor through this experiment.
+Cảm hồi hộp nhỏ đó giờ dừng tôi lại, mà không cần biết chính xác chuyện gì. Nó không phải đau khổ tâm trí hay thiếu tự tin, cũng không phải chủ nghĩa hoàn hảo; nó chỉ là hồi hộp nói timing chưa hẳn đúng. Và đó là thứ tôi đến tôn trọng qua thực nghiệm.
 
-It gives me peace of mind to know that I can trust that nervousness. But it was a process of years of learning to let go of the stories and rulership of the mind. I needed to learn to reconnect with my body again. I had this deep fear of inhabiting my body, fear of what I might feel, fear of old and icky emotional stuff stored in my body that could come to the surface again. I needed to be ready to feel again and be in my body, be with the experience of feeling, even when it’s very uncomfortable, scary, or almost unbearable. I had to ease into that process, little by little.
+Nó cho tôi yên tâm khi biết tôi có thể tin hồi hộp. Nhưng đó là quá trình nhiều năm học buông các câu chuyện và sự cai trị của tâm trí. Tôi cần học kết nối lại cơ thể. Tôi có sợ sâu việc cư ngụ cơ thể, sợ thứ có thể cảm, sợ các thứ cảm xúc cũ và dơ bẩn lưu trong cơ thể có thể nổi lại. Tôi cần sẵn sàng cảm lại và ở trong cơ thể, ở với trải nghiệm cảm — dù rất khó chịu, sợ, hay gần không chịu được. Tôi phải từ từ vào quá trình đó.
 
-_A great book that helped me is “The Path is Everywhere” by [Matt Licata](https://mattlicataphd.com/) and the beautiful writings/poems by [Jeff Foster](https://www.lifewithoutacentre.com/), as well as Somatic Experiencing and Trauma Therapy._
+_Một cuốn sách giúp tôi là "The Path is Everywhere" của [Matt Licata](https://mattlicataphd.com/) và các bài viết/thơ đẹp của [Jeff Foster](https://www.lifewithoutacentre.com/), cùng Somatic Experiencing và Trauma Therapy._
 
-In the beginning, I learned that Emotional Authority is about the “bigger” decisions in life. But how do I know if a decision is “big enough?” And what about the smaller decisions of everyday life? I always tried to mentally figure that out and became ever more confused.
+Đầu tiên, tôi học Uy quyền Cảm xúc về các quyết định "lớn" trong đời. Nhưng làm sao biết quyết định "đủ lớn"? Thế còn các quyết định nhỏ đời thường? Tôi luôn cố hiểu bằng tâm trí và càng bối rối.
 
-But since I became much more aware of the nervousness, I now notice that all those questions have become superfluous.
+Nhưng từ khi tôi ý thức hồi hộp hơn nhiều, giờ tôi để ý các câu đó trở nên thừa.
 
-If I feel nervous, if that gnawing feeling arises in my stomach and there’s even the slightest hesitation, then there is no clarity, no matter what decision I am making, big or small. Nervousness simply means: waiting.
+Nếu tôi cảm hồi hộp, nếu cảm rứt nổi trong bụng và dù chỉ chút do dự, thì không có sự rõ, bất kể quyết định gì — lớn hay nhỏ. Hồi hộp đơn giản nghĩa: chờ.
 
-Of course, it takes a lot of practice and awareness in the beginning. So, it’s safer to say: with every big decision like moving to a new place, entering a new relationship, changing jobs, etc., sleep on it and see how you feel tomorrow, just to be sure. Take your time. Take as much time as feels comfortable and then, wait a little longer if you can.
+Dĩ nhiên, lúc đầu đòi nhiều thực hành và nhận thức. Nên, an toàn hơn nói: với mọi quyết định lớn như chuyển chỗ, vào quan hệ mới, đổi việc, etc., hãy ngủ một đêm và xem cảm gì ngày mai, để chắc. Dành thời gian. Dành thoải mái nhất có thể rồi, chờ thêm nếu được.
 
-And with the smaller decisions, like “what to eat for lunch,” the impact usually isn’t big enough to derail your life.
+Và với các quyết định nhỏ, như "trưa ăn gì," ảnh hưởng thường không đủ lớn để làm trật đời.
 
-The nervousness (or lack thereof) tells me everything I need to know at any given moment. But it’s been a process of years, in which I went from only being able to feel extremes to becoming aware of more subtle sensations of nervousness. I truly had to use “sleep on it” as a mantra at the beginning. I needed to become aware of my unique emotional wave first and get comfortable with both the emotions and the waiting.
+Hồi hộp (hoặc thiếu nó) cho tôi mọi thứ cần biết ở bất kỳ khoảnh khắc nào. Nhưng đó là quá trình nhiều năm, nơi tôi đi từ chỉ cảm được cực đại đến ý thức hồi hộp tinh tế hơn. Tôi thực sự phải dùng "ngủ một đêm" như câu thần chú lúc đầu. Tôi cần ý thức sóng cảm xúc riêng trước và thoải mái với cả cảm xúc và chờ.
 
-And now, that process has evolved into simply sensing nervousness or not, however subtle it may be. As a result, I am no longer so intensely focused on my emotions or where I am on my emotional wave or label everything I feel. I just let it be, allow myself to feel whatever comes up, and know that those emotions are transient and temporary and that I don’t have to figure them out mentally. Clarity comes when it comes and it is what it is (I have a t-shirt with that last saying).
+Và giờ, quá trình tiến hóa thành chỉ cảm hồi hộp hay không, dù tinh tế thế nào. Kết quả, tôi không còn tập trung mãnh liệt vào cảm xúc hay mình ở đâu trên sóng hay dán nhãn mọi thứ cảm. Tôi chỉ để nó, cho phép mình cảm thứ nổi lên, và biết các cảm xúc đó tạm và nhất thời và tôi không cần hiểu cho ra bằng tâm trí. Sự rõ đến khi đến và nó là gì thì là (Tôi có cái áo phông với câu cuối).
 
-It is a process that we cannot rush or manipulate. It has its own timing. We have to accept that clarity takes time. But it’s worth it, in my opinion. It’s worth the wait and the patience and the “feeling the feelings.” I’m actually deeply grateful for what this experiment has brought me so far.
+Nó là quá trình không thể vội hay thao túng. Nó có timing riêng. Ta phải chấp nhận sự rõ mất thời gian. Nhưng nó đáng, theo tôi. Đáng chờ và kiên nhẫn và "cảm các cảm." Tôi thực sự biết ơn sâu những gì thực nghiệm này mang đến đến nay.
 
-_Daisy can be reached for consultations, sessions, and guidance at_ [www.daisydeboevere.be](https://www.daisydeboevere.be/)
+_Daisy có thể liên hệ cho tư vấn, phiên, và hướng dẫn tại_ [www.daisydeboevere.be](https://www.daisydeboevere.be/)
