@@ -73,7 +73,7 @@ Hiệu ứng thỏa thuận là cho tôi quản lý thời gian và năng lượ
 
 ### Vật chất Tâm linh
 
-Có vẻ có [ego-học-tâm-trí](https://humandesigncollective.com/2020/01/do-you-really-really-want-what-you-think-you-really-want/) nào đó khi tưởng nó biết tốt hơn cơ thể và chính cuộc sống — chuyện nên thế nào và gì đúng với ta. Ta có thể đạt vài thứ ta tưởng muốn với nhiều nỗ lực, nhưng chúng thực sự đáng giá cái giá năng lượng và thể xác cuối cùng? Sự thật có thể là ta không biết đời có thể ra sao nếu không ngừng cố ép nó thành thứ khác.
+Có vẻ có [sự hợm mình của tâm trí](https://humandesigncollective.com/2020/01/do-you-really-really-want-what-you-think-you-really-want/) nào đó khi tưởng nó biết tốt hơn cơ thể và chính cuộc sống — chuyện nên thế nào và gì đúng với ta. Ta có thể đạt vài thứ ta tưởng muốn với nhiều nỗ lực, nhưng chúng thực sự đáng giá cái giá năng lượng và thể xác cuối cùng? Sự thật có thể là ta không biết đời có thể ra sao nếu không ngừng cố ép nó thành thứ khác.
 
 > "Không có Projector nửa vời."
 >
