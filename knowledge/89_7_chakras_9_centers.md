@@ -1,105 +1,106 @@
-# The 7 Chakras and the 9 Centers
+# 7 Chakra và 9 Trung tâm (The 7 Chakras and the 9 Centers)
 
 > **Nguồn:** Human Design Collective — John Cole, 11/08/2019.
 > URL: https://humandesigncollective.com/the-7-chakras-and-the-9-centers/
-> Crawl: 2026-09-29 — toàn văn bài gốc (giữ credit tác giả), dùng nội bộ cho kho tri thức.
+> Crawl: 2026-09-29 — bản gốc tiếng Anh lưu tại `knowledge/ref_en/89_7_chakras_9_centers.md`.
+> Bản dịch tiếng Việt: giữ nguyên cấu trúc & credit tác giả, thuật ngữ chuyên môn giữ song ngữ.
 
-Most people today who are involved in a spiritual practice or tradition are at least generally familiar with the “7 Chakra” system. It is very common to hear modern-day yogis and meditators speak about it as practice or a way of attuning to and working with one’s subtle energy body.
+Phần lớn người hôm nay involved thực hành hay truyền thống tâm linh đều at least generally quen hệ "7 Chakra". Rất thường nghe yogi và người thiền hiện đại nói về nó như thực hành hay cách hòa hợp và làm việc với năng lượng vi tế cơ thể.
 
-There are differing scholastic views on the true origins of the chakra system, but according to most agreed-upon sources, the classical concept of the “chakras” (or cakra, as the “c” is pronounced as “ch”) dates back to the Hindu-Brahmin oral tradition of Vedas approximately 1,500 to 500 B.C. The original meaning of the word “chakra” was a spinning disk or wheel, referring to the wheels of the rulers called “cakravartins”. The word was apparently a metaphor for the sun which traverses the world like the triumphant chariot of a “cakravartin” and denotes the eternal wheel of time called the “kalacakra” representing celestial order and balance.
+Có quan điểm học thuật khác nhau về nguồn gốc thật hệ chakra — nhưng theo phần lớn nguồn đồng thuận — khái niệm cổ "chakras" (hoặc cakra — vì "c" phát âm là "ch") có từ truyền thống oral Hindu-Brahmin của Vedas khoảng 1.500 đến 500 trước Công nguyên. Ý nghĩa gốc từ "chakra" là đĩa hay bánh xe quay — chỉ các bánh xe của các trị vì gọi "cakravartins". Từ này rõ ràng là ẩn dụ cho mặt trời đi qua thế giới như xe thắng của "cakravartins" — và biểu wheel vĩnh cửu của thời gian gọi "kalacakra" đại diện trật tự và cân bằng thiên thể.
 
-![](https://humandesigncollective.com/wp-content/uploads/2019/07/7-chakras-400x316.png)The 7 Chakra System
+![](https://humandesigncollective.com/wp-content/uploads/2019/07/7-chakras-400x316.png)Hệ 7 Chakra
 
-In the context of the human body, a chakra is often described as a disk of energy that runs along the spine with there being seven main chakras along the spine. From what I could gather in my research, there are actually numerous references in the classical Hindu scriptures of other variations of this chakra model. For example, there are mentions of multiple chakra models including those with 5, 6, 7, 12, and 16 chakras. While it would certainly be fascinating to explore these origins in more depth, that is beyond the scope of this article and my field of expertise. So for the purposes here, I will be focusing on what I have seen in my personal experience and the modern understanding and use of this model.
+Trong bối cảnh cơ thể con người — chakra thường được mô tả như đĩa năng lượng chạy dọc cột sống với 7 chakra chính dọc cột sống. Từ nghiên cứu — thực ra có numerous tham chiếu trong kinh Hindu cổ về các biến thể khác của mô hình chakra. Ví dụ — có nhắc đến nhiều mô hình chakra gồm loại 5 —6 —7 —12 — và 16 chakra. Mặc dù chắc chắn thú vị khi khám phá nguồn gốc sâu hơn — điều đó ngoài phạm vi bài này và lĩnh vực chuyên môn. Nên cho mục đích ở đây — tôi sẽ tập trung thứ thấy trong trải nghiệm cá nhân và hiểu hiện đại và dùng mô hình này.
 
-In our present-day Western spiritual culture, each chakra is said to be associated with a particular function of our human experience. For example, the 5th or Throat Chakra is related to our ability to communicate and speak our truth, while the 3rd or Solar Plexus Chakra is related to our personal will and ability to act. It is common to hear people talk about “aligning one’s chakras” and doing meditations using the chakra system as a way of releasing or working with the subtle energy body. But where does this 7-centered model fit into the evolution of the human species?
+Trong văn hóa tâm linh Tây phương hôm nay — mỗi chakra được cho liên hệ chức năng particular của trải nghiệm con người. Ví dụ — chakra thứ 5 hay Họng liên hệ năng lực truyền đạt và nói sự thật — trong khi chakra thứ 3 hay Solar Plexus liên hệ ý chí cá nhân và năng lực hành động. Common nghe người nói "hòa chakra" và làm thiền dùng hệ chakra như cách giải phóng hay làm năng lượng vi tế. Nhưng mô hình 7-trung-tâm này khớp đâu vào tiến hóa loài người?
 
-### The 9-Centered Being
+### Sinh thể 9-trung-tâm
 
-![9-Centered](https://humandesigncollective.com/wp-content/uploads/2019/07/Nine-Centers-400x400.png)The 9-Centered Human Design BodyGraph
+![9-Centered](https://humandesigncollective.com/wp-content/uploads/2019/07/Nine-Centers-400x400.png)BodyGraph Human Design 9-trung-tâm
 
-According to the Human Design knowledge given to Ra Uru Hu in a revelatory experience with what he referred to as the “Voice” in 1987, humans underwent a mutation to our physical form/body in 1781 coinciding with the discovery of the planet Uranus by W. Herschel. This mutation represented an evolutionary progression within our species from 7 to 9-centered beings. The process involved a complex internal reorganization of the human form, beyond just the simple addition of two energy centers, and was primarily a means of further developing the cognition of human consciousness.
+Theo kiến thức Human Design được Ra Uru Hu nhận trong trải nghiệm revelatory với thứ ông gọi là "Giọng nói" năm 1987 — con người trải biến dị hình/thể vật chất năm 1781 trùng phát hiện hành tinh Uranus bởi W. Herschel. Biến dị này biểu tượng tiến trình tiến hóa trong loài từ sinh thể 7-trung-tâm sang 9-trung-tâm. Quá trình gồm tái tổ chức nội bộ phức tạp hình người — vượt đơn giản thêm 2 trung tâm năng lượng — và chủ yếu là means phát triển further nhận thức ý thức con người.
 
-In Ra’s experience with the “Voice”, he was shown the underlying energetic mechanics of this new 9-centered form from which he developed the Human Design System as a way of mapping an almost infinite variety of human uniqueness. The 9-centered model as seen through the Human Design System describes the mechanics of each individual’s energetic system through the birth chart or BodyGraph. This provides us with a particular strategy and inner authority for navigating our movement through life. Furthermore, it offers a detailed understanding of how we can be influenced and conditioned by others and celestial forces.
+Trải nghiệm Ra với "Giọng nói" — ông được thấy cơ học năng lượng nền của hình 9-trung-tâm mới — từ đó ông phát triển Hệ thống Human Design như cách map gần như vô hạn biến thể độc đáo con người. Mô hình 9-trung-tâm thấy qua Hệ thống Human Design mô tả cơ học hệ năng lượng mỗi cá nhân qua bản đồ sinh hay BodyGraph. Nó cung cấp chiến lược particular và uy quyền nội cho điều hướng chuyển động qua đời. Hơn — nó đưa ra hiểu chi tiết cách ta bị ảnh hưởng và điều hóa bởi người và lực thiên thể.
 
-The mutation from 7-centered to 9-centered forms also signaled a shift into a new world where external forms of authority are less appropriate and acceptable for the development of humanity. Up until 1781, the dominant political and cultural models were authoritarian in nature, where monarchs, dictators, and clergy were our primary sources of truth. Around that time, we saw the American and French revolutions, each an overthrow of or rebellion against the forces wanting control of individuality and personal freedoms (all themes closely associated with the symbolism of the planet Uranus).
+Biến dị từ hình 7-trung-tâm sang 9-trung-tâm cũng báo hiệu dịch chuyển vào thế giới mới nơi hình thức uy quyền ngoài kém phù hợp và chấp nhận hơn cho phát triển nhân loại. Đến 1781 — mô hình chính trị và văn hóa thống trị mang tính độc tài — nơi quân chủ — độc tài — và giáo sĩ là nguồn sự thật chính. Khoảng đó — ta thấy cách mạng Mỹ và Pháp — mỗi cái lật đổ hay nổi dậy chống các lực muốn kiểm soát cá tính và tự do cá nhân (tất chủ đề liên hệ chặt biểu tượng hành tinh Uranus).
 
-As was communicated to Ra, the 7-centered bodies are Saturnian in nature and connected to the 29-year Saturn Return Cycle as a marker for the minimum age of healthy and mature human life. The 9-centered bodies, on the other hand, are Uranian in nature and connected to the 84-year Uranus Return cycle. With this mutation, we saw humans beginning to live much longer and becoming slower to develop and mature into the fullness of their lives.
+Như được truyền cho Ra — cơ thể 7-trung-tâm mang tính Thổ (Saturnian) và kết nối cycle Saturn Return 29 năm như dấu tuổi tối thiểu đời người lành và trưởng thành. Cơ thể 9-trung-tâm — mặt khác — mang tính Uranus và kết nối cycle Uranus Return 84 năm. Với biến dị — ta thấy con người bắt đầu sống lâu hơn và chậm phát triển và trưởng thành vào đầy đủ đời.
 
-We also saw a new type of human come into the world in 1781: the Projector. Up until that point in time, the leaders were Manifestors, the aforementioned monarchs, and dictators. The Projector type represented something different, an elected guide who through their being, presence, and field of expertise could, when invited, guide others in how to use their energy in the most efficient and satisfying way. We are still discovering more about this very diverse and unique subset of human energy types (Projectors represent about 22% of the population), as we are all still learning how to operate these new 9-centered vehicles.
+Ta cũng thấy type người mới vào thế giới năm 1781: Projector. Đến thời điểm đó — người lãnh đạo là Manifestor — các quân chủ nói trên — và độc tài. Type Projector biểu tượng thứ khác — người hướng được bầu — qua hiện diện — và field chuyên môn — khi được mời — hướng người dùng năng lượng hiệu quả và thỏa nhất. Chúng ta vẫn khám phá thêm về subset rất đa dạng và độc đáo này của loại năng lượng con người (Projector chiếm khoảng 22% dân số) — vì tất vẫn học cách vận hành xe 9-trung-tâm mới này.
 
-### The Evolution of Awareness
+### Tiến hóa Nhận thức
 
-Ra was shown how the potential for awareness evolved over time with each awareness center (Spleen, Ajna, and Solar Plexus) representing a different phase in evolution.
+Ra được thấy cách tiềm năng nhận thức tiến hóa theo thời gian với mỗi trung tâm nhận thức (Lách — Ajna — và Solar Plexus) đại diện giai đoạn khác trong tiến hóa.
 
-The following table outlines the progression of human evolution as seen through the three awareness centers:
+Bảng sau phác tiến trình tiến hóa con người thấy qua 3 trung tâm nhận thức:
 
-| Spleen | Instinctive/Animal Awareness | Began developing approx. 4,000,000 years ago |
-| Ajna | Self-Reflective  Consciousness | Began developing approx. 90,000 years ago |
-| Solar Plexus | Spirit Awareness | Began developing approx. 2,500 years ago |
+| Lách | Nhận thức Bản năng/Động vật | Bắt đầu phát triển khoảng 4.000.000 năm trước |
+| Ajna | Ý thức Tự-phản Chiếu | Bắt đầu phát triển khoảng 90.000 năm trước |
+| Solar Plexus | Nhận thức Tinh thần | Bắt đầu phát triển khoảng 2.500 năm trước |
 
-The Spleen is the oldest awareness center which we can see in our evolution from animals going back approximately 4 million years ago. This is the fundamental awareness that we share with all life forms including, plants, mammals, birds, and insects, guided by survival and existential awareness in the “now”.
+Lách là trung tâm nhận thức cũ nhất — ta thấy trong tiến hóa từ động vật quay lại khoảng 4 triệu năm trước. Đây là nhận thức nền ta chia sẻ với mọi hình thức sống gồm — thực vật — động vật có vú — chim — và côn trùng — được hướng bởi survival và nhận thức hiện sinh trong "bây giờ".
 
-The next major jump in the evolution of human awareness came approximately 90,000 years ago with the development of the Ajna and our conceptual mind-based awareness. This development of self-reflective consciousness was both the focus and the strength of the mutation into the 7-centered forms of the past.
+Nhảy lớn tiếp theo trong tiến hóa nhận thức con người đến khoảng 90.000 năm trước với phát triển Ajna và nhận thức dựa tâm trí khái niệm. Phát triển ý thức tự-phản chiếu này vừa là focus vừa là sức mạnh của biến dị vào hình 7-trung-tâm quá khứ.
 
-The emotional system has the ability to communicate on a deep level. We are not at that point of solar plexus development just yet. We feel emotions from others but it is still a fuzzy communication. The rave children who will be born after and around the year 2027 will literally be able to communicate through the solar plexus.
-
-– Ra Uru Hu
-
-Roughly 2,500 years ago, humanity began developing its potential for spirit awareness through a mutation to the Solar Plexus (or Emotional Center as it is also referred to in Human Design). Essentially, the motor/wave function of the Solar Plexus decreases as the Solar Plexus begins to more fully develop into a center of pure awareness. To facilitate this transformation, it is necessary that humanity respect the depth of intelligence and truth that is contained within the emotional process.
-
-More specifically, we first need to recognize that the Solar Plexus and the emotions operate in a wave-like pattern which by definition comes with distinct periods of highs and lows in our moods, feelings, desires, and experiences of life. At any point in the wave, we only have a moment of experiential data (not the complete picture), and therefore through patience and waiting for emotional clarity can we come to the truth of something as it relates to ourselves.
-
-### The Movement from Left to Right
-
-![](https://humandesigncollective.com/wp-content/uploads/2019/08/variable-germain-400x294.jpg)Left/Right Variable Chart by Mark Germain
-
-This development of cognition is also seen as an evolutionary movement from the Left to the Right. The Left and Right distinction is primarily used in Human Design to distinguish between _Active / Strategic / Focused_ (“Left”) and _Passive / Receptive / Peripheral_ (“Right”) in the context of fixing one’s Internal (dietary regimen) and External (environment) Determination, as well as one’s Perspective and Motivation.
-
-We can see this through the individual’s birth chart in what is referred to as “Variable”. Each Variable “family” represents a unique cognitive roadmap and orientation to life through the _yin/receptive_ (“Right”) and _yang/active_ (“Left”) principles. According to the Voice, the 7-centered beings (referred to as Cro-Magnons) were entirely Left, strategic by design, and guided by the Ajna as a conceptual/rational way of looking at and navigating life. While the previous 5-centered beings (referred to as Neanderthal) were entirely Right. Ra explains this evolutionary movement in terms of tonal fixing in our visual cortex in his publication, _From The Right_:
-
-The Left is rooted in the splenic binary. It is rooted in the most basic survival binary and the outer vision in the 3rd Tone in terms of the end of the process for the Left. It has nothing to do with the potential of what Right cognition is, which begins with a transformation in the visual cortex. It is in the visual cortex that the real mutation took place in 1781. In that mutation, those who are Left have a visual cortex that maintains the seven-centered phenomena. That is, the binocular vision used to focus and frame strategy, to be able to see things, to be able to focus on them, to be able to put them in their place, to be able to store that information, and to be able to develop strategic possibilities relative to what they see. But from the moment we entered into 1781, from the moment that mutation began, there was a mutation that took place in the visual cortex. And that mutation in the visual cortex opened up with what is the 4th Tone, the first of the Right Tones, and this first of the Right Tones is all about inner vision. Now, inner vision is so incredibly different, so diametrically different from outer vision.Ra Uru Hu
-
-![](https://humandesigncollective.com/wp-content/uploads/2019/07/Variable-Grid-400x300.jpg)Variable Grid showing the evolutionary movement from Left to Right
-
-The 7-centered humans dominated the world for tens of thousands of years until 1781 and the emergence of our 9-centered form. So much of what we still see in our world (history, moralities, philosophies) appears to be dominated by the Leftness of strategic organization and thinking. Yet, here we are in a 9-centered form which Ra referred to as “Homosapiens In Transitus”, an interregnum or transitional species that is neither Right nor Left, but a combination of both in the current process of evolution from all-Left to all-Right.
-
-To be sure, the movement towards Right is not a return to the older 5-centered form, but a higher and more sophisticated development of receptive awareness on a higher ring or octave of a spiral.
-
-### 2027 and the Global Cycles
-
-There is one more important aspect of this view of evolution to consider, the global background frequencies that our species is operating in at any given time in our history. This knowledge is presented as the “Global Cycles” in Human Design, which is connected to the changing planetary frequencies as related to the Precession of the Equinoxes (the observable phenomena of the rotation of the heavens, a cycle which spans approximately 25,920 years).
-
-For approximately the last 400 years humanity has been in a background frequency called the Cross of Planning. This is the cosmic influence that allowed for the focused development of skills and patterns resulting in the scientific, technological, and medical advancements of the last several hundred years. The Cross of Planning also allowed for the flourishing of a wide range of tribal organizations and institutions in the form of governments, religious organizations, and the latest form of tribalism, corporate entities. Some would like to solely credit human ingenuity and drive to these achievements, but from the point of view of the cosmology of Human Design, all of this has happened because the background frequency of this Global Cycle supported it.
-
-The glue of the Cross of Planning has held together our lives for the last 400 years. But there will soon be no inherent need, drive, or purpose fulfilled through coming together to protect that way of life. This means we will basically end up with a breakdown in the way in which society is going to function. We’re not going to live in an age of innovation the way we know it. The age of innovation is now, and we’re in such an incredible place now that anything is possible for the next several years until 2027.Ra Uru Hu
-
-According to the knowledge given to Ra by the Voice, the year 2027 is a pivotal turning point in the passing of this Global Cycle; the Cross of Planning to the Cross of the Sleeping Phoenix. This shift represents a movement from the strategic, focused, and tribal communities towards individual empowerment and survival. It also brings in the aforementioned themes of developing spirit awareness and new forms of intimacy and connection. Anyone paying attention can already see these changes emerging in our world with the increasing lack of trust and faith in our institutions and “leaders”, new forms of relationships and sexuality, and so many people looking for a personal connection to truth and spirit.
-
-This is something where our experience of consciousness will be outside of our individual bodies and will not be our own consciousness, but it will be a consciousness that we are sharing with somebody else, or a group of people, or ultimately a planetary field.
+Hệ cảm xúc có năng lực truyền ở cấp sâu. Chúng ta chưa đến điểm phát triển Solar Plexus đó. Ta cảm cảm xúc từ người nhưng vẫn là truyền fuzzy. Các rave children sinh sau và quanh năm 2027 sẽ thực sự có thể truyền qua Solar Plexus.
 
 – Ra Uru Hu
 
-The Voice also told Ra that 2027 represents another jump in evolution and that some of the children born in the world at that time would be a new species of human called “Raves”. Ra said that they will probably appear to us as developmentally challenged in areas such as social and physical skills and are designed to operate most effectively in small groups, representing the first wave in the next mutation of our species.
+Khoảng 2.500 năm trước — nhân loại bắt đầu phát triển tiềm năng nhận thức tinh thần qua biến dị Solar Plexus (hay Trung tâm Cảm xúc như còn gọi trong Human Design). Về bản chất — chức năng motor/sóng Solar Plexus giảm khi Solar Plexus bắt đầu phát triển đầy hơn thành trung tâm nhận thức thuần. Để facilate chuyển đổi — cần nhân loại tôn trọng chiều sâu trí tuệ và sự thật chứa trong quá trình cảm xúc.
 
-This may sound like a plot to a sci-fi novel, but numerous examples of these changes can already be seen in our present-day culture. How all of this plays out remains to be seen, but it seems safe to say that we are living in fast-changing times where old forms appear to be dying and new forms of human expression are coming in.
+Cụ thể hơn — trước ta cần nhận ra Solar Plexus và cảm xúc hoạt động theo mẫu sóng — mà theo định nghĩa có các giai đoạn riêng biệt đỉnh và đáy trong tâm trạng — cảm xúc — muốn — và trải đời. Ở bất kỳ điểm nào trong sóng — ta chỉ có moment dữ liệu trải nghiệm (không phải toàn cảnh) — và do đó qua kiên nhẫn và đợi rõ cảm xúc ta mới đến sự thật thứ gì liên hệ ta.
 
-### Looking Forward
+### Chuyển động từ Trái sang Phải
 
-The 7-centered model can be compared to an old software program that is still running in our species even though we now have 9-centered hardware. The 7-centered form originally served the necessary purpose of bringing humanity into strategic and conceptual mind-based awareness as the manner in which we interface with life and manipulate the world.
+![](https://humandesigncollective.com/wp-content/uploads/2019/08/variable-germain-400x294.jpg)Biểu đồ Variable Trái/Phải của Mark Germain
 
-However, we might question whether the various 7-centered models (which include most of our educational, political, religious, and spiritual systems) and the strategic-minded thinking they encourage are sufficient to address the sophistication and complexities of our 9-centered forms. These models and approaches appear to be a limiting factor in our ability to truly live as ourselves, especially when we do not recognize the uniqueness of each individual and the value and intelligence of a receptive process.
+Phát triển nhận thức này cũng được xem như chuyển động tiến hóa từ Trái sang Phải. Phân biệt Trái và Phải chủ yếu dùng trong Human Design để phân _Hoạt động/Chiến lược/Tập trung_ ("Trái") và _Bị động/Thụ động/Ngoại vi_ ("Phải") trong bối cảnh fix Quyết định Nội (chế độ ăn) và Ngoại (môi trường) — cũng như Perspect và Động lực.
+
+Ta thấy điều này qua bản đồ sinh — thứ được gọi là "Variable". Mỗi "gia đình" Variable biểu lộ lộ trình nhận thức unique và hướng đời qua nguyên lý _âm/thụ_ ("Phải") và _dương/hoạt_ ("Trái"). Theo Giọng nói — sinh thể 7-trung-tâm (gọi là Cro-Magnons) hoàn toàn Trái — strategic by design — và được Ajna hướng như cách khái-niệm/lý-tính thấy và điều hướng đời. Trong khi sinh thể 5-trung-tâm trước (gọi là Neanderthal) hoàn toàn Phải. Ra giải thích chuyển động tiến hóa này theo fix tonal trong vỏ thị giác trong ấn phẩm _From The Right_:
+
+Phải bắt rễ trong nhị phân Lách. Nó bắt rễ trong nhị phân survival cơ bản nhất và thị giác ngoài ở Tone 3 về cuối quá trình cho Trái. Nó không liên quan gì tiềm năng nhận thức Phải — mà bắt đầu bằng chuyển đổi trong vỏ thị giác. Chính trong vỏ thị giác biến dị thật xảy ra năm 1781. Trong biến dị — người Trái có vỏ thị giác duy trì hiện tượng 7-trung-tâm. Tức — thị giác hai mắt dùng focus và frame strategy — để thấy thứ — để focus — để đặt đúng chỗ — để lưu thông tin — và để phát triển khả năng chiến lược tương ứng thứ thấy. Nhưng từ khoảnh khắc ta bước vào 1781 — từ khoảnh khắc biến dị bắt đầu — có biến dị xảy ra trong vỏ thị giác. Và biến dị vỏ thị giác mở ra với Tone 4 — Tone Phải đầu tiên — và Tone Phải đầu tiên về thị giác nội. Giờ — thị giác nội khác kinh ngạc — khác hoàn toàn với thị giác ngoài.Ra Uru Hu
+
+![](https://humandesigncollective.com/wp-content/uploads/2019/07/Variable-Grid-400x300.jpg)Variable Grid cho thấy chuyển động tiến hóa từ Trái sang Phải
+
+Người 7-trung-tâm thống trị thế giới hàng vạn năm đến 1781 và sự nổi của hình 9-trung-tâm. Nhiều thứ ta vẫn thấy trong thế giới (lịch sử — đạo đức — triết lý) dường như bị thống trị bởi tính Trái của tổ chức và tư duy chiến lược. Nhưng — ta ở đây trong hình 9-trung-tâm mà Ra gọi là "Homosapiens In Transitus" — loài trung gian hay chuyển tiếp không Phải không Trái — mà kết hợp cả hai trong quá trình tiến hóa hiện tại từ tất-Trái sang tất-Phải.
+
+Để chắc — chuyển động toward Phải không phải quay lại hình 5-trung-tâm cũ — mà phát triển cao hơn và tinh tế hơn nhận thức thụ trên vòng cao hay octave của xoắn.
+
+### 2027 và Cycle Toàn cầu
+
+Còn khía cạnh quan trọng khác của quan điểm tiến hóa cần cân — các tần số nền toàn cầu mà loài đang hoạt động trong bất kỳ lúc nào trong lịch sử. Kiến thức này được trình bày như "Cycle Toàn cầu" trong Human Design — kết nối các tần số hành tinh đổi liên hệ Sự tiến động Cực điểm (hiện tượng quan sát được của sự quay bầu trời — cycle khoảng 25.920 năm).
+
+Khoảng 400 năm gần đây — nhân loại ở tần số nền gọi Cross of Planning. Đó là ảnh hưởng vũ trụ cho phép phát triển tập trung kỹ năng và mẫu dẫn tới tiến bộ khoa học — công nghệ — và y tế hàng trăm năm qua. Cross of Planning cũng cho phép nở rộng loạt rộng tổ chức bộ lạc và institution dưới chính phủ — tổ chức tôn giáo — và hình thức bộ lạc mới nhất — thực thể doanh nghiệp. Vài người muốn chỉ ghi công sự sáng tạo và thúc người cho các thành tựu — nhưng từ góc vũ trụ học Human Design — tất xảy ra vì tần số nền của Cycle Toàn cầu support.
+
+Keo Cross of Planning đã giữ đời chúng ta 400 năm. Nhưng sớm sẽ không còn cần thiết nội tại — thúc — hay mục đích hoàn thành qua tụ họp bảo vệ cách sống đó. Nghĩa ta về cơ bản kết thúc với breakdown trong cách xã hội sẽ hoạt động. Ta sẽ không sống trong age innovation như ta biết. Age innovation đang là bây giờ — và ta ở nơi kinh ngạc đến mức bất kỳ gì có thể trong vài năm tới đến 2027.Ra Uru Hu
+
+Theo kiến thức Giọng nói truyền cho Ra — năm 2027 là bước ngoặt trong lúc Cycle Toàn cầu này đi qua; Cross of Planning sang Cross of Sleeping Phoenix. Dịch chuyển này biểu tượng chuyển động từ cộng đồng chiến lược — tập trung — và bộ lạc sang trao quyền cá nhân và survival. Nó cũng mang các chủ đề nói trên phát triển nhận thức tinh thần và hình thức thân mật và kết nối mới. Ai chú ý đã thấy các thay đổi nổi trong thế giới với mất tin vào institution và "lãnh đạo" — hình thức quan hệ và tính dục mới — và nhiều người tìm kết nối cá nhân với sự thật và tinh thần.
+
+Đây là thứ nơi trải nghiệm ý thức của ta sẽ ngoài cơ thể cá nhân và không phải ý thức riêng ta — mà sẽ là ý thức ta chia sẻ với ai — hay nhóm người — hay cuối cùng là trường hành tinh.
+
+– Ra Uru Hu
+
+Giọng nói cũng nói với Ra rằng 2027 biểu tượng nhảy tiếp trong tiến hóa và vài trẻ sinh trong thế giới lúc đó sẽ là loài người mới gọi "Raves". Ra nói chúng có vẻ với ta developmentally challenged trong lĩnh vực như kỹ năng xã hội và vật chất và được thiết hoạt động hiệu quả nhất trong nhóm nhỏ — biểu tượng làn sóng đầu trong biến dị tiếp theo của loài.
+
+Nghe như plot tiểu thuyết sci-fi — nhưng numerous ví dụ về các thay đổi này đã thấy trong văn hóa hôm nay. Cách tất unfold ra sao vẫn chờ xem — nhưng có vẻ an toàn nói ta sống trong thời đổi nhanh nơi hình cũ đang chết và hình mới biểu con người đang đến.
+
+### Nhìn tới
+
+Mô hình 7-trung-tâm có thể so với phần mềm cũ vẫn chạy trong loài dù giờ ta có phần cứng 9-trung-tâm. Hình 7-trung-tâm ban đầu phục mục đích cần đưa nhân loại vào nhận thức chiến lược và dựa tâm trí khái niệm như cách ta giao tiếp với đời và manipulate thế giới.
+
+Nhưng ta có thể hỏi các mô hình 7-trung-tâm khác nhau (gồm phần lớn hệ giáo dục — chính trị — tôn giáo — và tâm linh) và tư duy chiến lược chúng khuyến khích có đủ xử độ phức tạp của hình 9-trung-tâm. Các mô hình và cách tiếp cận này dường như là yếu tố giới hạn năng lực thật sống như mình — đặc biệt khi không nhận ra độc đáo mỗi cá nhân và giá trị và trí tuệ của quá trình thụ.
 
 ![](https://humandesigncollective.com/wp-content/uploads/2019/07/118-400x267.jpg)
 
-The 9-centered mode is form-consciousness based. In other words, it’s directing us back to the innate intelligence of our bodies as a means of navigating life and living as ourselves in the ever-changing and evolving collective. This new model is a distinct departure from what we were and maps the differentiated intelligence within each of us, designed to guide us in making decisions that are truly aligned with who we are and our purpose in the totality.
+Chế độ 9-trung-tâm dựa ý-thức-hình-thức. Nói cách khác — nó hướng ta về trí tuệ bẩm sinh cơ thể như cách điều hướng đời và sống như mình trong tập thể luôn đổi và tiến hóa. Mô hình mới là rời xa thứ ta từng là và map trí tuệ phân hóa trong mỗi ta — được thiết hướng ra quyết định thật hòa với ta là ai và mục đích trong toàn thể.
 
-Moreover, this movement into form-consciousness takes us into the realm of spirit and the next stage in our human evolution through the continuing mutation of the Solar Plexus. In the _Living Your Design Instructors Manual,_ Lynda Bunnell explains:
+Hơn — chuyển động vào ý thức-hình-thức đưa ta vào realm tinh thần và giai đoạn tiếp theo tiến hóa con người qua biến dị tiếp tục Solar Plexus. Trong _Living Your Design Instructors Manual_ — Lynda Bunnell giải thích:
 
-Spirit consciousness will be something very special as it evolves. Spirit consciousness is possible in the field where the emotional waves are in resonance, but as yet we have no idea what this will be like. We cannot imagine how it will feel to share a consciousness like this with someone. This Spirit consciousness will mature when we let go of allowing our mind to be in control and when people understand and accept who they really are. As long as human beings do not accept who they are, their mind will continue to run their life and not let go. Spirit consciousness is where our future lies, and we can help to plant the seed of understanding about the emotional system now. Our evolutionary step is about dealing with the Solar Plexus Center as both a powerful motor and an Awareness Center and understanding the way in which it operates and the impact it has on our lives. Lynda Bunnell
+Ý thức tinh thần sẽ là thứ rất đặc biệt khi tiến hóa. Ý thức tinh thần có thể trong trường nơi sóng cảm xúc cộng hưởng — nhưng chưa ta biết cảm giác nào. Ta không thể imagine cảm giác chia sẻ ý thức như vậy với ai. Ý thức tinh thần này sẽ trưởng thành khi ta buông để tâm trí kiểm soát và khi người hiểu và chấp nhận họ thật là ai. Chừng con người không chấp nhận họ là ai — tâm trí sẽ tiếp tục chạy đời và không buông. Ý thức tinh thần là nơi tương lai — và ta có thể giúp gieo hạt hiểu về hệ cảm xúc ngay bây giờ. Bước tiến hóa của ta về việc xử Trung tâm Solar Plexus như motor mạnh và Trung tâm Nhận thức và hiểu cách nó hoạt động và tác động đến đời. Lynda Bunnell
 
-Faced with millennia of cultural momentum and genetic history, it is easy to see why our attachment to and reliance on the mind is so strong, not only in our individual experience but as a collective. The awareness we’ve inherited from our 7-centered ancestors is a highly-developed mental capacity to focus on and manipulate the material world. This has given humanity a tremendous strategic advantage and the ability to dominate life on earth through the power of the conceptual mind. However, it has also disconnected us from the innate intelligence of our bodies as a means of coming to the truth of what is correct for us as individuals.
+Trước hàng thiên niên kỷ đà văn hóa và lịch sử gene — dễ thấy vì sao gắn kết và phụ thuộc tâm trí mạnh thế — không chỉ trải nghiệm cá nhân mà như tập thể. Nhận thức ta kế thừa từ tổ tiên 7-trung-tâm là năng lực tâm trí highly-developed để focus và manipulate vật chất. Điều đó cho nhân loại ưu thế chiến lược to lớn và năng lực thống trị sự sống trên Trái qua lực tâm trí khái-niệm. Nhưng nó cũng cắt ta khỏi trí tuệ bẩm sinh cơ thể như cách đến sự thật thứ đúng với ta như cá nhân.
 
-What does it mean to allow our body and its innate consciousness to become the driver? This is the “experiment” that the 9-centered model of Human Design offers us. A way of loosening the grip the mind has over our experience and allowing it to take its proper seat as a passenger watching the unfolding movie of our life and place in the cosmos.
+Nó nghĩa gì cho cơ thể và ý thức bẩm sinh trở thành người lái? Đây là "thí nghiệm" mô hình 9-trung-tâm Human Design mang đến cho ta. Cách nới lỏng nắm của tâm trí với trải nghiệm và cho nó đúng chỗ như hành khách xem phim unfold đời và chỗ trong vũ trụ.
 
-_(Thank you to Amy Lee for her significant contributions to this article)_
+_(Cảm ơn Amy Lee vì đóng góp lớn cho bài này)_
